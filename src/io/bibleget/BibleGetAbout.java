@@ -9,6 +9,7 @@ import static io.bibleget.BibleGetI18N.__;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,7 @@ public class BibleGetAbout extends javax.swing.JFrame {
     /**
      * Creates new form BibleGetAbout
      */
-    private BibleGetAbout() throws ClassNotFoundException {
+    private BibleGetAbout() throws ClassNotFoundException, UnsupportedEncodingException {
         //jTextPane does not initialize correctly, it causes a Null Exception Pointer
         //Following line keeps this from crashing the program
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
@@ -95,7 +96,7 @@ public class BibleGetAbout extends javax.swing.JFrame {
         initComponents();
     }
     
-    public static BibleGetAbout getInstance() throws ClassNotFoundException{
+    public static BibleGetAbout getInstance() throws ClassNotFoundException, UnsupportedEncodingException{
         if(instance ==  null){
             instance = new BibleGetAbout();
         }
@@ -263,10 +264,9 @@ public class BibleGetAbout extends javax.swing.JFrame {
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(BibleGetAbout.class.getName()).log(Level.SEVERE, null, ex);
             }
-            //initComponents();
             jLabel2.setText(MessageFormat.format(__("The BibleGet database currently supports {0} versions of the Bible in {1} different languages:"),versionCount,versionLangs));
             jLabel2.revalidate();
-            jLabel4.setText(MessageFormat.format(__("The BibleGet engine currently understands the names of the books of the Bible in {0} different languages:"),booksLangs));            
+            jLabel4.setText(MessageFormat.format(__("The BibleGet engine currently understands the names of the books of the Bible in {0} different languages:"),booksLangs));
             jLabel4.revalidate();
             jScrollPane2.setViewportView(jList1);
             jScrollPane2.revalidate();
@@ -355,7 +355,7 @@ public class BibleGetAbout extends javax.swing.JFrame {
             public void run() {
                 try {
                     new BibleGetAbout().setVisible(true);
-                } catch (ClassNotFoundException ex) {
+                } catch (ClassNotFoundException | UnsupportedEncodingException ex) {
                     Logger.getLogger(BibleGetAbout.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }

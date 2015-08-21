@@ -14,6 +14,7 @@ import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,7 +76,7 @@ public class BibleGetHelp extends javax.swing.JFrame {
     /**
      * Creates new form BibleGetHelp
      */
-    private BibleGetHelp() throws ClassNotFoundException {
+    private BibleGetHelp() throws ClassNotFoundException, UnsupportedEncodingException {
         //jTextPane does not initialize correctly, it causes a Null Exception Pointer
         //Following line keeps this from crashing the program
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
@@ -119,15 +120,18 @@ public class BibleGetHelp extends javax.swing.JFrame {
                 curLang = (bibleVersionsObj.getString(q) != null) ? BibleGetI18N.localizeLanguage(bibleVersionsObj.getString(q)).toUpperCase() : "";
                 buildStr = "";
                 for(int i=0;i<73;i++) {
+                    
                     String styleStr = "";
                     if(bibleVersionsObj.getString(q).equals("TAMIL") || bibleVersionsObj.getString(q).equals("KOREAN")) {
                         styleStr = " style=\"font-family:'Arial Unicode MS';\"";
                     }
+                    
                     JsonArray curBook = bibleBooksTemp.get(i);
                     JsonArray curBookCurLang = curBook.getJsonArray(q);
                     String str1 = (curBookCurLang.getString(0) != null) ? curBookCurLang.getString(0) : "";
                     String str2 = (curBookCurLang.getString(1) != null) ? curBookCurLang.getString(1) : "";
                     buildStr += "<tr><td"+styleStr+">"+str1+"</td><td"+styleStr+">"+str2+"</td></tr>";
+                    //buildStr += "<tr><td style=\"font-family:'Arial Unicode MS';\">"+str1+"</td><td style=\"font-family:'Arial Unicode MS';\">"+str2+"</td></tr>";
                 }
                 booksAndAbbreviations.put(curLang,buildStr);
             }
@@ -308,7 +312,7 @@ public class BibleGetHelp extends javax.swing.JFrame {
         initComponents();
     }
 
-    public static BibleGetHelp getInstance() throws ClassNotFoundException
+    public static BibleGetHelp getInstance() throws ClassNotFoundException, UnsupportedEncodingException
     {
         if(instance == null)
         {
@@ -388,7 +392,7 @@ public class BibleGetHelp extends javax.swing.JFrame {
     private void jTree1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTree1MouseClicked
         // TODO add your handling code here:
         int tp = jTree1.getRowForLocation(evt.getX(), evt.getY());
-        System.out.println(tp);
+        //System.out.println(tp);
         if (tp != -1 && tp < 4){
             switch(tp){
                 case 0: jTextPane2.setDocument(doc); jTextPane2.setText(HTMLStr0); jTextPane2.setCaretPosition(0); break;
@@ -396,7 +400,7 @@ public class BibleGetHelp extends javax.swing.JFrame {
                 case 2: jTextPane2.setDocument(doc); jTextPane2.setText(HTMLStr2); jTextPane2.setCaretPosition(0); break;
                 case 3: 
                     String curLang = Locale.getDefault().getDisplayLanguage().toUpperCase();
-                    System.out.println(curLang);
+                    //System.out.println(curLang);
                     jTextPane2.setDocument(doc); 
                     jTextPane2.setText(MessageFormat.format(HTMLStr3,booksAndAbbreviations.get(curLang),curLang)); 
                     jTextPane2.setCaretPosition(0); 
@@ -407,7 +411,7 @@ public class BibleGetHelp extends javax.swing.JFrame {
         else if(tp > 3){
             TreePath treePath = jTree1.getPathForLocation(evt.getX(), evt.getY());
             String curPath = treePath.getLastPathComponent().toString().toUpperCase(Locale.ENGLISH);
-            System.out.println(curPath);
+            //System.out.println(curPath);
             if(booksAndAbbreviations.get(curPath) != null) {
                 jTextPane2.setDocument(doc); 
                 jTextPane2.setText(MessageFormat.format(HTMLStr3,booksAndAbbreviations.get(curPath),curPath)); 
@@ -558,7 +562,7 @@ public class BibleGetHelp extends javax.swing.JFrame {
             public void run() {
                 try {
                     new BibleGetHelp().setVisible(true);
-                } catch (ClassNotFoundException ex) {
+                } catch (ClassNotFoundException | UnsupportedEncodingException ex) {
                     Logger.getLogger(BibleGetHelp.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }

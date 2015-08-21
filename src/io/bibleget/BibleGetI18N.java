@@ -5,11 +5,14 @@
  */
 package io.bibleget;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.text.WordUtils;
 
 /**
@@ -43,11 +46,21 @@ public class BibleGetI18N {
         }
         
         if(myResource.containsKey(s)){
-            return myResource.getString(s);
+            try {
+                String val = myResource.getString(s);
+                return new String(val.getBytes("ISO-8859-1"), "UTF-8");
+            } catch (UnsupportedEncodingException ex) {
+                Logger.getLogger(BibleGetI18N.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         else{ return s; }
+        return null;
     }
     
+    /**
+     *
+     * @return
+     */
     public static ResourceBundle getMessages() {
         lcl = BibleGetIO.getLocale();
         Locale myLocale;
@@ -60,6 +73,11 @@ public class BibleGetI18N {
         return myResource;
     }
     
+    /**
+     *
+     * @param language
+     * @return
+     */
     public static String localizeLanguage(String language) {
         Map<String, String> langcodes = new HashMap<>();
         langcodes.put("AFRIKAANS","af");

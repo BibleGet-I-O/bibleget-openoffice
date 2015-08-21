@@ -13,6 +13,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -110,7 +111,7 @@ public class OptionsFrame extends javax.swing.JFrame {
      * Creates new form OptionsFrame
      * @param pkgPath
      */
-    private OptionsFrame() throws ClassNotFoundException {
+    private OptionsFrame() throws ClassNotFoundException, UnsupportedEncodingException {
                 
         //jTextPane does not initialize correctly, it causes a Null Exception Pointer
         //Following line keeps this from crashing the program
@@ -149,9 +150,9 @@ public class OptionsFrame extends javax.swing.JFrame {
         tempStr += "<html><head><meta charset=\"utf-8\"></head><body><div class=\"results\"><p class=\"book\"><span>";
         tempStr += __("Genesi")+"&nbsp;1";
         tempStr += "</span></p><p class=\"verses\" style=\"margin-top:0px;\"><span class=\"sup\">1</span><span class=\"text\">";
-        tempStr += __("In the beginning, when God created the heavens and the earth—");
+        tempStr += __("In the beginning, when God created the heavens and the earth");
         tempStr += "</span><span class=\"sup\">2</span><span class=\"text\">";
-        tempStr += __("and the earth was without form or shape, with darkness over the abyss and a mighty wind sweeping over the waters—");
+        tempStr += __("and the earth was without form or shape, with darkness over the abyss and a mighty wind sweeping over the waters");
         tempStr += "</span><span class=\"sup\">3</span><span class=\"text\">";
         tempStr += __("Then God said: Let there be light, and there was light.");
         tempStr += "</span></p></div></body></html>";
@@ -172,7 +173,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         
     }
 
-    public static OptionsFrame getInstance() throws ClassNotFoundException
+    public static OptionsFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException
     {
         if(instance == null)
         {
@@ -975,12 +976,12 @@ public class OptionsFrame extends javax.swing.JFrame {
         ActionListener cancelActionListener = new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent actionEvent){
-
-            }
+                
+            }        
         };
         final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Book / Chapter Font Color"), true, jColorChooser, okActionListener, cancelActionListener);
         jDialog.setIconImages(setIconImagesTextColor());
-        jDialog.setVisible(true);        
+        jDialog.setVisible(true);
     }//GEN-LAST:event_jButton1MouseClicked
     
     private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
@@ -1002,15 +1003,16 @@ public class OptionsFrame extends javax.swing.JFrame {
                 }
             }
         };
-        ActionListener cancelActionListener = new ActionListener(){
+        ActionListener cancelActionListener;
+        cancelActionListener = new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent actionEvent){
-
-            }
+                
+            }        
         };
         final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Book / Chapter Background Color"), true, jColorChooser, okActionListener, cancelActionListener);
         jDialog.setIconImages(setIconImagesBGColor());
-        jDialog.setVisible(true);        
+        jDialog.setVisible(true);
     }//GEN-LAST:event_jButton2MouseClicked
 
     private void jButton5MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton5MouseClicked
@@ -1032,10 +1034,11 @@ public class OptionsFrame extends javax.swing.JFrame {
                 }
             }
         };
-        ActionListener cancelActionListener = new ActionListener(){
+        ActionListener cancelActionListener;
+        cancelActionListener = new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent actionEvent){
-
+                
             }
         };
         final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Verse Number Font Color"), true, jColorChooser, okActionListener, cancelActionListener);
@@ -1062,15 +1065,16 @@ public class OptionsFrame extends javax.swing.JFrame {
                 }
             }
         };
-        ActionListener cancelActionListener = new ActionListener(){
+        ActionListener cancelActionListener;
+        cancelActionListener = new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent actionEvent){
-
-            }
+                
+            }        
         };
         final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Verse Number Background Color"), true, jColorChooser, okActionListener, cancelActionListener);
         jDialog.setIconImages(setIconImagesBGColor());
-        jDialog.setVisible(true);        
+        jDialog.setVisible(true);
     }//GEN-LAST:event_jButton6MouseClicked
 
     private void jButton7MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton7MouseClicked
@@ -1092,10 +1096,11 @@ public class OptionsFrame extends javax.swing.JFrame {
                 }
             }
         };
-        ActionListener cancelActionListener = new ActionListener(){
+        ActionListener cancelActionListener;
+        cancelActionListener = new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent actionEvent){
-
+                
             }
         };
         final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Verse Text Font Color"), true, jColorChooser, okActionListener, cancelActionListener);
@@ -1122,10 +1127,11 @@ public class OptionsFrame extends javax.swing.JFrame {
                 }
             }
         };
-        ActionListener cancelActionListener = new ActionListener(){
+        ActionListener cancelActionListener;
+        cancelActionListener = new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent actionEvent){
-
+                
             }
         };
         final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Verse Text Background Color"), true, jColorChooser, okActionListener, cancelActionListener);
@@ -1900,7 +1906,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             public void run() {
                 try {
                     new OptionsFrame().setVisible(true);
-                } catch (ClassNotFoundException ex) {
+                } catch (ClassNotFoundException | UnsupportedEncodingException ex) {
                     Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }

@@ -20,6 +20,7 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.HeadlessException;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -269,7 +270,6 @@ public final class BibleGetFrame extends javax.swing.JFrame {
         if (jList1.isSelectionEmpty()) {
             JOptionPane.showMessageDialog(null, __("You must select at least one version in order to make a request."), "ERROR >> NO VERSIONS SELECTED", JOptionPane.ERROR_MESSAGE);
             return;
-            //
         } else {
             // Find out which indexes are selected.
             int minIndex = jList1.getMinSelectionIndex();
@@ -309,7 +309,7 @@ public final class BibleGetFrame extends javax.swing.JFrame {
                 String errorDialog = StringUtils.join(errorMessages,"\n\n");
                 JOptionPane.showMessageDialog(null, errorDialog, "ERROR >> MALFORMED QUERYSTRING", JOptionPane.ERROR_MESSAGE);
             }
-        } catch (HeadlessException | ClassNotFoundException | UnknownPropertyException | PropertyVetoException | IllegalArgumentException | WrappedTargetException ex) {
+        } catch (HeadlessException | ClassNotFoundException | UnknownPropertyException | PropertyVetoException | IllegalArgumentException | WrappedTargetException | UnsupportedEncodingException ex) {
             Logger.getLogger(BibleGetFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
             

@@ -160,8 +160,9 @@ public class HTTPCaller {
      * @param selectedVersions
      * @return
      * @throws java.lang.ClassNotFoundException
+     * @throws java.io.UnsupportedEncodingException
      */
-    public boolean integrityCheck(String myQuery,List<String> selectedVersions) throws ClassNotFoundException
+    public boolean integrityCheck(String myQuery,List<String> selectedVersions) throws ClassNotFoundException, UnsupportedEncodingException
     {
         String versionsStr = StringUtils.join(selectedVersions.toArray(), ',');
         //System.out.println("Starting integrity check on query "+myQuery+" for versions: "+versionsStr);

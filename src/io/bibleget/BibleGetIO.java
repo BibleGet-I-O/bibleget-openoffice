@@ -16,6 +16,7 @@ import com.sun.star.uno.XComponentContext;
 import java.awt.Desktop;
 import java.awt.GraphicsEnvironment;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -210,7 +211,7 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.myOptionFrame = OptionsFrame.getInstance();
                         BibleGetIO.myOptionFrame.setVisible(true);
                     }
-                } catch (ClassNotFoundException ex) {
+                } catch (ClassNotFoundException | UnsupportedEncodingException ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 return;
@@ -227,7 +228,7 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.bibleGetAbout = BibleGetAbout.getInstance();
                         BibleGetIO.bibleGetAbout.setVisible(true);
                     }
-                } catch (ClassNotFoundException ex) {
+                } catch (ClassNotFoundException | UnsupportedEncodingException ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 return;
@@ -254,7 +255,7 @@ public final class BibleGetIO extends WeakBase
                     try {
                         BibleGetIO.myHelpFrame = BibleGetHelp.getInstance();
                         BibleGetIO.myHelpFrame.setVisible(true);
-                    } catch (ClassNotFoundException ex) {
+                    } catch (ClassNotFoundException | UnsupportedEncodingException ex) {
                         Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
@@ -459,7 +460,7 @@ public final class BibleGetIO extends WeakBase
                     BibleGetIO.myHelpFrame = BibleGetHelp.getInstance();
                     BibleGetIO.bibleGetAbout =  BibleGetAbout.getInstance();
                     //System.out.println("Assigning myFrame and myOptionFrame while we create instance");        
-                } catch (ClassNotFoundException ex) {
+                } catch (ClassNotFoundException | UnsupportedEncodingException ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
