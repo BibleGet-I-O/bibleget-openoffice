@@ -8,24 +8,24 @@
         <high-contrast xlink:href="images/holy-bible-x256.png"/>
     </icon>
     <display-name>
-        <name lang="en">BibleGet I/O</name>
         <name lang="fr">BibleGet I/O</name>
-        <name lang="it">BibleGet I/O</name>
         <name lang="de">BibleGet I/O</name>
+        <name lang="en">BibleGet I/O</name>
+        <name lang="it">BibleGet I/O</name>
         <name lang="es">BibleGet I/O</name>
     </display-name>
     <publisher>
-        <name lang="en" xlink:href="http://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
         <name lang="es" xlink:href="http://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
-        <name lang="it" xlink:href="http://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
         <name lang="fr" xlink:href="http://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
+        <name lang="en" xlink:href="http://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
+        <name lang="it" xlink:href="http://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
         <name lang="de" xlink:href="http://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
     </publisher>
     <extension-description>
-        <src lang="en" xlink:href="description/desc_en.txt"/>
         <src lang="fr" xlink:href="description/desc_fr.txt"/>
-        <src lang="it" xlink:href="description/desc_it.txt"/>
         <src lang="de" xlink:href="description/desc_de.txt"/>
+        <src lang="en" xlink:href="description/desc_en.txt"/>
+        <src lang="it" xlink:href="description/desc_it.txt"/>
         <src lang="es" xlink:href="description/desc_es.txt"/>
     </extension-description>
     <registration>
@@ -37,4 +37,7 @@
             <license-text lang="it" xlink:href="licenses/license.TXT"/>
         </simple-license>
     </registration>
+    <update-information>
+        <src xlink:href="http://extensions.openoffice.org/en/project/bibleget-io"/>
+    </update-information>
 </description>
