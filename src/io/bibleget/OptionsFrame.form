@@ -1263,7 +1263,9 @@
             <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
               <Connection code="noVersionFormatting" type="code"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="Override Bible Version Formatting"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="__(&quot;Override Bible Version Formatting&quot;)" type="code"/>
+            </Property>
           </Properties>
           <Events>
             <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jCheckBox1ItemStateChanged"/>
@@ -1272,7 +1274,9 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel2">
           <Properties>
-            <Property name="text" type="java.lang.String" value="&lt;html&gt;&lt;head&gt;&lt;style&gt;body#versionformatting{border:none;background-color:rgb(214,217,223);}&lt;/style&gt;&lt;/head&gt;&lt;body id=&quot;versionformatting&quot;&gt;Some Bible versions have their own formatting. This is left by default to keep the text as close as possible to the original.&lt;br&gt; If however you need to have consistent formatting in your document, you may override the Bible version&apos;s own formatting.&lt;/body&gt;&lt;/html&gt;"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="&quot;&lt;html&gt;&lt;head&gt;&lt;style&gt;body#versionformatting{border:none;background-color:rgb(214,217,223);}&lt;/style&gt;&lt;/head&gt;&lt;body id=\&quot;versionformatting\&quot;&gt;&quot;+__(&quot;Some Bible versions have their own formatting. This is left by default to keep the text as close as possible to the original.&lt;br&gt; If however you need to have consistent formatting in your document, you may override the Bible version&apos;s own formatting.&quot;)+&quot;&lt;/body&gt;&lt;/html&gt;&quot;" type="code"/>
+            </Property>
             <Property name="opaque" type="boolean" value="true"/>
           </Properties>
         </Component>
