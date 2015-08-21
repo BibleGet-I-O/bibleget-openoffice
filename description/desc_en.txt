@@ -1,0 +1,1 @@
+Insert biblical quotes in a document. Uses the service www.bibleget.io.

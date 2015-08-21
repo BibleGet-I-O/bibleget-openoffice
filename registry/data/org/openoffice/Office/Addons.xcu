@@ -1,0 +1,460 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<oor:component-data xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema" oor:name="Addons" oor:package="org.openoffice.Office">
+  <node oor:name="AddonUI">
+    <node oor:name="OfficeMenuBar">
+      <node oor:name="io.bibleget.biblegetio" oor:op="replace">
+        <prop oor:name="Title" oor:type="xs:string">
+          <value/>
+          <value xml:lang="en">BibleGet I/O</value>
+          <value xml:lang="es">BibleGet I/O</value>
+          <value xml:lang="it">BibleGet I/O</value>
+          <value xml:lang="fr">BibleGet I/O</value>
+          <value xml:lang="de">BibleGet I/O</value>
+        </prop>
+        <prop oor:name="Target" oor:type="xs:string">
+          <value>_self</value>
+        </prop>
+        <prop oor:name="ImageIdentifier" oor:type="xs:string">
+          <value/>
+        </prop>
+        <node oor:name="Submenu">
+          <node oor:name="m1" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>io.bibleget.biblegetio:QuoteFromInputPrompt</value>
+            </prop>
+            <prop oor:name="ImageIdentifier" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value>com.sun.star.text.TextDocument</value>
+            </prop>
+            <prop oor:name="Title" oor:type="xs:string">
+              <value/>
+              <value xml:lang="en">Insert quote from input window</value>
+              <value xml:lang="es">Insertar cita de ventana de input</value>
+              <value xml:lang="it">Inserisci citazione da finestra di input</value>
+              <value xml:lang="fr">Insérer citation de fenêtre de input</value>
+              <value xml:lang="de">Legen Zitat aus Eingabefenster</value>
+            </prop>
+          </node>
+          <node oor:name="m2" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>io.bibleget.biblegetio:QuoteFromSelection</value>
+            </prop>
+            <prop oor:name="ImageIdentifier" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value>com.sun.star.text.TextDocument</value>
+            </prop>
+            <prop oor:name="Title" oor:type="xs:string">
+              <value/>
+              <value xml:lang="en">Insert quote from text selection</value>
+              <value xml:lang="es">Insertar cita de selección de testo</value>
+              <value xml:lang="it">Inserisci citazione da selezione di testo</value>
+              <value xml:lang="fr">Insérer citation de sélection de texte</value>
+              <value xml:lang="de">Legen Zitat aus Textauswahl</value>
+            </prop>
+          </node>
+          <node oor:name="m3" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>private:separator</value>
+            </prop>
+          </node>
+          <node oor:name="m4" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>io.bibleget.biblegetio:Options</value>
+            </prop>
+            <prop oor:name="ImageIdentifier" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value>com.sun.star.text.TextDocument</value>
+            </prop>
+            <prop oor:name="Title" oor:type="xs:string">
+              <value/>
+              <value xml:lang="en">Preferences</value>
+              <value xml:lang="es">Preferencias</value>
+              <value xml:lang="it">Preferenze</value>
+              <value xml:lang="fr">Préfèrences</value>
+              <value xml:lang="de">Einstellungen</value>
+            </prop>
+          </node>
+          <node oor:name="m5" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>io.bibleget.biblegetio:Help</value>
+            </prop>
+            <prop oor:name="ImageIdentifier" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value>com.sun.star.text.TextDocument</value>
+            </prop>
+            <prop oor:name="Title" oor:type="xs:string">
+              <value/>
+              <value xml:lang="en">Help</value>
+              <value xml:lang="es">Ayuda</value>
+              <value xml:lang="it">Aiuto</value>
+              <value xml:lang="fr">Aide</value>
+              <value xml:lang="de">Hilfe</value>
+            </prop>
+          </node>
+          <node oor:name="m6" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>private:separator</value>
+            </prop>
+          </node>
+          <node oor:name="m7" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>io.bibleget.biblegetio:SendFeedback</value>
+            </prop>
+            <prop oor:name="ImageIdentifier" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value>com.sun.star.text.TextDocument</value>
+            </prop>
+            <prop oor:name="Title" oor:type="xs:string">
+              <value/>
+              <value xml:lang="en">Send feedback</value>
+              <value xml:lang="es">Enviar feedback</value>
+              <value xml:lang="it">Inviare feedback</value>
+              <value xml:lang="fr">Envoyer feedback</value>
+              <value xml:lang="de">Feedback schicken</value>
+            </prop>
+          </node>
+          <node oor:name="m8" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>io.bibleget.biblegetio:Contribute</value>
+            </prop>
+            <prop oor:name="ImageIdentifier" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value>com.sun.star.text.TextDocument</value>
+            </prop>
+            <prop oor:name="Title" oor:type="xs:string">
+              <value/>
+              <value xml:lang="en">Make a contribution</value>
+              <value xml:lang="es">Donar una contribución</value>
+              <value xml:lang="it">Effettua un contributo</value>
+              <value xml:lang="fr">Donner une contribution</value>
+              <value xml:lang="de">Beitrag leisten</value>
+            </prop>
+          </node>
+          <node oor:name="m9" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>io.bibleget.biblegetio:About</value>
+            </prop>
+            <prop oor:name="ImageIdentifier" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value>com.sun.star.text.TextDocument</value>
+            </prop>
+            <prop oor:name="Title" oor:type="xs:string">
+              <value/>
+              <value xml:lang="en">About this Plugin</value>
+              <value xml:lang="es">Acerca de esta Extensión</value>
+              <value xml:lang="it">A proposito di questa Estensione</value>
+              <value xml:lang="fr">A propos de cette Extension</value>
+              <value xml:lang="de">Über diese Plugin</value>
+            </prop>
+          </node>
+        </node>
+      </node>
+    </node>
+    <node oor:name="OfficeToolBar">
+      <node oor:name="io.bibleget.biblegetio" oor:op="replace">
+        <prop oor:name="Title" oor:type="xs:string" oor:localized="true">
+          <value xml:lang="en">BibleGet I/O</value>
+          <value xml:lang="es">BibleGet I/O</value>
+          <value xml:lang="it">BibleGet I/O</value>
+          <value xml:lang="fr">BibleGet I/O</value>
+          <value xml:lang="de">BibleGet I/O</value>
+        </prop>
+        <node oor:name="ToolBarItems">
+            <node oor:name="m1" oor:op="replace">
+              <prop oor:name="URL" oor:type="xs:string">
+                <value>io.bibleget.biblegetio:QuoteFromInputPrompt</value>
+              </prop>
+              <prop oor:name="ImageIdentifier" oor:type="xs:string">
+                <value/>
+              </prop>
+              <prop oor:name="Target" oor:type="xs:string">
+                <value>_self</value>
+              </prop>
+              <prop oor:name="Context" oor:type="xs:string">
+                <value>com.sun.star.text.TextDocument</value>
+              </prop>
+              <prop oor:name="Title" oor:type="xs:string">
+                <value/>
+                <value xml:lang="en">Insert quote from input window</value>
+                <value xml:lang="es">Insertar cita de ventana de input</value>
+                <value xml:lang="it">Inserisci citazione da finestra di input</value>
+                <value xml:lang="fr">Insérer citation de fenêtre de input</value>
+                <value xml:lang="de">Legen Zitat aus Eingabefenster</value>
+              </prop>
+            </node>
+            <node oor:name="m2" oor:op="replace">
+              <prop oor:name="URL" oor:type="xs:string">
+                <value>io.bibleget.biblegetio:QuoteFromSelection</value>
+              </prop>
+              <prop oor:name="ImageIdentifier" oor:type="xs:string">
+                <value/>
+              </prop>
+              <prop oor:name="Target" oor:type="xs:string">
+                <value>_self</value>
+              </prop>
+              <prop oor:name="Context" oor:type="xs:string">
+                <value>com.sun.star.text.TextDocument</value>
+              </prop>
+              <prop oor:name="Title" oor:type="xs:string">
+                <value/>
+                <value xml:lang="en">Insert quote from text selection</value>
+                <value xml:lang="es">Insertar cita de selección de testo</value>
+                <value xml:lang="it">Inserisci citazione da selezione di testo</value>
+                <value xml:lang="fr">Insérer citation de sélection de texte</value>
+                <value xml:lang="de">Legen Zitat aus Textauswahl</value>
+              </prop>
+            </node>
+            <node oor:name="m3" oor:op="replace">
+              <prop oor:name="URL" oor:type="xs:string">
+                <value>private:separator</value>
+              </prop>
+            </node>
+            <node oor:name="m4" oor:op="replace">
+              <prop oor:name="URL" oor:type="xs:string">
+                <value>io.bibleget.biblegetio:Options</value>
+              </prop>
+              <prop oor:name="ImageIdentifier" oor:type="xs:string">
+                <value/>
+              </prop>
+              <prop oor:name="Target" oor:type="xs:string">
+                <value>_self</value>
+              </prop>
+              <prop oor:name="Context" oor:type="xs:string">
+                <value>com.sun.star.text.TextDocument</value>
+              </prop>
+              <prop oor:name="Title" oor:type="xs:string">
+                <value/>
+                <value xml:lang="en">Preferences</value>
+                <value xml:lang="es">Preferencias</value>
+                <value xml:lang="it">Preferenze</value>
+                <value xml:lang="fr">Préfèrences</value>
+                <value xml:lang="de">Einstellungen</value>
+              </prop>
+            </node>
+            <node oor:name="m5" oor:op="replace">
+              <prop oor:name="URL" oor:type="xs:string">
+                <value>io.bibleget.biblegetio:Help</value>
+              </prop>
+              <prop oor:name="ImageIdentifier" oor:type="xs:string">
+                <value/>
+              </prop>
+              <prop oor:name="Target" oor:type="xs:string">
+                <value>_self</value>
+              </prop>
+              <prop oor:name="Context" oor:type="xs:string">
+                <value>com.sun.star.text.TextDocument</value>
+              </prop>
+              <prop oor:name="Title" oor:type="xs:string">
+                <value/>
+                <value xml:lang="en">Help</value>
+                <value xml:lang="es">Ayuda</value>
+                <value xml:lang="it">Aiuto</value>
+                <value xml:lang="fr">Aide</value>
+                <value xml:lang="de">Hilfe</value>
+              </prop>
+            </node>
+            <node oor:name="m6" oor:op="replace">
+              <prop oor:name="URL" oor:type="xs:string">
+                <value>private:separator</value>
+              </prop>
+            </node>
+            <node oor:name="m7" oor:op="replace">
+              <prop oor:name="URL" oor:type="xs:string">
+                <value>io.bibleget.biblegetio:SendFeedback</value>
+              </prop>
+              <prop oor:name="ImageIdentifier" oor:type="xs:string">
+                <value/>
+              </prop>
+              <prop oor:name="Target" oor:type="xs:string">
+                <value>_self</value>
+              </prop>
+              <prop oor:name="Context" oor:type="xs:string">
+                <value>com.sun.star.text.TextDocument</value>
+              </prop>
+              <prop oor:name="Title" oor:type="xs:string">
+                <value/>
+                <value xml:lang="en">Send feedback</value>
+                <value xml:lang="es">Enviar feedback</value>
+                <value xml:lang="it">Invia feedback</value>
+                <value xml:lang="fr">Envoyer feedback</value>
+                <value xml:lang="de">Feedback schicken</value>
+              </prop>
+            </node>
+            <node oor:name="m8" oor:op="replace">
+              <prop oor:name="URL" oor:type="xs:string">
+                <value>io.bibleget.biblegetio:Contribute</value>
+              </prop>
+              <prop oor:name="ImageIdentifier" oor:type="xs:string">
+                <value/>
+              </prop>
+              <prop oor:name="Target" oor:type="xs:string">
+                <value>_self</value>
+              </prop>
+              <prop oor:name="Context" oor:type="xs:string">
+                <value>com.sun.star.text.TextDocument</value>
+              </prop>
+              <prop oor:name="Title" oor:type="xs:string">
+                <value/>
+                <value xml:lang="en">Make a contribution</value>
+                <value xml:lang="es">Dona una contribución</value>
+                <value xml:lang="it">Effettua un contributo</value>
+                <value xml:lang="fr">Donner una contribution</value>
+                <value xml:lang="de">Beitrag leisten</value>
+              </prop>
+            </node>
+            <node oor:name="m9" oor:op="replace">
+              <prop oor:name="URL" oor:type="xs:string">
+                <value>io.bibleget.biblegetio:About</value>
+              </prop>
+              <prop oor:name="ImageIdentifier" oor:type="xs:string">
+                <value/>
+              </prop>
+              <prop oor:name="Target" oor:type="xs:string">
+                <value>_self</value>
+              </prop>
+              <prop oor:name="Context" oor:type="xs:string">
+                <value>com.sun.star.text.TextDocument</value>
+              </prop>
+              <prop oor:name="Title" oor:type="xs:string">
+                <value/>
+                <value xml:lang="en">About this Plugin</value>
+                <value xml:lang="es">Acerca de esta Extensión</value>
+                <value xml:lang="it">A proposito di questa Estensione</value>
+                <value xml:lang="fr">A propos de cette Extension</value>
+                <value xml:lang="de">Über diese Plugin</value>
+              </prop>
+            </node>
+        </node>
+      </node>
+    </node>
+    <node oor:name="Images">
+      <node oor:name="io.bibleget.biblegetio.quotefromselection.images" oor:op="replace">
+        <prop oor:name="URL" oor:type="xs:string">
+          <value>io.bibleget.biblegetio:QuoteFromSelection</value>
+        </prop>
+        <node oor:name="UserDefinedImages">
+          <prop oor:name="ImageSmallURL">
+            <value>%origin%/../../../../../images/quotefromselection-small.bmp</value>
+          </prop>
+          <prop oor:name="ImageBigURL">
+            <value>%origin%/../../../../../images/quotefromselection-large.bmp</value>
+          </prop>
+        </node>
+      </node>
+      <node oor:name="io.bibleget.biblegetio.options.images" oor:op="replace">
+        <prop oor:name="URL" oor:type="xs:string">
+          <value>io.bibleget.biblegetio:Options</value>
+        </prop>
+        <node oor:name="UserDefinedImages">
+          <prop oor:name="ImageSmallURL">
+            <value>%origin%/../../../../../images/preferences-small.bmp</value>
+          </prop>
+          <prop oor:name="ImageBigURL">
+            <value>%origin%/../../../../../images/preferences-large.bmp</value>
+          </prop>
+        </node>
+      </node>
+      <node oor:name="io.bibleget.biblegetio.about.images" oor:op="replace">
+        <prop oor:name="URL" oor:type="xs:string">
+          <value>io.bibleget.biblegetio:About</value>
+        </prop>
+        <node oor:name="UserDefinedImages">
+          <prop oor:name="ImageSmallURL">
+            <value>%origin%/../../../../../images/info-small.bmp</value>
+          </prop>
+          <prop oor:name="ImageBigURL">
+            <value>%origin%/../../../../../images/info-large.bmp</value>
+          </prop>
+        </node>
+      </node>
+      <node oor:name="io.bibleget.biblegetio.quotefrominputprompt.images" oor:op="replace">
+        <prop oor:name="URL" oor:type="xs:string">
+          <value>io.bibleget.biblegetio:QuoteFromInputPrompt</value>
+        </prop>
+        <node oor:name="UserDefinedImages">
+          <prop oor:name="ImageSmallURL">
+            <value>%origin%/../../../../../images/quotefrominput-small.bmp</value>
+          </prop>
+          <prop oor:name="ImageBigURL">
+            <value>%origin%/../../../../../images/quotefrominput-large.bmp</value>
+          </prop>
+        </node>
+      </node>
+      <node oor:name="io.bibleget.biblegetio.sendfeedback.images" oor:op="replace">
+        <prop oor:name="URL" oor:type="xs:string">
+          <value>io.bibleget.biblegetio:SendFeedback</value>
+        </prop>
+        <node oor:name="UserDefinedImages">
+          <prop oor:name="ImageSmallURL">
+            <value>%origin%/../../../../../images/email-small.bmp</value>
+          </prop>
+          <prop oor:name="ImageBigURL">
+            <value>%origin%/../../../../../images/email-large.bmp</value>
+          </prop>
+        </node>
+      </node>
+      <node oor:name="io.bibleget.biblegetio.help.images" oor:op="replace">
+        <prop oor:name="URL" oor:type="xs:string">
+          <value>io.bibleget.biblegetio:Help</value>
+        </prop>
+        <node oor:name="UserDefinedImages">
+          <prop oor:name="ImageSmallURL">
+            <value>%origin%/../../../../../images/help-small.bmp</value>
+          </prop>
+          <prop oor:name="ImageBigURL">
+            <value>%origin%/../../../../../images/help-large.bmp</value>
+          </prop>
+        </node>
+      </node>
+      <node oor:name="io.bibleget.biblegetio.contribute.images" oor:op="replace">
+        <prop oor:name="URL" oor:type="xs:string">
+          <value>io.bibleget.biblegetio:Contribute</value>
+        </prop>
+        <node oor:name="UserDefinedImages">
+          <prop oor:name="ImageSmallURL">
+            <value>%origin%/../../../../../images/paypal-small.bmp</value>
+          </prop>
+          <prop oor:name="ImageBigURL">
+            <value>%origin%/../../../../../images/paypal-large.bmp</value>
+          </prop>
+        </node>
+      </node>
+      </node>
+  </node>
+</oor:component-data>
