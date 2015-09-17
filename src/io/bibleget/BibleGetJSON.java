@@ -6,14 +6,17 @@
 
 package io.bibleget;
 
+import com.sun.star.awt.FontWeight;
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.UnknownPropertyException;
+import com.sun.star.beans.XPropertySet;
 import com.sun.star.frame.XController;
 import com.sun.star.frame.XModel;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.text.XText;
 import com.sun.star.text.XTextDocument;
+import com.sun.star.text.XTextRange;
 import com.sun.star.text.XTextViewCursor;
 import com.sun.star.text.XTextViewCursorSupplier;
 import com.sun.star.uno.UnoRuntime;
@@ -112,11 +115,11 @@ public class BibleGetJSON {
         //System.out.print("current view cursor = ");
         //System.out.println(m_xViewCursor);
         
-        com.sun.star.text.XTextRange xTextRange = m_xViewCursor.getText().createTextCursorByRange(m_xViewCursor);
+        XTextRange xTextRange = m_xViewCursor.getText().createTextCursorByRange(m_xViewCursor);
         //com.sun.star.text.XTextRange xTextRange = m_xText.createTextCursor();
-        com.sun.star.beans.XPropertySet xPropertySet =
-            (com.sun.star.beans.XPropertySet)UnoRuntime.queryInterface(
-                com.sun.star.beans.XPropertySet.class, xTextRange);
+        XPropertySet xPropertySet =
+            (XPropertySet)UnoRuntime.queryInterface(
+                XPropertySet.class, xTextRange);
         
 //        com.sun.star.beans.Property xProperties[] = xPropertySet.getPropertySetInfo().getProperties();
 //        for (Property xPropertie : xProperties) {
@@ -146,6 +149,9 @@ public class BibleGetJSON {
         
         boolean firstversion = true;
         boolean firstchapter = true;
+        
+        boolean firstVerse = false;
+        boolean normalText = false;
         
         Iterator pIterator = arrayJson.iterator();
         while (pIterator.hasNext())
@@ -217,6 +223,8 @@ public class BibleGetJSON {
             }
             
             if(newversion){
+                firstVerse = true;                
+                
                 firstchapter = true;
                 if(firstversion==true){
                     firstversion=false;
@@ -290,6 +298,8 @@ public class BibleGetJSON {
             
             if(newbook || newchapter){
                 //System.out.println(currentbook+" "+currentchapter);
+                firstVerse = true;
+                
                 if(firstchapter==true)
                 {
                     firstchapter=false;
@@ -372,6 +382,8 @@ public class BibleGetJSON {
             }
             
             if(newverse){
+                normalText = false;
+                
                 //System.out.print("\n"+currentverse);
                 // set properties of text change based on user preferences
                 if (boldVerseNumber){
@@ -418,15 +430,15 @@ public class BibleGetJSON {
                 
                 m_xText.insertString(xTextRange, " "+currentverse, false);
             }
-            
-            
+                        
             setVerseTextStyles(xPropertySet);
+            
             String currentText = currentJson.getString("text").replace("\n","").replace("\r","");
             String remainingText = currentText;
             //if(currentText.contains("<"))
-            if(currentText.matches("(?su).*<[/]{0,1}(?:sm|po)[f|l|s|i|3]{0,1}[f|l]{0,1}>.*")) //[/]{0,1}(?:sm|po)[f|l|s|i|3]{0,1}[f|l]{0,1}>
+            if(currentText.matches("(?su).*<[/]{0,1}(?:speaker|sm|po)[f|l|s|i|3]{0,1}[f|l]{0,1}>.*")) //[/]{0,1}(?:sm|po)[f|l|s|i|3]{0,1}[f|l]{0,1}>
             {                
-                Pattern pattern1 = Pattern.compile("(.*?)<((sm|po)[f|l|s|i|3]{0,1}[f|l]{0,1})>(.*?)</\\2>",Pattern.UNICODE_CHARACTER_CLASS);
+                Pattern pattern1 = Pattern.compile("(.*?)<((speaker|sm|po)[f|l|s|i|3]{0,1}[f|l]{0,1})>(.*?)</\\2>",Pattern.UNICODE_CHARACTER_CLASS);
                 Matcher matcher1 = pattern1.matcher(currentText);
                 int iteration = 0;
                 
@@ -439,81 +451,156 @@ public class BibleGetJSON {
 //                    System.out.println("group4:"+matcher1.group(4));
                     if(matcher1.group(1) != null && matcher1.group(1).isEmpty() == false)
                     {
+                        normalText = true;
                         m_xText.insertString(xTextRange, matcher1.group(1), false);
                         remainingText = remainingText.replaceFirst(matcher1.group(1), "");
                     }
                     if(matcher1.group(4) != null && matcher1.group(4).isEmpty() == false)
                     {
+                        String matchedTag = matcher1.group(2);
                         String formattingTagContents = matcher1.group(4);
+                        
+                        //check for nested speaker tags!
+                        boolean nestedTag = false;
+                        String speakerTagBefore = "";
+                        String speakerTagContents = "";
+                        String speakerTagAfter = "";
+                        
+                        if(formattingTagContents.matches("(?su).*<[/]{0,1}speaker>.*")){
+                            nestedTag = true;
+                            
+                            String remainingText2 = formattingTagContents;
+                            
+                            Matcher matcher2 = pattern1.matcher(formattingTagContents);
+                            int iteration2 = 0;
+                            while(matcher2.find()){
+                                if(matcher2.group(2) != null && matcher2.group(2).isEmpty() == false && "speaker".equals(matcher2.group(2))){
+                                    if(matcher2.group(1) != null && matcher2.group(1).isEmpty() == false){
+                                        speakerTagBefore = matcher2.group(1);
+                                        remainingText2 = remainingText2.replaceFirst(matcher2.group(1), "");
+                                    }
+                                    speakerTagContents = matcher2.group(4);
+                                    speakerTagAfter = remainingText2.replaceFirst("<"+matcher2.group(2)+">"+matcher2.group(4)+"</"+matcher2.group(2)+">", "");
+                                }
+                            }
+                        }
+                        
                         if(noVersionFormatting){ formattingTagContents = " "+formattingTagContents+" "; }
-                        switch (matcher1.group(2)) {
+                        
+                        switch (matchedTag) {
                             case "pof":
                                 if(noVersionFormatting==false){
-                                    insertParagraphBreak(m_xText,xTextRange);
+                                    if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
                                     xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+400);
                                 }
-                                m_xText.insertString(xTextRange, formattingTagContents, false);                                
+                                if(nestedTag){
+                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                }
+                                else{
+                                    m_xText.insertString(xTextRange, formattingTagContents, false);
+                                }
                                 if(noVersionFormatting==false){
                                     insertParagraphBreak(m_xText,xTextRange);
                                 }
+                                normalText = false;
                                 break;
                             case "pos":
                                 if(noVersionFormatting==false){
-                                    insertParagraphBreak(m_xText,xTextRange);
+                                    if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
                                     xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+400);
                                 }
-                                m_xText.insertString(xTextRange, formattingTagContents, false);                                
+                                if(nestedTag){
+                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                }
+                                else{
+                                    m_xText.insertString(xTextRange, formattingTagContents, false);
+                                }
                                 if(noVersionFormatting==false){
                                     insertParagraphBreak(m_xText,xTextRange);
                                 }
+                                normalText = false;
                                 break;
                             case "poif":
                                 if(noVersionFormatting==false){
-                                    insertParagraphBreak(m_xText,xTextRange);
+                                    if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
                                     xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+600);
                                 }
-                                m_xText.insertString(xTextRange, formattingTagContents, false);                                
+                                if(nestedTag){
+                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                }
+                                else{
+                                    m_xText.insertString(xTextRange, formattingTagContents, false);
+                                }
                                 if(noVersionFormatting==false){
                                     insertParagraphBreak(m_xText,xTextRange);
                                 }
+                                normalText = false;
                                 break;
                             case "po":
                                 if(noVersionFormatting==false){
+                                    if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
                                     xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+400);
                                 }
-                                m_xText.insertString(xTextRange, formattingTagContents, false);                                
+                                if(nestedTag){
+                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                }
+                                else{
+                                    m_xText.insertString(xTextRange, formattingTagContents, false);
+                                }
                                 if(noVersionFormatting==false){
                                     insertParagraphBreak(m_xText,xTextRange);
                                 }
+                                normalText = false;
                                 break;
                             case "poi":
                                 if(noVersionFormatting==false){
+                                    if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
                                     xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+600);
                                 }
-                                m_xText.insertString(xTextRange, formattingTagContents, false);                                
+                                if(nestedTag){
+                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                }
+                                else{
+                                    m_xText.insertString(xTextRange, formattingTagContents, false);
+                                }
                                 if(noVersionFormatting==false){
                                     insertParagraphBreak(m_xText,xTextRange);
                                 }
+                                normalText = false;
                                 break;
                             case "pol":
                                 if(noVersionFormatting==false){
+                                    if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
                                     xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+400);
                                 }
-                                m_xText.insertString(xTextRange, formattingTagContents, false);                                
+                                if(nestedTag){
+                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                }
+                                else{
+                                    m_xText.insertString(xTextRange, formattingTagContents, false);
+                                }
                                 if(noVersionFormatting==false){
                                     insertParagraphBreak(m_xText,xTextRange);
                                     xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200));
                                 }
+                                normalText = false;
                                 break;
                             case "poil":
                                 if(noVersionFormatting==false){
+                                    if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
                                     xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+600);
                                 }
-                                m_xText.insertString(xTextRange, formattingTagContents, false);                                
+                                if(nestedTag){
+                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                }
+                                else{
+                                    m_xText.insertString(xTextRange, formattingTagContents, false);
+                                }
                                 if(noVersionFormatting==false){
                                     insertParagraphBreak(m_xText,xTextRange);
                                     xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200));
                                 }
+                                normalText = false;
                                 break;
                             case "sm":
                                 String smallCaps = matcher1.group(4).toLowerCase();
@@ -522,6 +609,17 @@ public class BibleGetJSON {
                                 m_xText.insertString(xTextRange, smallCaps, false);
                                 xPropertySet.setPropertyValue("CharCaseMap", com.sun.star.style.CaseMap.NONE);
                                 break;
+                            case "speaker":
+//                                System.out.println("We have found a speaker tag");
+                                int bgColor = Color.LIGHT_GRAY.getRGB() - 0xFF000000;
+                                xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.BOLD);
+                                xPropertySet.setPropertyValue("CharBackTransparent", false);
+                                xPropertySet.setPropertyValue("CharBackColor", bgColor);
+                                m_xText.insertString(xTextRange, matcher1.group(4), false);
+                                if(boldVerseText==false){
+                                    xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.NORMAL);                                
+                                }
+                                xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB() - 0xFF000000);
                         }
                         remainingText = remainingText.replaceFirst("<"+matcher1.group(2)+">"+matcher1.group(4)+"</"+matcher1.group(2)+">", "");
                     }
@@ -548,11 +646,15 @@ public class BibleGetJSON {
             }
             else
             {
+                normalText = true;
                 //System.out.println("No match for special case formatting here: "+currentText);
                 // set properties of text change based on user preferences
                 //setVerseTextStyles(xPropertySet);
                 m_xText.insertString(xTextRange, currentText, false);            
             }
+            
+            if(firstVerse){ firstVerse = false; }
+            
         }
         
         try {
@@ -561,6 +663,31 @@ public class BibleGetJSON {
             Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
         }        
         
+    }
+    
+    private void insertNestedSpeakerTag(String speakerTagBefore, String speakerTagContents, String speakerTagAfter, XText m_xText, XTextRange xTextRange, XPropertySet xPropertySet) throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException
+    {
+        
+//        System.out.println("We are now working with a nested Speaker Tag."); //Using BG="+grayBG.getRGB()+"=R("+r+"),B("+b+"),G("+g+")
+//        System.out.println("speakerTagBefore=<"+speakerTagBefore+">,speakerTagContents=<"+speakerTagContents+">,speakerTagAfter=<"+speakerTagAfter+">");
+        m_xText.insertString(xTextRange, speakerTagBefore, false);
+        
+        xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+        xPropertySet.setPropertyValue("CharBackTransparent", false);
+
+        int bgColor = Color.LIGHT_GRAY.getRGB() - 0xFF000000;
+                
+        xPropertySet.setPropertyValue("CharBackColor", bgColor);
+        //xPropertySet.setPropertyValue("CharColor", Color.YELLOW.getRGB());
+        
+        m_xText.insertString(xTextRange, " "+speakerTagContents+" ", false);
+        
+        if(boldVerseText==false){
+            xPropertySet.setPropertyValue("CharWeight", FontWeight.NORMAL);                                
+        }
+        xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB() - 0xFF000000);
+        //xPropertySet.setPropertyValue("CharColor", textColorVerseText.getRGB());
+        m_xText.insertString(xTextRange, speakerTagAfter, false);   
     }
     
     private void navigateTree(JsonValue tree, String key) {
@@ -673,7 +800,7 @@ public class BibleGetJSON {
                 xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.NONE);
             }
             xPropertySet.setPropertyValue("CharColor", textColorVerseText.getRGB());
-            xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB());
+            xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB() - 0xFF000000);
             xPropertySet.setPropertyValue("CharHeight", (float)fontSizeVerseText);
             
             switch (vAlignVerseText) {
