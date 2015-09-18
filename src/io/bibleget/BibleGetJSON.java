@@ -260,7 +260,7 @@ public class BibleGetJSON {
                         xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.NONE);
                     }
                     xPropertySet.setPropertyValue("CharColor", textColorBookChapter.getRGB());
-                    xPropertySet.setPropertyValue("CharBackColor", bgColorBookChapter.getRGB());
+                    xPropertySet.setPropertyValue("CharBackColor", bgColorBookChapter.getRGB() & ~0xFF000000);
 //                    System.out.print("textColorBookChapter: ");
 //                    System.out.println(textColorBookChapter);
 //                    System.out.print("bgColorBookChapter: ");
@@ -334,7 +334,7 @@ public class BibleGetJSON {
                     xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.NONE);
                 }
                 xPropertySet.setPropertyValue("CharColor", textColorBookChapter.getRGB());
-                xPropertySet.setPropertyValue("CharBackColor", bgColorBookChapter.getRGB());
+                xPropertySet.setPropertyValue("CharBackColor", bgColorBookChapter.getRGB() & ~0xFF000000);
                 switch (vAlignBookChapter) {
                     case "sub":
                         xPropertySet.setPropertyValue("CharEscapement", (short)-101);
@@ -405,7 +405,7 @@ public class BibleGetJSON {
                     xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.NONE);
                 }
                 xPropertySet.setPropertyValue("CharColor", textColorVerseNumber.getRGB());
-                xPropertySet.setPropertyValue("CharBackColor", bgColorVerseNumber.getRGB());
+                xPropertySet.setPropertyValue("CharBackColor", bgColorVerseNumber.getRGB() & ~0xFF000000);
                 //System.out.println(vAlignVerseNumber);
                 xPropertySet.setPropertyValue("CharHeight", (float)fontSizeVerseNumber);
                 
@@ -611,15 +611,14 @@ public class BibleGetJSON {
                                 break;
                             case "speaker":
 //                                System.out.println("We have found a speaker tag");
-                                int bgColor = Color.LIGHT_GRAY.getRGB() - 0xFF000000;
                                 xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.BOLD);
                                 xPropertySet.setPropertyValue("CharBackTransparent", false);
-                                xPropertySet.setPropertyValue("CharBackColor", bgColor);
+                                xPropertySet.setPropertyValue("CharBackColor", Color.LIGHT_GRAY.getRGB() & ~0xFF000000);
                                 m_xText.insertString(xTextRange, matcher1.group(4), false);
                                 if(boldVerseText==false){
                                     xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.NORMAL);                                
                                 }
-                                xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB() - 0xFF000000);
+                                xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB() & ~0xFF000000);
                         }
                         remainingText = remainingText.replaceFirst("<"+matcher1.group(2)+">"+matcher1.group(4)+"</"+matcher1.group(2)+">", "");
                     }
@@ -674,10 +673,11 @@ public class BibleGetJSON {
         
         xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
         xPropertySet.setPropertyValue("CharBackTransparent", false);
-
-        int bgColor = Color.LIGHT_GRAY.getRGB() - 0xFF000000;
-                
-        xPropertySet.setPropertyValue("CharBackColor", bgColor);
+        System.out.println("Color.LIGHT_GRAY.getAlpha() = "+Color.LIGHT_GRAY.getAlpha());
+        System.out.println("Color.LIGHT_GRAY.getRGB() as hex = "+Integer.toHexString(Color.LIGHT_GRAY.getRGB()));
+        System.out.println("Color.LIGHT_GRAY.getAlpha() as hex = "+Integer.toHexString(Color.LIGHT_GRAY.getAlpha()));
+        
+        xPropertySet.setPropertyValue("CharBackColor", Color.LIGHT_GRAY.getRGB() & ~0xFF000000);
         //xPropertySet.setPropertyValue("CharColor", Color.YELLOW.getRGB());
         
         m_xText.insertString(xTextRange, " "+speakerTagContents+" ", false);
@@ -685,7 +685,7 @@ public class BibleGetJSON {
         if(boldVerseText==false){
             xPropertySet.setPropertyValue("CharWeight", FontWeight.NORMAL);                                
         }
-        xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB() - 0xFF000000);
+        xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB() & ~0xFF000000);
         //xPropertySet.setPropertyValue("CharColor", textColorVerseText.getRGB());
         m_xText.insertString(xTextRange, speakerTagAfter, false);   
     }
@@ -800,7 +800,7 @@ public class BibleGetJSON {
                 xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.NONE);
             }
             xPropertySet.setPropertyValue("CharColor", textColorVerseText.getRGB());
-            xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB() - 0xFF000000);
+            xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB() & ~0xFF000000);
             xPropertySet.setPropertyValue("CharHeight", (float)fontSizeVerseText);
             
             switch (vAlignVerseText) {

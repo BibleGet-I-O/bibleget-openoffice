@@ -32,6 +32,8 @@ public final class BibleGetIO extends WeakBase
               com.sun.star.lang.XServiceInfo,
               com.sun.star.lang.XInitialization
 {
+    public static final String PLUGINVERSION = "v2_6";
+
     private final XComponentContext m_xContext;
     private com.sun.star.frame.XFrame m_xFrame;
     private static final String m_implementationName = BibleGetIO.class.getName();

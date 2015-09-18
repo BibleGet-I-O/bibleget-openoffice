@@ -947,11 +947,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jColorChooserClean(JColorChooser jColorChuser){
-        AbstractColorChooserPanel panels[] = jColorChuser.getChooserPanels();
-        jColorChuser.removeChooserPanel(panels[4]);
-        jColorChuser.removeChooserPanel(panels[3]);
-        jColorChuser.removeChooserPanel(panels[2]);
+    private void jColorChooserClean(JColorChooser jColorChooser){
+        AbstractColorChooserPanel panels[] = jColorChooser.getChooserPanels();
+        jColorChooser.removeChooserPanel(panels[4]);
+        jColorChooser.removeChooserPanel(panels[3]);
+        jColorChooser.removeChooserPanel(panels[2]);
     }
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked

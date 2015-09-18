@@ -56,7 +56,7 @@ public class HTTPCaller {
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(HTTPCaller.class.getName()).log(Level.SEVERE, null, ex);
         }
-        String url = "http://query.bibleget.io/index2.php?query="+myQuery+"&version="+versions+"&return=json&appid=openoffice";
+        String url = "http://query.bibleget.io/index2.php?query="+myQuery+"&version="+versions+"&return=json&appid=openoffice&pluginversion="+BibleGetIO.PLUGINVERSION;
 
         return getResponse(url);
     }
