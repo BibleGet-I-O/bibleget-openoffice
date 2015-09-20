@@ -12,8 +12,6 @@ import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.frame.XController;
 import com.sun.star.frame.XModel;
-import com.sun.star.lang.IllegalArgumentException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.text.XText;
 import com.sun.star.text.XTextDocument;
 import com.sun.star.text.XTextRange;
@@ -103,7 +101,7 @@ public class BibleGetJSON {
         
     }
     
-    public void JSONParse(String jsonString) throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException
+    public void JSONParse(String jsonString) throws UnknownPropertyException, PropertyVetoException, com.sun.star.lang.IllegalArgumentException, com.sun.star.lang.WrappedTargetException
     {
         XText m_xText = m_xTextDocument.getText();
         
@@ -218,7 +216,7 @@ public class BibleGetJSON {
 //                System.out.println(paragraphLeftIndent);
 //                System.out.print("paragraphLineSpacing: ");
 //                System.out.println(paragraphLineSpacing);
-            } catch (UnknownPropertyException | PropertyVetoException | IllegalArgumentException | WrappedTargetException ex){
+            } catch (UnknownPropertyException | PropertyVetoException | com.sun.star.lang.IllegalArgumentException | com.sun.star.lang.WrappedTargetException ex){
                 Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
             }
             
@@ -284,7 +282,7 @@ public class BibleGetJSON {
                             break;
                     }
                     xPropertySet.setPropertyValue("CharHeight", (float) fontSizeBookChapter);
-                } catch (UnknownPropertyException | PropertyVetoException | IllegalArgumentException | WrappedTargetException ex){
+                } catch (UnknownPropertyException | PropertyVetoException | com.sun.star.lang.IllegalArgumentException | com.sun.star.lang.WrappedTargetException ex){
                     Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 m_xText.insertString(xTextRange, currentversion, false);
@@ -358,7 +356,7 @@ public class BibleGetJSON {
                 
                 try {                    
                     m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
-                } catch (IllegalArgumentException ex) {
+                } catch (com.sun.star.lang.IllegalArgumentException ex) {
                     Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 
@@ -612,7 +610,7 @@ public class BibleGetJSON {
                             case "speaker":
 //                                System.out.println("We have found a speaker tag");
                                 xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.BOLD);
-                                xPropertySet.setPropertyValue("CharBackTransparent", false);
+                                //xPropertySet.setPropertyValue("CharBackTransparent", false);
                                 xPropertySet.setPropertyValue("CharBackColor", Color.LIGHT_GRAY.getRGB() & ~0xFF000000);
                                 m_xText.insertString(xTextRange, matcher1.group(4), false);
                                 if(boldVerseText==false){
@@ -658,13 +656,13 @@ public class BibleGetJSON {
         
         try {
             m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
-        } catch (IllegalArgumentException ex) {
+        } catch (com.sun.star.lang.IllegalArgumentException ex) {
             Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
         }        
         
     }
     
-    private void insertNestedSpeakerTag(String speakerTagBefore, String speakerTagContents, String speakerTagAfter, XText m_xText, XTextRange xTextRange, XPropertySet xPropertySet) throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException
+    private void insertNestedSpeakerTag(String speakerTagBefore, String speakerTagContents, String speakerTagAfter, XText m_xText, XTextRange xTextRange, XPropertySet xPropertySet) throws UnknownPropertyException, PropertyVetoException, com.sun.star.lang.IllegalArgumentException, com.sun.star.lang.WrappedTargetException
     {
         
 //        System.out.println("We are now working with a nested Speaker Tag."); //Using BG="+grayBG.getRGB()+"=R("+r+"),B("+b+"),G("+g+")
@@ -672,11 +670,9 @@ public class BibleGetJSON {
         m_xText.insertString(xTextRange, speakerTagBefore, false);
         
         xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
-        xPropertySet.setPropertyValue("CharBackTransparent", false);
-        System.out.println("Color.LIGHT_GRAY.getAlpha() = "+Color.LIGHT_GRAY.getAlpha());
-        System.out.println("Color.LIGHT_GRAY.getRGB() as hex = "+Integer.toHexString(Color.LIGHT_GRAY.getRGB()));
-        System.out.println("Color.LIGHT_GRAY.getAlpha() as hex = "+Integer.toHexString(Color.LIGHT_GRAY.getAlpha()));
+        //xPropertySet.setPropertyValue("CharBackTransparent", false);
         
+        //xPropertySet.setPropertyValue("CharBackColor", Color.LIGHT_GRAY.getRGB());
         xPropertySet.setPropertyValue("CharBackColor", Color.LIGHT_GRAY.getRGB() & ~0xFF000000);
         //xPropertySet.setPropertyValue("CharColor", Color.YELLOW.getRGB());
         
@@ -685,6 +681,7 @@ public class BibleGetJSON {
         if(boldVerseText==false){
             xPropertySet.setPropertyValue("CharWeight", FontWeight.NORMAL);                                
         }
+        //xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB());
         xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB() & ~0xFF000000);
         //xPropertySet.setPropertyValue("CharColor", textColorVerseText.getRGB());
         m_xText.insertString(xTextRange, speakerTagAfter, false);   
@@ -779,7 +776,7 @@ public class BibleGetJSON {
         return rounded;
     }
     
-    private void setVerseTextStyles(com.sun.star.beans.XPropertySet xPropertySet) throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException
+    private void setVerseTextStyles(com.sun.star.beans.XPropertySet xPropertySet) throws UnknownPropertyException, PropertyVetoException, com.sun.star.lang.IllegalArgumentException, com.sun.star.lang.WrappedTargetException
     {
             if (boldVerseText){
                 xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.BOLD);
@@ -826,7 +823,7 @@ public class BibleGetJSON {
     {
         try {
             m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
-        } catch (IllegalArgumentException ex) {
+        } catch (com.sun.star.lang.IllegalArgumentException ex) {
             Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
         }            
     }

@@ -227,6 +227,8 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.bibleGetAbout.setVisible(true);
                     }
                     else{
+                        //make sure we also have the database initialized first
+                        BibleGetIO.biblegetDB = BibleGetDB.getInstance();                        
                         BibleGetIO.bibleGetAbout = BibleGetAbout.getInstance();
                         BibleGetIO.bibleGetAbout.setVisible(true);
                     }
@@ -451,10 +453,10 @@ public final class BibleGetIO extends WeakBase
                     //instance.myMessages = BibleGetI18N.getMessages();
                     BibleGetIO.biblegetDB = BibleGetDB.getInstance();
                     if(BibleGetIO.biblegetDB != null){ 
-                        //System.out.println("We have an instance of database!"); 
+                        System.out.println("We have an instance of database!"); 
                     }
                     else{ 
-                        //System.out.println("Sorry, no database instance here."); 
+                        System.out.println("Sorry, no database instance here."); 
                     }
                     BibleGetIO.myOptionFrame = OptionsFrame.getInstance();
                     BibleGetIO.myFrame = BibleGetFrame.getInstance(instance.m_xController);

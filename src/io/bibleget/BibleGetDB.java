@@ -61,10 +61,10 @@ public class BibleGetDB {
             instance = new BibleGetDB();
             boolean dbInitialized = instance.initialize();
             if(dbInitialized){ 
-                //System.out.println("Database is initialized too!"); 
+                System.out.println("Database is initialized too!"); 
             }
             else{ 
-                //System.out.println("Sorry but database has not been initialized."); 
+                System.out.println("Sorry but database has not been initialized."); 
             }
         }
         return instance;        
@@ -73,13 +73,18 @@ public class BibleGetDB {
     public boolean initialize() {
     
         try {
-            conn = DriverManager.getConnection(
+            instance.conn = DriverManager.getConnection(
                     "jdbc:derby:BIBLEGET;create=true",
                     "bibleget",
                     "bibleget");
-
+            if(instance.conn==null){ 
+                System.out.println("Careful there! Connection not established! BibleGetDB.java line 81");
+            }
+            else{
+                System.out.println("conn is not null, which means a connection was correctly established.");
+            }
             DatabaseMetaData dbMeta;
-            dbMeta = conn.getMetaData();
+            dbMeta = instance.conn.getMetaData();
             try (ResultSet rs1 = dbMeta.getTables(null, null, "OPTIONS", null)) {
                 if(rs1.next())
                 {
@@ -89,7 +94,7 @@ public class BibleGetDB {
                 else
                 {
                     //System.out.println("Table OPTIONS does not yet exist, now attempting to create...");
-                    try ( Statement stmt = conn.createStatement()) {
+                    try ( Statement stmt = instance.conn.createStatement()) {
                         
                         String defaultFont = "";
                         if(SystemUtils.IS_OS_WINDOWS){
@@ -182,7 +187,7 @@ public class BibleGetDB {
                             else{
                                 //this is our expected behaviour: 0 rows affected
                                 //System.out.println("The Table Creation statement produced results: "+count+" rows affected.");
-                                try (Statement stmt2 = conn.createStatement()) {
+                                try (Statement stmt2 = instance.conn.createStatement()) {
                                     rowsInserted = stmt2.execute(tableInsert);
                                     if(rowsInserted==false){
                                         count = stmt2.getUpdateCount();
@@ -192,7 +197,7 @@ public class BibleGetDB {
                                         else{
                                             //this is our expected behaviour: n rows affected
                                             //System.out.println("The Row Insertion statement produced results: "+count+" rows affected.");
-                                            dbMeta = conn.getMetaData();
+                                            dbMeta = instance.conn.getMetaData();
                                             try (ResultSet rs2 = dbMeta.getTables(null, null, "OPTIONS", null)) {
                                                 if(rs2.next())
                                                 {
@@ -238,7 +243,7 @@ public class BibleGetDB {
                 }
                 else{
                     //System.out.println("Table METADATA does not exist, now attempting to create...");
-                    try (Statement stmt = conn.createStatement()) {
+                    try (Statement stmt = instance.conn.createStatement()) {
                         String tableCreate = "CREATE TABLE METADATA (";
                         tableCreate += "ID INT, ";
                         for(int i=0;i<73;i++){
@@ -260,7 +265,7 @@ public class BibleGetDB {
                                 //this is our expected behaviour: 0 rows affected
                                 //System.out.println("The Table Creation statement produced results: "+count+" rows affected.");
                                 //Insert a dummy row, because you cannot update what has not been inserted!                                
-                                try ( Statement stmtX = conn.createStatement()) {
+                                try ( Statement stmtX = instance.conn.createStatement()) {
                                     stmtX.execute("INSERT INTO METADATA (ID) VALUES (0)");
                                     stmtX.close();
                                 }
@@ -277,7 +282,7 @@ public class BibleGetDB {
                                         ListIterator pIterator = arrayJson.listIterator();
                                         while (pIterator.hasNext())
                                         {
-                                            try(Statement stmt2 = conn.createStatement()) {
+                                            try(Statement stmt2 = instance.conn.createStatement()) {
                                                 int index = pIterator.nextIndex();
                                                 JsonArray currentJson = (JsonArray) pIterator.next();
                                                 String biblebooks_str = currentJson.toString(); //.replaceAll("\"", "\\\\\"");
@@ -297,7 +302,7 @@ public class BibleGetDB {
                                     
                                     arrayJson = json.getJsonArray("languages");
                                     if(arrayJson != null){
-                                        try(Statement stmt2 = conn.createStatement()) {
+                                        try(Statement stmt2 = instance.conn.createStatement()) {
                                             
                                             String languages_str = arrayJson.toString(); //.replaceAll("\"", "\\\\\"");
                                             String stmt_str = "UPDATE METADATA SET LANGUAGES='"+languages_str+"' WHERE ID=0";
@@ -318,7 +323,7 @@ public class BibleGetDB {
                                     JsonObject objJson = json.getJsonObject("validversions_fullname");
                                     if(objJson != null){
                                         String bibleversions_str = objJson.toString(); //.replaceAll("\"", "\\\\\"");
-                                        try(Statement stmt2 = conn.createStatement()){
+                                        try(Statement stmt2 = instance.conn.createStatement()){
                                             String stmt_str = "UPDATE METADATA SET VERSIONS='"+bibleversions_str+"' WHERE ID=0";
                                             try{
                                                 int update = stmt2.executeUpdate(stmt_str);
@@ -352,7 +357,7 @@ public class BibleGetDB {
                                                         String versionindex_str = temp.toString(); //.replaceAll("\"", "\\\\\"");
                                                         //add new column to METADATA table name+"IDX" VARCHAR(5000)
                                                         //update METADATA table SET name+"IDX" = versionindex_str
-                                                        try(Statement stmt3 = conn.createStatement()){
+                                                        try(Statement stmt3 = instance.conn.createStatement()){
                                                             String sql = "ALTER TABLE METADATA ADD COLUMN "+name+"IDX VARCHAR(5000)";
                                                             boolean colAdded = stmt3.execute(sql);
                                                             if(colAdded==false) {
@@ -364,7 +369,7 @@ public class BibleGetDB {
                                                                     //0 rows affected
                                                                     stmt3.close();
                                                                     
-                                                                    try(Statement stmt4 = conn.createStatement()){
+                                                                    try(Statement stmt4 = instance.conn.createStatement()){
                                                                         String sql1 = "UPDATE METADATA SET "+name+"IDX='"+versionindex_str+"' WHERE ID=0";
                                                                         boolean rowsUpdated = stmt4.execute(sql1);
                                                                         if(rowsUpdated==false) {
@@ -420,7 +425,7 @@ public class BibleGetDB {
                 }
                 rs3.close();
             }
-            conn.close();
+            instance.conn.close();
             return true;
         } catch (SQLException ex) {
             if( ex.getSQLState().equals("X0Y32") ) {
@@ -439,7 +444,7 @@ public class BibleGetDB {
     
     public boolean connect() {
         try {
-            conn = DriverManager.getConnection(
+            instance.conn = DriverManager.getConnection(
                     "jdbc:derby:BIBLEGET",
                     "bibleget",
                     "bibleget");
@@ -460,9 +465,9 @@ public class BibleGetDB {
     }
 
     public void disconnect() {
-        if(conn != null){
+        if(instance.conn != null){
             try {
-                conn.close();
+                instance.conn.close();
             } catch (SQLException ex) {
                 Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -523,7 +528,7 @@ public class BibleGetDB {
             try {
                 JsonObjectBuilder myOptionsTable;
                 JsonArrayBuilder myRows;
-                try (Statement stmt = conn.createStatement(); ResultSet rsOps = stmt.executeQuery("SELECT * FROM OPTIONS")) {
+                try (Statement stmt = instance.conn.createStatement(); ResultSet rsOps = stmt.executeQuery("SELECT * FROM OPTIONS")) {
                     Iterator itColNames = colNames.iterator();
                     Iterator itDataTypes = colDataTypes.iterator();
                     myOptionsTable = Json.createObjectBuilder();
@@ -565,7 +570,7 @@ public class BibleGetDB {
                     int idx = colNames.indexOf(option);
                     Class dataType = colDataTypes.get(idx);
                     //System.out.println(BibleGetDB.class.getName()+" [299]: dataType="+dataType.getName() );
-                    try (Statement stmt = conn.createStatement()) {
+                    try (Statement stmt = instance.conn.createStatement()) {
                         String sqlexec = "SELECT "+option+" FROM OPTIONS";
                         try (ResultSet rsOps = stmt.executeQuery(sqlexec)) {
                             while (rsOps.next()) {
@@ -594,11 +599,15 @@ public class BibleGetDB {
         dataOption = StringUtils.upperCase(dataOption);
         String metaDataStr = "";
         if(dataOption.startsWith("BIBLEBOOKS") || dataOption.equals("LANGUAGES") || dataOption.equals("VERSIONS") || dataOption.endsWith("IDX")){
-            //System.out.println("getMetaData received a valid request for "+dataOption);
+            System.out.println("getMetaData received a valid request for "+dataOption);
             if(instance.connect()){
-                //System.out.println("getMetaData has connected to the database...");
+                if(instance.conn == null){
+                    System.out.println("What is going on here? Why is connection null?");
+                }else{
+                    System.out.println("getMetaData has connected to the database...");
+                }
                 String sqlexec = "SELECT "+dataOption+" FROM METADATA WHERE ID=0";
-                try(Statement stmt = conn.createStatement()){
+                try(Statement stmt = instance.conn.createStatement()){
                     try (ResultSet rsOps = stmt.executeQuery(sqlexec)) {
                         //System.out.println("query seems to have been successful...");
                         //ResultSetMetaData rsMD = rsOps.getMetaData();
@@ -632,7 +641,7 @@ public class BibleGetDB {
                 colDataTypes.add(Integer.class);
             }
             try {
-                Statement stmt = conn.createStatement();
+                Statement stmt = instance.conn.createStatement();
                 String sqlexec = "UPDATE OPTIONS SET "+colname+" = "+value+"";
                 boolean rowsUpdated = stmt.execute(sqlexec);
                 if(rowsUpdated==false) {
@@ -672,7 +681,7 @@ public class BibleGetDB {
                 colDataTypes.add(String.class);
             }
             try {
-                Statement stmt = conn.createStatement();
+                Statement stmt = instance.conn.createStatement();
                 String sqlexec = "UPDATE OPTIONS SET "+colname+" = '"+value+"'";
                 boolean rowsUpdated = stmt.execute(sqlexec);
                 if(rowsUpdated==false) {
@@ -713,7 +722,7 @@ public class BibleGetDB {
                 colDataTypes.add(Boolean.class);
             }
             try {
-                Statement stmt = conn.createStatement();
+                Statement stmt = instance.conn.createStatement();
                 String sqlexec = "UPDATE OPTIONS SET "+colname+" = "+value+"";
                 boolean rowsUpdated = stmt.execute(sqlexec);
                 if(rowsUpdated==false) {
@@ -745,7 +754,7 @@ public class BibleGetDB {
         int count;
         try {
             colName = colName.toUpperCase();
-            Statement stmt = conn.createStatement();
+            Statement stmt = instance.conn.createStatement();
             String sqlexec = "ALTER TABLE OPTIONS ADD COLUMN "+colName+" "+type;
             boolean colAdded = stmt.execute(sqlexec);
             
@@ -774,12 +783,12 @@ public class BibleGetDB {
         if(instance.connect()){
             try {
                 DatabaseMetaData dbMeta;
-                dbMeta = conn.getMetaData();
+                dbMeta = instance.conn.getMetaData();
                 try (ResultSet rs3 = dbMeta.getTables(null, null, "METADATA", null)) {
                     if(rs3.next())
                     {
                         //System.out.println("Table METADATA exists...");
-                        try (Statement stmt = conn.createStatement()) {
+                        try (Statement stmt = instance.conn.createStatement()) {
                             HTTPCaller myHTTPCaller = new HTTPCaller();
                             String myResponse;
                             myResponse = myHTTPCaller.getMetaData("biblebooks");
@@ -791,7 +800,7 @@ public class BibleGetDB {
                                     ListIterator pIterator = arrayJson.listIterator();
                                     while (pIterator.hasNext())
                                     {
-                                        try(Statement stmt1 = conn.createStatement()) {
+                                        try(Statement stmt1 = instance.conn.createStatement()) {
                                             int index = pIterator.nextIndex();
                                             JsonArray currentJson = (JsonArray) pIterator.next();
                                             String biblebooks_str = currentJson.toString(); //.replaceAll("\"", "\\\\\"");
@@ -807,7 +816,7 @@ public class BibleGetDB {
                                 
                                 arrayJson = json.getJsonArray("languages");
                                 if(arrayJson != null){
-                                    try(Statement stmt2 = conn.createStatement()) {                                        
+                                    try(Statement stmt2 = instance.conn.createStatement()) {                                        
                                         String languages_str = arrayJson.toString(); //.replaceAll("\"", "\\\\\"");
                                         String stmt_str = "UPDATE METADATA SET LANGUAGES='"+languages_str+"' WHERE ID=0";
                                         int update = stmt2.executeUpdate(stmt_str);
@@ -823,7 +832,7 @@ public class BibleGetDB {
                                 JsonObject objJson = json.getJsonObject("validversions_fullname");
                                 if(objJson != null){
                                     String bibleversions_str = objJson.toString(); //.replaceAll("\"", "\\\\\"");
-                                    try(Statement stmt3 = conn.createStatement()){
+                                    try(Statement stmt3 = instance.conn.createStatement()){
                                         String stmt_str = "UPDATE METADATA SET VERSIONS='"+bibleversions_str+"' WHERE ID=0";
                                         int update = stmt3.executeUpdate(stmt_str);
                                         stmt3.close();
@@ -859,7 +868,7 @@ public class BibleGetDB {
                                                             updateFlag=true;
                                                         }
                                                         else{
-                                                            try(Statement stmt4 = conn.createStatement()){
+                                                            try(Statement stmt4 = instance.conn.createStatement()){
                                                                 String sql = "ALTER TABLE METADATA ADD COLUMN "+name+"IDX VARCHAR(5000)";
                                                                 boolean colAdded = stmt4.execute(sql);
                                                                 if(colAdded==false) {
@@ -876,7 +885,7 @@ public class BibleGetDB {
                                                             }
                                                         }
                                                         if(updateFlag){
-                                                            try(Statement stmt5 = conn.createStatement()){
+                                                            try(Statement stmt5 = instance.conn.createStatement()){
                                                                 String sql1 = "UPDATE METADATA SET "+name+"IDX='"+versionindex_str+"' WHERE ID=0";
                                                                 boolean rowsUpdated = stmt5.execute(sql1);
                                                                 stmt5.close();                                                                    
