@@ -166,7 +166,7 @@ public class BibleGetHelp extends javax.swing.JFrame {
                 + "</ul>"
                 + "<p><b>"+__("AUTHOR")+":</b> "+__("John R. D'Orazio (chaplain at Roma Tre University)")+"</p>"
                 + "<p><b>"+__("COLLABORATORS")+":</b> "+__("Giovanni Gregori (computing) and Simone Urbinati (MUG Roma Tre)")+"</p>"
-                + "<p><b>"+__("Version").toUpperCase()+":</b> 2.0</p>"
+                + "<p><b>"+__("Version").toUpperCase()+":</b> "+String.valueOf(BibleGetIO.VERSION)+"</p>"
                 + "<p>© <b>Copyright 2014 BibleGet I/O by John R. D'Orazio</b> <span style=\"color:blue;\">john.dorazio@cappellaniauniroma3.org</span></p>"
                 + "<p><b>"+__("PROJECT WEBSITE")+": </b><span style=\"color:blue;\">http://www.bibleget.io</span> | <b>"+__("EMAIL ADDRESS FOR INFORMATION OR FEEDBACK ON THE PROJECT")+":</b> <span style=\"color:blue;\">bibleget.io@gmail.com</span></p>"
                 + "<p>Cappellania Università degli Studi Roma Tre - Piazzale San Paolo 1/d - 00120 Città del Vaticano - +39 06.69.88.08.09 - <span style=\"color:blue;\">cappellania.uniroma3@gmail.com</span></p></body></html>";
