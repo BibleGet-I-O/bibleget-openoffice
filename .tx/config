@@ -1,0 +1,9 @@
+[main]
+host = https://www.transifex.com
+type = UNICODEPROPERTIES
+
+[bibleget-io-plugin-for-open-office.messages_enproperties]
+source_file = src/io/bibleget/resources/messages_en.properties
+source_lang = en
+type = UNICODEPROPERTIES
+file_filter = src/io/bibleget/resources/messages_<lang>.properties
