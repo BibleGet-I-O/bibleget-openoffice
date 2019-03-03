@@ -3,7 +3,7 @@
 ***   AUTOMATICALLY GENERATED - DO NOT EDIT   ***
 ***         EDIT ../build.xml INSTEAD         ***
 -->
-<project name="BibleGetIO_LibreOfficeuno-impl" default="netbeans" basedir="..">
+<project name="BibleGetIOuno-impl" default="netbeans" basedir="..">
     <description>Builds, tests, and runs an UNO project.</description>
 
     <import file="build-impl.xml"/>
