@@ -1,0 +1,1 @@
+Insérer citations bibliques dans un document. Se utilise le service de www.bibleget.io.
