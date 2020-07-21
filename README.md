@@ -3,6 +3,12 @@ BibleGet I/O Project plugin for Open Office
 
 ![SourceForge](https://img.shields.io/sourceforge/dt/aoo-extensions/18086?style=flat-square)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/BibleGet-I-O/bibleget-openoffice?style=flat-square)
+![GitHub Release Date](https://img.shields.io/github/release-date/BibleGet-I-O/bibleget-openoffice?style=flat-square)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/BibleGet-I-O/bibleget-openoffice?style=flat-square)
+![GitHub](https://img.shields.io/github/license/BibleGet-I-O/bibleget-openoffice?style=flat-square)
+![GitHub top language](https://img.shields.io/github/languages/top/BibleGet-I-O/bibleget-openoffice?style=flat-square)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/BibleGet-I-O/bibleget-openoffice?style=flat-square)
+
 
 ## Description
 
