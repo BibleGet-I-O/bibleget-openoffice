@@ -27,6 +27,9 @@ The latest release can be downloaded from the Open Office Extensions website at:
 * https://extensions.openoffice.org/en/project/bibleget-io
 * a Java Runtime Environment is required for this plugin to function correctly. A minimum of JRE 1.8 (32bit version) is required and can be obtained either from https://www.oracle.com/java/technologies/javase-jre8-downloads.html or from https://developers.redhat.com/products/openjdk/download (JDK includes JRE). Please note that a 64bit JRE will not work. You can install both a 64bit and a 32bit JRE, but OpenOffice can only handle a 32bit JRE (on Windows in any case).
 
+## Developers
+Anyone interested in contributing to the development of this plugin should first setup the environment for Apache Open Office plugin development. Please take a look at the [wiki page on this repository](https://github.com/BibleGet-I-O/bibleget-openoffice/wiki/Setting-up-the-Development-Environment).
+
 ## Changelog
 
 ### v2.8 (March 3rd, 2019)
