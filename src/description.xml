@@ -8,33 +8,33 @@
         <high-contrast xlink:href="images/holy-bible-x256.png"/>
     </icon>
     <display-name>
-        <name lang="fr">BibleGet I/O</name>
         <name lang="it">BibleGet I/O</name>
+        <name lang="es">BibleGet I/O</name>
         <name lang="en">BibleGet I/O</name>
         <name lang="de">BibleGet I/O</name>
-        <name lang="es">BibleGet I/O</name>
+        <name lang="fr">BibleGet I/O</name>
     </display-name>
     <publisher>
-        <name lang="es" xlink:href="https://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
         <name lang="fr" xlink:href="https://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
-        <name lang="en" xlink:href="https://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
         <name lang="it" xlink:href="https://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
+        <name lang="en" xlink:href="https://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
+        <name lang="es" xlink:href="https://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
         <name lang="de" xlink:href="https://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
     </publisher>
     <extension-description>
-        <src lang="fr" xlink:href="description/desc_fr.txt"/>
         <src lang="it" xlink:href="description/desc_it.txt"/>
+        <src lang="es" xlink:href="description/desc_es.txt"/>
         <src lang="en" xlink:href="description/desc_en.txt"/>
         <src lang="de" xlink:href="description/desc_de.txt"/>
-        <src lang="es" xlink:href="description/desc_es.txt"/>
+        <src lang="fr" xlink:href="description/desc_fr.txt"/>
     </extension-description>
     <registration>
         <simple-license accept-by="user" default-license-id="en">
             <license-text lang="en" license-id="en" xlink:href="licenses/license.TXT"/>
-            <license-text lang="de" xlink:href="licenses/license.TXT"/>
             <license-text lang="fr" xlink:href="licenses/license.TXT"/>
             <license-text lang="it" xlink:href="licenses/license.TXT"/>
             <license-text lang="es" xlink:href="licenses/license.TXT"/>
+            <license-text lang="de" xlink:href="licenses/license.TXT"/>
         </simple-license>
     </registration>
 </description>

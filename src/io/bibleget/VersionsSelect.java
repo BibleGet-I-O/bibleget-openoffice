@@ -45,40 +45,47 @@ public class VersionsSelect extends javax.swing.JList {
     {       
         biblegetDB = BibleGetDB.getInstance();
         String bibleVersionsStr = biblegetDB.getMetaData("VERSIONS");
-        JsonReader jsonReader = Json.createReader(new StringReader(bibleVersionsStr));
-        JsonObject bibleVersionsObj = jsonReader.readObject();
-        Set<String> versionsabbrev = bibleVersionsObj.keySet();
-        bibleVersions = new BasicEventList<>();
-        if(!versionsabbrev.isEmpty()){
-            versionsabbrev.stream().forEach((String s) -> {
-                String versionStr = bibleVersionsObj.getString(s); //store these in an array
-                String[] array;
-                array = versionStr.split("\\|");
-                bibleVersions.add(new BibleVersion(s,array[0],array[1],StringUtils.capitalize(new Locale(array[2]).getDisplayLanguage())));
-            });
-        }
-        
-        versionsByLang = new SeparatorList<>(bibleVersions, new VersionComparator(),1, 1000);
-        
-        int listLength = versionsByLang.size();
-        enabledFlags = new boolean[listLength];
-        
-        ListIterator itr = versionsByLang.listIterator();
-        while(itr.hasNext()){
-            int idx = itr.nextIndex();
-            Object next = itr.next();
-            enabledFlags[idx] = !(next.getClass().getSimpleName().equals("GroupSeparator"));
-            if(enabledFlags[idx]){
-                versionCount++;
+        if(null == bibleVersionsStr){
+            System.out.println(this.getClass().getSimpleName() + "-> We have a problem Watson! bibleVersionsStr is null.");
+            bibleVersions = null;
+            versionsByLang = null;
+            enabledFlags = null;
+        } else {
+            JsonReader jsonReader = Json.createReader(new StringReader(bibleVersionsStr));
+            JsonObject bibleVersionsObj = jsonReader.readObject();
+            Set<String> versionsabbrev = bibleVersionsObj.keySet();
+            bibleVersions = new BasicEventList<>();
+            if(!versionsabbrev.isEmpty()){
+                versionsabbrev.stream().forEach((String s) -> {
+                    String versionStr = bibleVersionsObj.getString(s); //store these in an array
+                    String[] array;
+                    array = versionStr.split("\\|");
+                    bibleVersions.add(new BibleVersion(s,array[0],array[1],StringUtils.capitalize(new Locale(array[2]).getDisplayLanguage())));
+                });
             }
-            else{
-                versionLangs++;
+
+            versionsByLang = new SeparatorList<>(bibleVersions, new VersionComparator(),1, 1000);
+
+            int listLength = versionsByLang.size();
+            enabledFlags = new boolean[listLength];
+
+            ListIterator itr = versionsByLang.listIterator();
+            while(itr.hasNext()){
+                int idx = itr.nextIndex();
+                Object next = itr.next();
+                enabledFlags[idx] = !(next.getClass().getSimpleName().equals("GroupSeparator"));
+                if(enabledFlags[idx]){
+                    versionCount++;
+                }
+                else{
+                    versionLangs++;
+                }
             }
+
+            this.setModel(new DefaultEventListModel<>(versionsByLang));
+            this.setCellRenderer(new VersionCellRenderer());
+            this.setSelectionModel(new DisabledItemSelectionModel());
         }
-    
-        this.setModel(new DefaultEventListModel<>(versionsByLang));
-        this.setCellRenderer(new VersionCellRenderer());
-        this.setSelectionModel(new DisabledItemSelectionModel());
     }
             
     public SeparatorList getVersionsByLangList()

@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
@@ -50,7 +51,7 @@ public class BibleGetDB {
         try {
             setDBSystemDir();
             Class.forName("org.apache.derby.jdbc.EmbeddedDriver");            
-        } catch (Exception ex) {
+        } catch (ClassNotFoundException ex) {
             Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -324,10 +325,10 @@ public class BibleGetDB {
         try (ResultSet rs3 = dbMeta.getTables(null, null, "METADATA", null)) {
             if(rs3.next())
             {
-                //System.out.println("Table "+rs3.getString("TABLE_NAME")+" already exists !!");
+                System.out.println("Table "+rs3.getString("TABLE_NAME")+" already exists !!");
             }
             else{
-                //System.out.println("Table METADATA does not exist, now attempting to create...");
+                System.out.println("Table METADATA does not exist, now attempting to create...");
                 try (Statement stmt = instance.conn.createStatement()) {
                     String tableCreate = "CREATE TABLE METADATA (";
                     tableCreate += "ID INT, ";
@@ -348,7 +349,7 @@ public class BibleGetDB {
                         }
                         else{
                             //this is our expected behaviour: 0 rows affected
-                            //System.out.println("The Table Creation statement produced results: "+count+" rows affected.");
+                            System.out.println("The Table Creation statement produced results: "+count+" rows affected.");
                             //Insert a dummy row, because you cannot update what has not been inserted!                                
                             try ( Statement stmtX = instance.conn.createStatement()) {
                                 stmtX.execute("INSERT INTO METADATA (ID) VALUES (0)");
@@ -356,9 +357,12 @@ public class BibleGetDB {
                             }
 
                             HTTPCaller myHTTPCaller = new HTTPCaller();
+                            System.out.println(this.getClass().getSimpleName() + " >> We should now have an instance of the HTTPCaller class.");
                             String myResponse;
                             myResponse = myHTTPCaller.getMetaData("biblebooks");
                             if(myResponse != null){
+                                System.out.println(this.getClass().getSimpleName() + " >> response from myHTTPCaller.getMetaData(\"biblebooks\") call is:");
+                                System.out.println(myResponse);
                                 JsonReader jsonReader = Json.createReader(new StringReader(myResponse));
                                 JsonObject json = jsonReader.readObject();
                                 JsonArray arrayJson = json.getJsonArray("results");
@@ -372,7 +376,7 @@ public class BibleGetDB {
                                             JsonArray currentJson = (JsonArray) pIterator.next();
                                             //TODO: double check that JsonArray.toString is working as intended!
                                             String biblebooks_str = currentJson.toString(); //.replaceAll("\"", "\\\\\"");
-                                            System.out.println("BibleGetDB line 267: BIBLEBOOKS"+Integer.toString(index)+"='"+biblebooks_str+"'"); 
+                                            System.out.println("BibleGetDB line 379: BIBLEBOOKS"+Integer.toString(index)+"='"+biblebooks_str+"'"); 
                                             String stmt_str = "UPDATE METADATA SET BIBLEBOOKS"+Integer.toString(index)+"='"+biblebooks_str+"' WHERE ID=0";
                                             try{
                                                 //System.out.println("executing update: "+stmt_str);
@@ -400,6 +404,8 @@ public class BibleGetDB {
                                         stmt2.close();
                                     }                                    
                                 }
+                            } else { 
+                                System.out.println(this.getClass().getSimpleName() + " >> myResponse is null!!!!");
                             }
 
                             myResponse = myHTTPCaller.getMetaData("bibleversions");
@@ -642,21 +648,21 @@ public class BibleGetDB {
         dataOption = StringUtils.upperCase(dataOption);
         String metaDataStr = "";
         if(dataOption.startsWith("BIBLEBOOKS") || dataOption.equals("LANGUAGES") || dataOption.equals("VERSIONS") || dataOption.endsWith("IDX")){
-            //System.out.println("getMetaData received a valid request for "+dataOption);
+            System.out.println("getMetaData received a valid request for "+dataOption);
             if(instance.connect()){
                 if(instance.conn == null){
-                    //System.out.println("What is going on here? Why is connection null?");
+                    System.out.println("What is going on here? Why is connection null?");
                 }else{
-                    //System.out.println("getMetaData has connected to the database...");
+                    System.out.println("getMetaData has connected to the database...");
                 }
                 String sqlexec = "SELECT "+dataOption+" FROM METADATA WHERE ID=0";
                 try(Statement stmt = instance.conn.createStatement()){
                     try (ResultSet rsOps = stmt.executeQuery(sqlexec)) {
-                        //System.out.println("query seems to have been successful...");
-                        //ResultSetMetaData rsMD = rsOps.getMetaData();
-                        //int cols = rsMD.getColumnCount();
-                        //String colnm = rsMD.getColumnName(cols);
-                        //System.out.println("there are "+Integer.toString(cols)+" columns in this resultset and name is: "+colnm+"(requested "+dataOption+")");
+                        System.out.println("query seems to have been successful...");
+                        ResultSetMetaData rsMD = rsOps.getMetaData();
+                        int cols = rsMD.getColumnCount();
+                        String colnm = rsMD.getColumnName(cols);
+                        System.out.println("there are "+Integer.toString(cols)+" columns in this resultset and name is: "+colnm+"(requested "+dataOption+")");
                         while(rsOps.next()){
                             metaDataStr = rsOps.getString(dataOption);
                         }
