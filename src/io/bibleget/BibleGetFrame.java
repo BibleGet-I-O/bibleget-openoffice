@@ -107,51 +107,56 @@ public final class BibleGetFrame extends javax.swing.JFrame {
     private void prepareDynamicInformation() throws ClassNotFoundException, SQLException{
         biblegetDB = BibleGetDB.getInstance();
         String bibleVersionsStr = biblegetDB.getMetaData("VERSIONS");
-        JsonReader jsonReader = Json.createReader(new StringReader(bibleVersionsStr));
-        JsonObject bibleVersionsObj = jsonReader.readObject();
-        Set<String> versionsabbrev = bibleVersionsObj.keySet();
-        bibleVersions = new BasicEventList<>();
-        if(!versionsabbrev.isEmpty()){
-            for(String s:versionsabbrev) {
-                String versionStr = bibleVersionsObj.getString(s); //store these in an array
-                String[] array; 
-                array = versionStr.split("\\|");
-                bibleVersions.add(new BibleVersion(s,array[0],array[1],StringUtils.capitalize(new Locale(array[2]).getDisplayLanguage())));
-            }
-        }
-        
-        List<String> preferredVersions = new ArrayList<>();
-        String retVal = (String)biblegetDB.getOption("PREFERREDVERSIONS");
-        if(null==retVal){
-            //System.out.println("Attempt to retrieve PREFERREDVERSIONS from the Database resulted in null value");
-        }
-        else{
-            //System.out.println("Retrieved PREFERREDVERSIONS from the Database. Value is:"+retVal);
-            String[] favoriteVersions = StringUtils.split(retVal,',');
-            preferredVersions = Arrays.asList(favoriteVersions);
-        }
-        if(preferredVersions.isEmpty()){
-            preferredVersions.add("NVBSE");
-        }
-        List<Integer> preferredVersionsIndices = new ArrayList<>();
-        
-        versionsByLang = new SeparatorList<>(bibleVersions, new VersionComparator(),1, 1000);        
-        int listLength = versionsByLang.size();
-        enabledFlags = new boolean[listLength];        
-        ListIterator itr = versionsByLang.listIterator();
-        while(itr.hasNext()){
-            int idx = itr.nextIndex();
-            Object next = itr.next();
-            enabledFlags[idx] = !(next.getClass().getSimpleName().equals("GroupSeparator"));
-            if(next.getClass().getSimpleName().equals("BibleVersion")){
-                BibleVersion thisBibleVersion = (BibleVersion)next;
-                if(preferredVersions.contains(thisBibleVersion.getAbbrev())){
-                    preferredVersionsIndices.add(idx);
+        System.out.println(this.getClass().getSimpleName() + " -> prepareDynamicInformation -> bibleVersionsStr = " + bibleVersionsStr);
+        if(null == bibleVersionsStr){
+            System.out.println("We have a problem Watson!");
+        } else{
+            JsonReader jsonReader = Json.createReader(new StringReader(bibleVersionsStr));
+            JsonObject bibleVersionsObj = jsonReader.readObject();
+            Set<String> versionsabbrev = bibleVersionsObj.keySet();
+            bibleVersions = new BasicEventList<>();
+            if(!versionsabbrev.isEmpty()){
+                for(String s:versionsabbrev) {
+                    String versionStr = bibleVersionsObj.getString(s); //store these in an array
+                    String[] array; 
+                    array = versionStr.split("\\|");
+                    bibleVersions.add(new BibleVersion(s,array[0],array[1],StringUtils.capitalize(new Locale(array[2]).getDisplayLanguage())));
                 }
             }
+
+            List<String> preferredVersions = new ArrayList<>();
+            String retVal = (String)biblegetDB.getOption("PREFERREDVERSIONS");
+            if(null==retVal){
+                //System.out.println("Attempt to retrieve PREFERREDVERSIONS from the Database resulted in null value");
+            }
+            else{
+                //System.out.println("Retrieved PREFERREDVERSIONS from the Database. Value is:"+retVal);
+                String[] favoriteVersions = StringUtils.split(retVal,',');
+                preferredVersions = Arrays.asList(favoriteVersions);
+            }
+            if(preferredVersions.isEmpty()){
+                preferredVersions.add("NVBSE");
+            }
+            List<Integer> preferredVersionsIndices = new ArrayList<>();
+
+            versionsByLang = new SeparatorList<>(bibleVersions, new VersionComparator(),1, 1000);        
+            int listLength = versionsByLang.size();
+            enabledFlags = new boolean[listLength];        
+            ListIterator itr = versionsByLang.listIterator();
+            while(itr.hasNext()){
+                int idx = itr.nextIndex();
+                Object next = itr.next();
+                enabledFlags[idx] = !(next.getClass().getSimpleName().equals("GroupSeparator"));
+                if(next.getClass().getSimpleName().equals("BibleVersion")){
+                    BibleVersion thisBibleVersion = (BibleVersion)next;
+                    if(preferredVersions.contains(thisBibleVersion.getAbbrev())){
+                        preferredVersionsIndices.add(idx);
+                    }
+                }
+            }
+            indices = ArrayUtils.toPrimitive(preferredVersionsIndices.toArray(new Integer[preferredVersionsIndices.size()]));
+            //System.out.println("value of indices array: "+Arrays.toString(indices));
         }
-        indices = ArrayUtils.toPrimitive(preferredVersionsIndices.toArray(new Integer[preferredVersionsIndices.size()]));
-        //System.out.println("value of indices array: "+Arrays.toString(indices));
     
     }
     

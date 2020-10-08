@@ -76,7 +76,7 @@ public class HTTPCaller {
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(HTTPCaller.class.getName()).log(Level.SEVERE, null, ex);
         }
-        String url = "https://query.bibleget.io/index.php?query="+myQuery+"&version="+versions+"&return=json&appid=libreoffice&pluginversion="+BibleGetIO.PLUGINVERSION;
+        String url = "https://query.bibleget.io/index.php?query="+myQuery+"&version="+versions+"&return=json&appid=openoffice&pluginversion="+BibleGetIO.PLUGINVERSION;
         if(counter < 1){
             if(installCert()){
                 counter++;
@@ -95,12 +95,13 @@ public class HTTPCaller {
      */
     public String getMetaData(String query){
         String url;
-        String response;
         url = "https://query.bibleget.io/metadata.php?query="+query;
         if(counter < 1){
             if(installCert()){
                 counter++;
                 return getResponse(url);
+            } else {
+                System.out.println("there seems to have been some trouble installing the certificate");
             }
         }else{
             return getResponse(url);
@@ -160,13 +161,11 @@ public class HTTPCaller {
             
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             try (InputStream caInput = new BufferedInputStream(
-                    // this files is shipped with the application
-                    HTTPCaller.class.getResourceAsStream("/io/bibleget/certificate/DSTRootCAX3.cer"))) {
-                Certificate crt = cf.generateCertificate(caInput);
-                System.out.println("Added Cert for " + ((X509Certificate) crt)
-                        .getSubjectDN());
-                
-                keyStore.setCertificateEntry("DSTRootCAX3", crt);
+                // this files is shipped with the application
+                HTTPCaller.class.getResourceAsStream("/io/bibleget/certificate/isrg-root-x2.pem"))) {
+                    Certificate crt = cf.generateCertificate(caInput);
+                    System.out.println("Added Cert for " + ((X509Certificate) crt).getSubjectDN());
+                    keyStore.setCertificateEntry("ISRGRootX2", crt);
             }
             
             System.out.println("Truststore now trusting: ");
