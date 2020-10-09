@@ -6,7 +6,9 @@
 package io.bibleget;
 
 import static io.bibleget.BibleGetI18N.__;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -37,6 +39,11 @@ import javax.swing.colorchooser.AbstractColorChooserPanel;
 import javax.swing.text.Document;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
+import org.cef.CefApp;
+import org.cef.CefClient;
+import org.cef.CefSettings;
+import org.cef.OS;
+import org.cef.browser.CefBrowser;
 
 /**
  *
@@ -105,6 +112,11 @@ public class OptionsFrame extends javax.swing.JFrame {
     }
     */
     //private final ResourceBundle myMessages;
+    private final CefApp cefApp;
+    private final CefClient client;
+    private final CefBrowser browser;
+    private final Component browserUI;
+    private final CefSettings settings = new CefSettings ();;
     
     private static OptionsFrame instance;
     
@@ -133,6 +145,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         this.fontFamilies = BibleGetIO.getFontFamilies();
         
         //System.out.println("(OptionsFrame: 127) textColorBookChapter ="+textColorBookChapter);
+        settings.windowless_rendering_enabled = OS.isLinux();
+        cefApp = CefApp.getInstance(settings);
+        client = cefApp.createClient();
+        browser = client.createBrowser( "http://www.google.com", OS.isLinux(), false);
+        browserUI = browser.getUIComponent();
         
         this.kit = new HTMLEditorKit();
         this.doc = kit.createDefaultDocument();
@@ -180,7 +197,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         //this.myMessages = BibleGetI18N.getMessages();
         
         initComponents();
-        
+        jInternalFrame1.setSize(800, 600);
+        jInternalFrame1.setVisible(true);
     }
 
     public static OptionsFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException
@@ -264,6 +282,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         jCheckBox1 = new javax.swing.JCheckBox();
         jLabel2 = new javax.swing.JLabel();
         jSeparator7 = new javax.swing.JSeparator();
+        jInternalFrame1 = new javax.swing.JInternalFrame();
+        jInternalFrame1.getContentPane().add(browserUI, BorderLayout.CENTER);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(__("User Preferences"));
@@ -937,6 +957,19 @@ public class OptionsFrame extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
+        jInternalFrame1.setVisible(true);
+
+        javax.swing.GroupLayout jInternalFrame1Layout = new javax.swing.GroupLayout(jInternalFrame1.getContentPane());
+        jInternalFrame1.getContentPane().setLayout(jInternalFrame1Layout);
+        jInternalFrame1Layout.setHorizontalGroup(
+            jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 421, Short.MAX_VALUE)
+        );
+        jInternalFrame1Layout.setVerticalGroup(
+            jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -944,13 +977,17 @@ public class OptionsFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jInternalFrame1)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jInternalFrame1))
                 .addContainerGap())
         );
 
@@ -1917,6 +1954,7 @@ public class OptionsFrame extends javax.swing.JFrame {
     private javax.swing.JComboBox jComboBox3;
     private javax.swing.JComboBox jComboBox4;
     private javax.swing.JComboBox jComboBox6;
+    private javax.swing.JInternalFrame jInternalFrame1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
