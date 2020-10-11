@@ -116,7 +116,7 @@ public class OptionsFrame extends javax.swing.JFrame {
     private final CefClient client;
     private final CefBrowser browser;
     private final Component browserUI;
-    private final CefSettings settings = new CefSettings ();;
+    private final CefSettings settings = new CefSettings ();
     
     private static OptionsFrame instance;
     
