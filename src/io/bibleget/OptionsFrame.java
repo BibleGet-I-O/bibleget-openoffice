@@ -34,8 +34,11 @@ import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JTextPane;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
+import javax.swing.plaf.InternalFrameUI;
+import javax.swing.plaf.basic.BasicInternalFrameUI;
 import javax.swing.text.Document;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
@@ -116,7 +119,6 @@ public class OptionsFrame extends javax.swing.JFrame {
     private final CefClient client;
     private final CefBrowser browser;
     private final Component browserUI;
-    private final CefSettings settings = new CefSettings ();
     
     private static OptionsFrame instance;
     
@@ -145,6 +147,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         this.fontFamilies = BibleGetIO.getFontFamilies();
         
         //System.out.println("(OptionsFrame: 127) textColorBookChapter ="+textColorBookChapter);
+        CefSettings settings = new CefSettings();
         settings.windowless_rendering_enabled = OS.isLinux();
         cefApp = CefApp.getInstance(settings);
         client = cefApp.createClient();
@@ -197,7 +200,9 @@ public class OptionsFrame extends javax.swing.JFrame {
         //this.myMessages = BibleGetI18N.getMessages();
         
         initComponents();
-        jInternalFrame1.setSize(800, 600);
+        jInternalFrame1.setLayout(new BorderLayout());
+        jInternalFrame1.getContentPane().add(browserUI, BorderLayout.CENTER);
+        jInternalFrame1.setSize(400, 300);
         jInternalFrame1.setVisible(true);
     }
 
@@ -282,8 +287,14 @@ public class OptionsFrame extends javax.swing.JFrame {
         jCheckBox1 = new javax.swing.JCheckBox();
         jLabel2 = new javax.swing.JLabel();
         jSeparator7 = new javax.swing.JSeparator();
-        jInternalFrame1 = new javax.swing.JInternalFrame();
-        jInternalFrame1.getContentPane().add(browserUI, BorderLayout.CENTER);
+        jInternalFrame1 = new JInternalFrame() {
+            @Override
+            public void setUI(InternalFrameUI ui) {
+                super.setUI(ui); // this gets called internally when updating the ui and makes the northPane reappear
+                BasicInternalFrameUI frameUI = (BasicInternalFrameUI) getUI(); // so...
+                if (frameUI != null) frameUI.setNorthPane(null); // lets get rid of it
+            }
+        };
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(__("User Preferences"));

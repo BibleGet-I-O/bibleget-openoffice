@@ -1294,7 +1294,7 @@
         <Property name="visible" type="boolean" value="true"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="jInternalFrame1.getContentPane().add(browserUI, BorderLayout.CENTER);"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new JInternalFrame() {&#xd;&#xa;           @Override&#xd;&#xa;           public void setUI(InternalFrameUI ui) {&#xd;&#xa;               super.setUI(ui); // this gets called internally when updating the ui and makes the northPane reappear&#xd;&#xa;               BasicInternalFrameUI frameUI = (BasicInternalFrameUI) getUI(); // so...&#xd;&#xa;               if (frameUI != null) frameUI.setNorthPane(null); // lets get rid of it&#xd;&#xa;           }&#xd;&#xa;        }"/>
       </AuxValues>
 
       <Layout>
