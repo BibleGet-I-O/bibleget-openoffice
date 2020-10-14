@@ -18,9 +18,11 @@ import java.awt.event.ItemEvent;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static java.util.stream.Collectors.joining;
 import javax.json.JsonArray;
 import javax.json.JsonNumber;
 import javax.json.JsonObject;
@@ -119,6 +121,7 @@ public class OptionsFrame extends javax.swing.JFrame {
     private final CefClient client;
     private final CefBrowser browser;
     private final Component browserUI;
+    private final HashMap<String, String> styleSheetRules = new HashMap<>();
     
     private static OptionsFrame instance;
     
@@ -147,12 +150,6 @@ public class OptionsFrame extends javax.swing.JFrame {
         this.fontFamilies = BibleGetIO.getFontFamilies();
         
         //System.out.println("(OptionsFrame: 127) textColorBookChapter ="+textColorBookChapter);
-        CefSettings settings = new CefSettings();
-        settings.windowless_rendering_enabled = OS.isLinux();
-        cefApp = CefApp.getInstance(settings);
-        client = cefApp.createClient();
-        browser = client.createBrowser( "http://www.google.com", OS.isLinux(), false);
-        browserUI = browser.getUIComponent();
         
         this.kit = new HTMLEditorKit();
         this.doc = kit.createDefaultDocument();
@@ -176,8 +173,33 @@ public class OptionsFrame extends javax.swing.JFrame {
         styles.addRule("div.results p.verses span.text { background-color:"+ColorToHexString(bgColorVerseText)+"; }");
         styles.addRule("div.results p.verses span.text { vertical-align: "+vAlignVerseText+"; }");
 
+        styleSheetRules.put("body", "body { padding: 6px; background-color: #FFFFFF; }");
+        styleSheetRules.put("paragraphFontFamily", "div.results { font-family: "+paragraphFontFamily+"; }");
+        styleSheetRules.put("fontSizeBookChapter", "div.results p.book { font-size:"+fontSizeBookChapter+"pt; }");
+        styleSheetRules.put("boldBookChapter", "div.results p.book { font-weight:"+(boldBookChapter?"bold":"normal")+"; }");
+        styleSheetRules.put("textColorBookChapter", "div.results p.book { color:"+ColorToHexString(textColorBookChapter)+"; }");
+        styleSheetRules.put("bgColorBookChapter", "div.results p.book { background-color:"+ColorToHexString(bgColorBookChapter)+"; }");
+        styleSheetRules.put("paragraphLineSpacing1", "div.results p.book { line-height: "+paragraphLineSpacing+"%; }");
+        styleSheetRules.put("vAlignBookChapter", "div.results p.book span { vertical-align: "+vAlignBookChapter+"; }");
+        styleSheetRules.put("paragraphAlignment", "div.results p.verses { text-align: "+paragraphAlignment+"; }");
+        styleSheetRules.put("paragraphLineSpacing2", "div.results p.verses { line-height: "+paragraphLineSpacing+"%; }");
+        styleSheetRules.put("fontSizeVerseNumber", "div.results p.verses span.sup { font-size:"+fontSizeVerseNumber+"pt; }");
+        styleSheetRules.put("textColorVerseNumber", "div.results p.verses span.sup { color:"+ColorToHexString(textColorVerseNumber)+"; }");
+        styleSheetRules.put("bgColorVerseNumber", "div.results p.verses span.sup { background-color:"+ColorToHexString(bgColorVerseNumber)+"; }");
+        styleSheetRules.put("vAlignVerseNumber", "div.results p.verses span.sup { vertical-align: "+vAlignVerseNumber+"; }");
+        styleSheetRules.put("fontSizeVerseText", "div.results p.verses span.text { font-size:"+fontSizeVerseText+"pt; }");
+        styleSheetRules.put("textColorVerseText", "div.results p.verses span.text { color:"+ColorToHexString(textColorVerseText)+"; }");
+        styleSheetRules.put("bgColorVerseText", "div.results p.verses span.text { background-color:"+ColorToHexString(bgColorVerseText)+"; }");
+        styleSheetRules.put("vAlignVerseText", "div.results p.verses span.text { vertical-align: "+vAlignVerseText+"; }");
+        String s = styleSheetRules.entrySet()
+                     .stream()
+                     .map(e -> e.getValue()) //e.getKey()+"="+
+                     .collect(joining(System.lineSeparator()));
+        System.out.println("styleSheetRules = ");
+        System.out.println(s);
+        
         String tempStr = "";
-        tempStr += "<html><head><meta charset=\"utf-8\"></head><body><div class=\"results\"><p class=\"book\"><span>";
+        tempStr += "<html><head><meta charset=\"utf-8\"><style>%s</style></head><body><div class=\"results\"><p class=\"book\"><span>";
         tempStr += __("Genesi")+"&nbsp;1";
         tempStr += "</span></p><p class=\"verses\" style=\"margin-top:0px;\"><span class=\"sup\">1</span><span class=\"text\">";
         tempStr += __("In the beginning, when God created the heavens and the earth");
@@ -186,8 +208,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         tempStr += "</span><span class=\"sup\">3</span><span class=\"text\">";
         tempStr += __("Then God said: Let there be light, and there was light.");
         tempStr += "</span></p></div></body></html>";
-        
-        this.HTMLStr = tempStr;
+        HTMLStr = tempStr;
         
         Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         screenWidth = (int)screenSize.getWidth();
@@ -198,12 +219,19 @@ public class OptionsFrame extends javax.swing.JFrame {
         frameTop = (screenHeight / 2) - (frameHeight / 2);
                 
         //this.myMessages = BibleGetI18N.getMessages();
+        CefSettings settings = new CefSettings();
+        settings.windowless_rendering_enabled = OS.isLinux();
+        cefApp = CefApp.getInstance(settings);
+        client = cefApp.createClient();
+        String HTMLStrWithStyles = String.format(HTMLStr,s);
+        browser = client.createBrowser( DataUri.create("text/html",HTMLStrWithStyles), OS.isLinux(), false);
+        browserUI = browser.getUIComponent();
         
         initComponents();
         jInternalFrame1.setLayout(new BorderLayout());
         jInternalFrame1.getContentPane().add(browserUI, BorderLayout.CENTER);
-        jInternalFrame1.setSize(400, 300);
-        jInternalFrame1.setVisible(true);
+        //jInternalFrame1.setSize(400, 300);
+        //jInternalFrame1.setVisible(true);
     }
 
     public static OptionsFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException
@@ -435,6 +463,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         jComboBox6.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 jComboBox6ItemStateChanged(evt);
+            }
+        });
+        jComboBox6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBox6ActionPerformed(evt);
             }
         });
         jToolBar7.add(jComboBox6);
@@ -1692,6 +1725,19 @@ public class OptionsFrame extends javax.swing.JFrame {
             
             styles.addRule("div.results p.book { line-height: "+paragraphLineSpacing+"%; }");
             styles.addRule("div.results p.verses { line-height: "+paragraphLineSpacing+"%; }");
+            
+            styleSheetRules.replace("paragraphLineSpacing1", "div.results p.book { line-height: "+paragraphLineSpacing+"%; }");
+            styleSheetRules.replace("paragraphLineSpacing2", "div.results p.verses { line-height: "+paragraphLineSpacing+"%; }");
+            String s = styleSheetRules.entrySet()
+                         .stream()
+                         .map(e -> e.getValue()) //e.getKey()+"="+
+                         .collect(joining(System.lineSeparator()));
+            System.out.println("styleSheetRules = ");
+            System.out.println(s);
+
+            String HTMLStrWithStyles = String.format(HTMLStr,s);
+            browser.loadURL(DataUri.create("text/html",HTMLStrWithStyles));
+            
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
             if(biblegetDB.setIntOption("PARAGRAPHLINESPACING", paragraphLineSpacing)){
@@ -1725,6 +1771,10 @@ public class OptionsFrame extends javax.swing.JFrame {
             //System.out.println("Error updating NOVERSIONFORMATTING in database");
         }                
     }//GEN-LAST:event_jCheckBox1ItemStateChanged
+
+    private void jComboBox6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox6ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jComboBox6ActionPerformed
     
         
     
