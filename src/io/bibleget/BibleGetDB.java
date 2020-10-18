@@ -424,7 +424,7 @@ public class BibleGetDB {
                                             JsonArray currentJson = (JsonArray) pIterator.next();
                                             //TODO: double check that JsonArray.toString is working as intended!
                                             String biblebooks_str = currentJson.toString(); //.replaceAll("\"", "\\\\\"");
-                                            System.out.println("BibleGetDB line 379: BIBLEBOOKS"+Integer.toString(index)+"='"+biblebooks_str+"'"); 
+                                            System.out.println("BibleGetDB line 427: BIBLEBOOKS"+Integer.toString(index)+"='"+biblebooks_str+"'"); 
                                             String stmt_str = "UPDATE METADATA SET BIBLEBOOKS"+Integer.toString(index)+"='"+biblebooks_str+"' WHERE ID=0";
                                             try{
                                                 //System.out.println("executing update: "+stmt_str);

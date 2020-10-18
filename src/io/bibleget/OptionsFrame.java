@@ -66,7 +66,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             
     private final BibleGetDB biblegetDB;
     private final Preferences USERPREFS;
-    private final LocalizedBibleBooks L10NBibleBooks = new LocalizedBibleBooks();
+    private final LocalizedBibleBooks L10NBibleBooks = LocalizedBibleBooks.getInstance();
     
     private final HTMLEditorKit kit;
     private final Document doc;
@@ -266,10 +266,10 @@ public class OptionsFrame extends javax.swing.JFrame {
                 bookChapter = "I Sam 1";
                 break;
             case USERLANG:
-                bookChapter = LocalizedBookSamuel.Fullname & " 1";
+                bookChapter = LocalizedBookSamuel.Fullname + " 1";
                 break;
             case USERLANGABBREV:
-                bookChapter = LocalizedBookSamuel.Abbrev & " 1";
+                bookChapter = LocalizedBookSamuel.Abbrev + " 1";
         }
         
         if(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY){
@@ -429,28 +429,22 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>" 
             + previewDocScript 
             + "</head><body>"
-            + "<canvas class=\"previewRuler\"></canvas>"
-            + "<p class=\"bibleversion showtop\" style=\"display:"+(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW && USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION==BGET.POS.TOP?"block":"none")+";\"><span class=\"bcWrap\">" + bibleVersionWrapBefore + "</span>NVBSE<span class=\"bcWrap\">" + bibleVersionWrapAfter + "</span></p>"
-            + "<div class=\"bookchapterWrapper\">"
-            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.TOP ? "<span class=\"bookchapter\" style=\"display:block;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcText1Sam\">" + bkChptr1Sam213 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : "")
-            + "<div class=\"liveview-quote\">"
-            + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">1</span><span class=\"versetext\">"+ ISam2_1 +"</span>"
-            + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">2</span><span class=\"versetext\">"+ ISam2_2 +"</span>"
-            + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">3</span><span class=\"versetext\">"+ ISam2_3 +"</span>"
-            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOMINLINE) ? "<span class=\"bookchapter\" style=\"margin-left:6px;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcText1Sam\">" + bkChptr1Sam213 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
+            + "<div style=\"text-align: center;\"><canvas class=\"previewRuler\"></canvas></div>"
+            + "<div class=\"results bibleQuote\">"
+            + (USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION == BGET.POS.TOP && USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW == BGET.VISIBILITY.SHOW ? "<p class=\"bibleVersion\">" + bibleVersionWrapBefore + "NVBSE" + bibleVersionWrapAfter + "</p>" : "")
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.TOP ? "<p class=\"bookChapter\">" + bookChapter + "</p>" : "")
+            + "<p class=\"versesParagraph\" style=\"margin-top:0px;\">"
+            + (USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW == BGET.VISIBILITY.SHOW ? "<span class=\"verseNum\">1</span>" : "")
+            + "<span class=\"verseText\">Fuit vir unus de Ramathaim Suphita de monte Ephraim, et nomen eius Elcana filius Ieroham filii Eliu filii Thohu filii Suph, Ephrathaeus.</span>"
+            + (USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW == BGET.VISIBILITY.SHOW ? "<span class=\"verseNum\">2</span>" : "")
+            + "<span class=\"verseText\">Et habuit duas uxores: nomen uni Anna et nomen secundae Phenenna. Fueruntque Phenennae filii, Annae autem non erant liberi.</span>"
+            + (USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW == BGET.VISIBILITY.SHOW ? "<span class=\"verseNum\">3</span>" : "")
+            + "<span class=\"verseText\">Et ascendebat vir ille de civitate sua singulis annis, ut adoraret et sacrificaret Domino exercituum in Silo. Erant autem ibi duo filii Heli, Ophni et Phinees, sacerdotes Domini.</span>"
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.BOTTOMINLINE ? "<span class=\"bookChapter\">" + bookChapter + "</span>" : "")
+            + "</p>"
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.BOTTOM ? "<p class=\"bookChapter\">" + bookChapter + "</p>" : "")
+            + (USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION == BGET.POS.BOTTOM && USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW == BGET.VISIBILITY.SHOW ? "<p class=\"bibleVersion\">" + bibleVersionWrapBefore + "NVBSE" + bibleVersionWrapAfter + "</p>" : "")
             + "</div>"
-            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOM) ? "<span class=\"bookchapter\" style=\"display:block;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcText1Sam\">" + bkChptr1Sam213 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
-            + "</div>"
-            + "<div class=\"bookchapterWrapper\">"
-            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.TOP) ? "<span class=\"bookchapter\" style=\"display:block;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcTextPs\">" + bkChptrPs11412 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
-            + "<div class=\"liveview-quote\">"
-            + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">1</span><span class=\"versetext\">"+ Ps114_1 +"</span>"
-            + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">2</span><span class=\"versetext\">factus est Iuda sanctuarium eius, Israel potestas eius.</span>"
-            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOMINLINE) ? "<span class=\"bookchapter\" style=\"margin-left:6px;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcTextPs\">" + bkChptrPs11412 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
-            + "</div>"
-            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOM) ? "<span class=\"bookchapter\" style=\"display:block;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcTextPs\">" + bkChptrPs11412 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
-            + "</div>"
-            + "<p class=\"bibleversion showbottom\" style=\"display:"+(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW && USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION==BGET.POS.BOTTOM?"block":"none")+";\"><span class=\"bcWrap\">" + bibleVersionWrapBefore + "</span>NVBSE<span class=\"bcWrap\">" + bibleVersionWrapAfter + "</span></p>"
             + "</body>";
 
         
@@ -467,8 +461,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         settings.windowless_rendering_enabled = OS.isLinux();
         cefApp = CefApp.getInstance(settings);
         client = cefApp.createClient();
-        String HTMLStrWithStyles = String.format(HTMLStr,s);
-        browser = client.createBrowser( DataUri.create("text/html",HTMLStrWithStyles), OS.isLinux(), false);
+        //String HTMLStrWithStyles = String.format(HTMLStr,s);
+        browser = client.createBrowser( DataUri.create("text/html",previewDocument), OS.isLinux(), false);
         browserUI = browser.getUIComponent();
         
         initComponents();

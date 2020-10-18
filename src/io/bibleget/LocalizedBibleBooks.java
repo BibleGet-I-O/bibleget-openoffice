@@ -18,6 +18,7 @@ package io.bibleget;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import javax.json.Json;
@@ -35,6 +36,7 @@ public class LocalizedBibleBooks {
     private final HashMap<Integer,String> BookNames = new HashMap<>();
     private String curLangDisplayName;
     private Integer curLangIdx;
+    private JsonReader jsonReader;
 
     private static LocalizedBibleBooks instance = null;
     
@@ -42,9 +44,40 @@ public class LocalizedBibleBooks {
         curLangDisplayName = BibleGetIO.getUILocale().getDisplayName(Locale.ENGLISH).toUpperCase();
         biblegetDB = BibleGetDB.getInstance();
         String langsSupported = biblegetDB.getMetaData("LANGUAGES");
-        JsonReader jsonReader = Json.createReader(new StringReader(langsSupported));
-        JsonObject langsObj = jsonReader.readObject();
+        jsonReader = Json.createReader(new StringReader(langsSupported));
+        JsonArray langsJArr = jsonReader.readArray();
+        ArrayList<String> langsArr = new ArrayList<>();
+        JsonArray bibleBooksInCurLang;
+        ArrayList<String> langsArrInCurLang = new ArrayList<>();
+        if(langsJArr != null){
+            for(int i=0;i<langsJArr.size();i++){
+                langsArr.add(langsJArr.get(i).toString());
+            }
+            curLangIdx = langsArr.indexOf(curLangDisplayName);
+            String bbBooks;
+            String bookName;
+            String bookAbbrev;
+            JsonArray bibleBooksObj;
+            for(int i=0;i<=72;i++){
+                bbBooks = biblegetDB.getMetaData("BIBLEBOOKS"+i);
+                jsonReader = Json.createReader(new StringReader(bbBooks));
+                bibleBooksObj = jsonReader.readArray();
+                bibleBooksInCurLang = bibleBooksObj.getJsonArray(curLangIdx);
+                bookName = bibleBooksInCurLang.getString(0);
+                bookAbbrev = bibleBooksInCurLang.getString(1);
+                if(bookName.contains("|")){
+                    bookName = bookName.split("|")[0].trim();
+                }
+                if(bookAbbrev.contains("|")){
+                    bookAbbrev = bookAbbrev.split("|")[0].trim();
+                }
+                BookAbbreviations.put(i, bookAbbrev);
+                BookNames.put(i, bookName);
+            }
+        }
+        
     }
+    
     
     public static LocalizedBibleBooks getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException
     {
