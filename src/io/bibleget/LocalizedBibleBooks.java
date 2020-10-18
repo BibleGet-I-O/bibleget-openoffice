@@ -15,10 +15,15 @@
  */
 package io.bibleget;
 
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Locale;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 
 /**
  *
@@ -37,7 +42,8 @@ public class LocalizedBibleBooks {
         curLangDisplayName = BibleGetIO.getUILocale().getDisplayName(Locale.ENGLISH).toUpperCase();
         biblegetDB = BibleGetDB.getInstance();
         String langsSupported = biblegetDB.getMetaData("LANGUAGES");
-        JObject langsObj = JArray.Parse(langsSupported)
+        JsonReader jsonReader = Json.createReader(new StringReader(langsSupported));
+        JsonObject langsObj = jsonReader.readObject();
     }
     
     public static LocalizedBibleBooks getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException
