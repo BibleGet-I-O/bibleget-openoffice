@@ -590,7 +590,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/italic.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="italicsBookChapter" type="code"/>
+                      <Connection code="USERPREFS.BOOKCHAPTERSTYLES_ITALIC" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -609,7 +609,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/underline.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="underscoreBookChapter" type="code"/>
+                      <Connection code="USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -792,7 +792,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/bold.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="boldVerseNumber" type="code"/>
+                      <Connection code="USERPREFS.VERSENUMBERSTYLES_BOLD" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -811,7 +811,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/italic.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="italicsVerseNumber" type="code"/>
+                      <Connection code="USERPREFS.VERSENUMBERSTYLES_ITALIC" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -830,7 +830,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/underline.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="underscoreVerseNumber" type="code"/>
+                      <Connection code="USERPREFS.VERSENUMBERSTYLES_UNDERLINE" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -1013,7 +1013,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/bold.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="boldVerseText" type="code"/>
+                      <Connection code="USERPREFS.VERSETEXTSTYLES_BOLD" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -1032,7 +1032,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/italic.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="italicsVerseText" type="code"/>
+                      <Connection code="USERPREFS.VERSETEXTSTYLES_ITALIC" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -1051,7 +1051,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/underline.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="underscoreVerseText" type="code"/>
+                      <Connection code="USERPREFS.VERSETEXTSTYLES_UNDERLINE" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>

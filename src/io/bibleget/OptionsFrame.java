@@ -201,7 +201,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         styleSheetRules.put("fontSizeVerseText", "div.results p.verses span.text { font-size:"+USERPREFS.VERSETEXTSTYLES_FONTSIZE+"pt; }");
         styleSheetRules.put("textColorVerseText", "div.results p.verses span.text { color:"+ColorToHexString(USERPREFS.VERSETEXTSTYLES_TEXTCOLOR)+"; }");
         styleSheetRules.put("bgColorVerseText", "div.results p.verses span.text { background-color:"+ColorToHexString(USERPREFS.VERSETEXTSTYLES_BGCOLOR)+"; }");
-        styleSheetRules.put("vAlignVerseText", "div.results p.verses span.text { vertical-align: "+vsTxtVAlign+"; }");
+        styleSheetRules.put("USERPREFS.VERSETEXTSTYLES_VALIGN", "div.results p.verses span.text { vertical-align: "+vsTxtVAlign+"; }");
         String s = styleSheetRules.entrySet()
                      .stream()
                      .map(e -> e.getValue()) //e.getKey()+"="+
@@ -812,7 +812,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar2.add(jToggleButton1);
 
         jToggleButton6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/italic.png"))); // NOI18N
-        jToggleButton6.setSelected(italicsBookChapter);
+        jToggleButton6.setSelected(USERPREFS.BOOKCHAPTERSTYLES_ITALIC);
         jToggleButton6.setFocusable(false);
         jToggleButton6.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton6.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -825,7 +825,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar2.add(jToggleButton6);
 
         jToggleButton7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/underline.png"))); // NOI18N
-        jToggleButton7.setSelected(underscoreBookChapter);
+        jToggleButton7.setSelected(USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE);
         jToggleButton7.setFocusable(false);
         jToggleButton7.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton7.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -920,7 +920,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar3.setRollover(true);
 
         jToggleButton10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/bold.png"))); // NOI18N
-        jToggleButton10.setSelected(boldVerseNumber);
+        jToggleButton10.setSelected(USERPREFS.VERSENUMBERSTYLES_BOLD);
         jToggleButton10.setFocusable(false);
         jToggleButton10.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton10.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -933,7 +933,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar3.add(jToggleButton10);
 
         jToggleButton11.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/italic.png"))); // NOI18N
-        jToggleButton11.setSelected(italicsVerseNumber);
+        jToggleButton11.setSelected(USERPREFS.VERSENUMBERSTYLES_ITALIC);
         jToggleButton11.setFocusable(false);
         jToggleButton11.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton11.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -946,7 +946,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar3.add(jToggleButton11);
 
         jToggleButton12.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/underline.png"))); // NOI18N
-        jToggleButton12.setSelected(underscoreVerseNumber);
+        jToggleButton12.setSelected(USERPREFS.VERSENUMBERSTYLES_UNDERLINE);
         jToggleButton12.setFocusable(false);
         jToggleButton12.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton12.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -1041,7 +1041,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar4.setRollover(true);
 
         jToggleButton15.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/bold.png"))); // NOI18N
-        jToggleButton15.setSelected(boldVerseText);
+        jToggleButton15.setSelected(USERPREFS.VERSETEXTSTYLES_BOLD);
         jToggleButton15.setFocusable(false);
         jToggleButton15.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton15.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -1054,7 +1054,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar4.add(jToggleButton15);
 
         jToggleButton16.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/italic.png"))); // NOI18N
-        jToggleButton16.setSelected(italicsVerseText);
+        jToggleButton16.setSelected(USERPREFS.VERSETEXTSTYLES_ITALIC);
         jToggleButton16.setFocusable(false);
         jToggleButton16.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton16.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -1067,7 +1067,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar4.add(jToggleButton16);
 
         jToggleButton17.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/underline.png"))); // NOI18N
-        jToggleButton17.setSelected(underscoreVerseText);
+        jToggleButton17.setSelected(USERPREFS.VERSETEXTSTYLES_UNDERLINE);
         jToggleButton17.setFocusable(false);
         jToggleButton17.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton17.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -1457,20 +1457,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton6ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton6ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            italicsBookChapter = true;
+            USERPREFS.BOOKCHAPTERSTYLES_ITALIC = true;
             styles.addRule("div.results p.book { font-style:italic; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            italicsBookChapter = false;
+            USERPREFS.BOOKCHAPTERSTYLES_ITALIC = false;
             styles.addRule("div.results p.book { font-style:normal; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("ITALICSBOOKCHAPTER", italicsBookChapter)){
-            //System.out.println("ITALICSBOOKCHAPTER was successfully updated in database to value "+italicsBookChapter);
+        if(biblegetDB.setBooleanOption("ITALICSBOOKCHAPTER", USERPREFS.BOOKCHAPTERSTYLES_ITALIC)){
+            //System.out.println("ITALICSBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_ITALIC);
         }
         else{
             //System.out.println("Error updating ITALICSBOOKCHAPTER in database");
@@ -1479,20 +1479,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton7ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton7ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            underscoreBookChapter = true;
+            USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE = true;
             styles.addRule("div.results p.book { text-decoration:underline; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            underscoreBookChapter = false;
+            USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE = false;
             styles.addRule("div.results p.book { text-decoration:none; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("UNDERSCOREBOOKCHAPTER", underscoreBookChapter)){
-            //System.out.println("UNDERSCOREBOOKCHAPTER was successfully updated in database to value "+underscoreBookChapter);
+        if(biblegetDB.setBooleanOption("UNDERSCOREBOOKCHAPTER", USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE)){
+            //System.out.println("UNDERSCOREBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE);
         }
         else{
             //System.out.println("Error updating UNDERSCOREBOOKCHAPTER in database");
@@ -1501,20 +1501,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton10ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton10ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            boldVerseNumber = true;
+            USERPREFS.VERSENUMBERSTYLES_BOLD = true;
             styles.addRule("div.results p.verses span.sup { font-weight:bold; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            boldVerseNumber = false;
+            USERPREFS.VERSENUMBERSTYLES_BOLD = false;
             styles.addRule("div.results p.verses span.sup { font-weight:normal; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("BOLDVERSENUMBER", boldVerseNumber)){
-            //System.out.println("BOLDVERSENUMBER was successfully updated in database to value "+boldVerseNumber);
+        if(biblegetDB.setBooleanOption("BOLDVERSENUMBER", USERPREFS.VERSENUMBERSTYLES_BOLD)){
+            //System.out.println("BOLDVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_BOLD);
         }
         else{
             //System.out.println("Error updating BOLDVERSENUMBER in database");
@@ -1523,20 +1523,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton11ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton11ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            italicsVerseNumber = true;
+            USERPREFS.VERSENUMBERSTYLES_ITALIC = true;
             styles.addRule("div.results p.verses span.sup { font-style:italic; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            italicsVerseNumber = false;
+            USERPREFS.VERSENUMBERSTYLES_ITALIC = false;
             styles.addRule("div.results p.verses span.sup { font-style:normal; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("ITALICSVERSENUMBER", italicsVerseNumber)){
-            //System.out.println("ITALICSVERSENUMBER was successfully updated in database to value "+italicsVerseNumber);
+        if(biblegetDB.setBooleanOption("ITALICSVERSENUMBER", USERPREFS.VERSENUMBERSTYLES_ITALIC)){
+            //System.out.println("ITALICSVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_ITALIC);
         }
         else{
             //System.out.println("Error updating ITALICSVERSENUMBER in database");
@@ -1545,20 +1545,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton12ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton12ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            underscoreVerseNumber = true;
+            USERPREFS.VERSENUMBERSTYLES_UNDERLINE = true;
             styles.addRule("div.results p.verses span.sup { text-decoration:underline; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            underscoreVerseNumber = false;
+            USERPREFS.VERSENUMBERSTYLES_UNDERLINE = false;
             styles.addRule("div.results p.verses span.sup { text-decoration:none; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("UNDERSCOREVERSENUMBER", underscoreVerseNumber)){
-            //System.out.println("UNDERSCOREVERSENUMBER was successfully updated in database to value "+underscoreVerseNumber);
+        if(biblegetDB.setBooleanOption("UNDERSCOREVERSENUMBER", USERPREFS.VERSENUMBERSTYLES_UNDERLINE)){
+            //System.out.println("UNDERSCOREVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_UNDERLINE);
         }
         else{
             //System.out.println("Error updating UNDERSCOREVERSENUMBER in database");
@@ -1567,20 +1567,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton15ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton15ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            boldVerseText = true;
+            USERPREFS.VERSETEXTSTYLES_BOLD = true;
             styles.addRule("div.results p.verses span.text { font-weight:bold; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            boldVerseText = false;
+            USERPREFS.VERSETEXTSTYLES_BOLD = false;
             styles.addRule("div.results p.verses span.text { font-weight:normal; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("BOLDVERSETEXT", boldVerseText)){
-            //System.out.println("BOLDVERSETEXT was successfully updated in database to value "+boldVerseText);
+        if(biblegetDB.setBooleanOption("BOLDVERSETEXT", USERPREFS.VERSETEXTSTYLES_BOLD)){
+            //System.out.println("BOLDVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_BOLD);
         }
         else{
             //System.out.println("Error updating BOLDVERSETEXT in database");
@@ -1589,20 +1589,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton16ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton16ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            italicsVerseText = true;
+            USERPREFS.VERSETEXTSTYLES_ITALIC = true;
             styles.addRule("div.results p.verses span.text { font-style:italic; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            italicsVerseText = false;
+            USERPREFS.VERSETEXTSTYLES_ITALIC = false;
             styles.addRule("div.results p.verses span.text { font-style:normal; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("ITALICSVERSETEXT", italicsVerseText)){
-            //System.out.println("ITALICSVERSETEXT was successfully updated in database to value "+italicsVerseText);
+        if(biblegetDB.setBooleanOption("ITALICSVERSETEXT", USERPREFS.VERSETEXTSTYLES_ITALIC)){
+            //System.out.println("ITALICSVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_ITALIC);
         }
         else{
             //System.out.println("Error updating ITALICSVERSETEXT in database");
@@ -1611,20 +1611,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton17ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton17ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            underscoreVerseText = true;
+            USERPREFS.VERSETEXTSTYLES_UNDERLINE = true;
             styles.addRule("div.results p.verses span.text { text-decoration:underline; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            underscoreVerseText = false;
+            USERPREFS.VERSETEXTSTYLES_UNDERLINE = false;
             styles.addRule("div.results p.verses span.text { text-decoration:none; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("UNDERSCOREVERSETEXT", underscoreVerseText)){
-            //System.out.println("UNDERSCOREVERSETEXT was successfully updated in database to value "+underscoreVerseText);
+        if(biblegetDB.setBooleanOption("UNDERSCOREVERSETEXT", USERPREFS.VERSETEXTSTYLES_UNDERLINE)){
+            //System.out.println("UNDERSCOREVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_UNDERLINE);
         }
         else{
             //System.out.println("Error updating UNDERSCOREVERSETEXT in database");
@@ -1727,21 +1727,21 @@ public class OptionsFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButton9.setSelected(false);
-            USERPREFS.BOOKCHAPTERSTYLES_VALIGN = "super";
+            USERPREFS.BOOKCHAPTERSTYLES_VALIGN = BGET.VALIGN.SUPERSCRIPT;
             //System.out.println("setting book-chapter vertical-align to: "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN);
-            styles.addRule("div.results p.book span { vertical-align: "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN+"; }");
+            styles.addRule("div.results p.book span { vertical-align: super; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            USERPREFS.BOOKCHAPTERSTYLES_VALIGN = "initial";
+            USERPREFS.BOOKCHAPTERSTYLES_VALIGN = BGET.VALIGN.NORMAL;
             //System.out.println("btn8 :: setting book-chapter vertical-align to: "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN);
-            styles.addRule("div.results p.book span { vertical-align: "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN+"; }");
+            styles.addRule("div.results p.book span { vertical-align: initial; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }        
         
-        if(biblegetDB.setStringOption("VALIGNBOOKCHAPTER", USERPREFS.BOOKCHAPTERSTYLES_VALIGN)){
+        if(biblegetDB.setIntOption("BOOKCHAPTERSTYLES_VALIGN", USERPREFS.BOOKCHAPTERSTYLES_VALIGN.getValue())){
             //System.out.println("VALIGNBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN);
         }
         else{
@@ -1753,22 +1753,22 @@ public class OptionsFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButton8.setSelected(false);
-            USERPREFS.BOOKCHAPTERSTYLES_VALIGN = "sub";
+            USERPREFS.BOOKCHAPTERSTYLES_VALIGN = BGET.VALIGN.SUBSCRIPT;
             //System.out.println("setting book-chapter vertical-align to: "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN);
-            styles.addRule("div.results p.book span { vertical-align: "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN+"; }");
+            styles.addRule("div.results p.book span { vertical-align: sub; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            USERPREFS.BOOKCHAPTERSTYLES_VALIGN = "initial";
+            USERPREFS.BOOKCHAPTERSTYLES_VALIGN = BGET.VALIGN.NORMAL;
             //System.out.println("btn9 :: setting book-chapter vertical-align to: "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN);
-            styles.addRule("div.results p.book span { vertical-align: "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN+"; }");
+            styles.addRule("div.results p.book span { vertical-align: initial; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }        
         
-        if(biblegetDB.setStringOption("VALIGNBOOKCHAPTER", USERPREFS.BOOKCHAPTERSTYLES_VALIGN)){
-            System.out.println("VALIGNBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN);
+        if(biblegetDB.setIntOption("BOOKCHAPTERSTYLES_VALIGN", USERPREFS.BOOKCHAPTERSTYLES_VALIGN.getValue())){
+            //System.out.println("BOOKCHAPTERSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN.toString());
         }
         else{
             //System.out.println("Error updating VALIGNBOOKCHAPTER in database");
@@ -1779,25 +1779,25 @@ public class OptionsFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButton14.setSelected(false);
-            vAlignVerseNumber = "super";
-            //System.out.println("setting verse-number vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.sup { vertical-align: "+vAlignVerseNumber+"; }");
+            USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.SUPERSCRIPT;
+            //System.out.println("setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.sup { vertical-align: super; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            vAlignVerseNumber = "initial";
-            //System.out.println("btn13 :: setting verse-number vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.sup { vertical-align: "+vAlignVerseNumber+"; }");
+            USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.NORMAL;
+            //System.out.println("btn13 :: setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.sup { vertical-align: initial; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }                
         
-        if(biblegetDB.setStringOption("VALIGNVERSENUMBER", vAlignVerseNumber)){
-            //System.out.println("VALIGNVERSENUMBER was successfully updated in database to value "+vAlignVerseNumber);
+        if(biblegetDB.setIntOption("VERSENUMBERSTYLES_VALIGN", USERPREFS.VERSENUMBERSTYLES_VALIGN.getValue())){
+            //System.out.println("VERSENUMBERSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
         }
         else{
-            //System.out.println("Error updating VALIGNVERSENUMBER in database");
+            //System.out.println("Error updating VERSENUMBERSTYLES_VALIGN in database");
         }
     }//GEN-LAST:event_jToggleButton13ItemStateChanged
 
@@ -1805,25 +1805,25 @@ public class OptionsFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButton13.setSelected(false);
-            vAlignVerseNumber = "sub";
-            //System.out.println("setting verse-number vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.sup { vertical-align: "+vAlignVerseNumber+"; }");
+            USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.SUBSCRIPT;
+            //System.out.println("setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.sup { vertical-align: sub; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            vAlignVerseNumber = "initial";
-            //System.out.println("btn14 :: setting verse-number vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.sup { vertical-align: "+vAlignVerseNumber+"; }");
+            USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.NORMAL;
+            //System.out.println("btn14 :: setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.sup { vertical-align: initial; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }        
         
-        if(biblegetDB.setStringOption("VALIGNVERSENUMBER", vAlignVerseNumber)){
-            //System.out.println("VALIGNVERSENUMBER was successfully updated in database to value "+vAlignVerseNumber);
+        if(biblegetDB.setIntOption("VERSENUMBERSTYLES_VALIGN", USERPREFS.VERSENUMBERSTYLES_VALIGN.getValue())){
+            //System.out.println("VERSENUMBERSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
         }
         else{
-            //System.out.println("Error updating VALIGNVERSENUMBER in database");
+            //System.out.println("Error updating VERSENUMBERSTYLES_VALIGN in database");
         }
     }//GEN-LAST:event_jToggleButton14ItemStateChanged
 
@@ -1832,21 +1832,21 @@ public class OptionsFrame extends javax.swing.JFrame {
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButton19.setSelected(false);
             USERPREFS.VERSETEXTSTYLES_VALIGN = BGET.VALIGN.SUPERSCRIPT;
-            //System.out.println("setting verse-text vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.text { vertical-align: "+vAlignVerseText+"; }");
+            //System.out.println("setting verse-text vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.text { vertical-align: super; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            vAlignVerseText = "initial";
-            //System.out.println("btn18 :: setting verse-text vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.text { vertical-align: "+vAlignVerseText+"; }");
+            USERPREFS.VERSETEXTSTYLES_VALIGN = BGET.VALIGN.NORMAL;
+            //System.out.println("btn18 :: setting verse-text vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.text { vertical-align: initial; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }        
         
-        if(biblegetDB.setStringOption("VERSENUMBERSTYLES_FONTSIZEVERSETEXTSTYLES_VALIGN", vAlignVerseText)){
-            //System.out.println("VERSENUMBERSTYLES_FONTSIZEVERSETEXTSTYLES_VALIGN was successfully updated in database to value "+vAlignVerseText);
+        if(biblegetDB.setIntOption("VERSETEXTSTYLES_VALIGN", USERPREFS.VERSETEXTSTYLES_VALIGN.getValue())){
+            //System.out.println("VERSETEXTSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_VALIGN);
         }
         else{
             //System.out.println("Error updating VERSENUMBERSTYLES_FONTSIZEVERSETEXTSTYLES_VALIGN in database");
@@ -1857,22 +1857,22 @@ public class OptionsFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButton18.setSelected(false);
-            vAlignVerseText = "sub";
-            //System.out.println("setting verse-text vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.text { vertical-align: "+vAlignVerseText+"; }");
+            USERPREFS.VERSETEXTSTYLES_VALIGN = BGET.VALIGN.SUBSCRIPT;
+            //System.out.println("setting verse-text vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.text { vertical-align: sub; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            vAlignVerseText = "initial";
-            //System.out.println("btn19 :: setting verse-text vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.text { vertical-align: "+vAlignVerseText+"; }");
+            USERPREFS.VERSETEXTSTYLES_VALIGN = BGET.VALIGN.NORMAL;
+            //System.out.println("btn19 :: setting verse-text vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.text { vertical-align: initial; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }        
         
-        if(biblegetDB.setStringOption("VERSENUMBERSTYLES_FONTSIZEVERSETEXTSTYLES_VALIGN", USERPREFS.VERSETEXTSTYLES_VALIGN)){
-            //System.out.println("VERSENUMBERSTYLES_FONTSIZEVERSETEXTSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_VALIGN);
+        if(biblegetDB.setIntOption("VERSETEXTSTYLES_VALIGN", USERPREFS.VERSETEXTSTYLES_VALIGN.getValue())){
+            //System.out.println("VERSETEXTSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_VALIGN);
         }
         else{
             //System.out.println("Error updating VERSENUMBERSTYLES_FONTSIZEVERSETEXTSTYLES_VALIGN in database");
