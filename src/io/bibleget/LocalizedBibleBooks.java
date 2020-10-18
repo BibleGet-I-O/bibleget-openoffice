@@ -56,7 +56,7 @@ public class LocalizedBibleBooks {
     }
 
     public LocalizedBibleBook GetBookByIndex(Integer idx){
-        return new LocalizedBibleBook(BookAbbreviations.Item(idx), BookNames.Item(idx));
+        return new LocalizedBibleBook(BookAbbreviations.get(idx), BookNames.get(idx));
     }
     
 }
