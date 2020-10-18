@@ -367,99 +367,90 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "drawRuler = function(rulerLen, cvtToCM, lftindnt, rgtindnt){"
             + "var pixelRatioVals = getPixelRatioVals(rulerLen,cvtToCM),"
             + "initialPadding = 35,"
-      $canvas = jQuery('.previewRuler');
-  $canvas.each(function(){
-    let canvas = this,
-        context = canvas.getContext('2d'),
-        canvasWidth = (rulerLen * 96 * pixelRatioVals.dpr) + (initialPadding*2);
-    canvas.style.width = canvasWidth + 'px';
-    canvas.style.height = '20px';
-    canvas.width = Math.round(canvasWidth * pixelRatioVals.dpr);
-    canvas.height = Math.round(20 * pixelRatioVals.dpr);
-    canvas.style.width = Math.round(canvas.width / pixelRatioVals.dpr) + 'px';
-    canvas.style.height = Math.round(canvas.height / pixelRatioVals.dpr) + 'px';
-
-    context.scale(pixelRatioVals.dpr,pixelRatioVals.dpr);
-    context.translate(pixelRatioVals.dpr, 0);
-      
-    context.lineWidth = 0.5;
-    context.strokeStyle = '#000';
-    context.font = 'bold 10px Arial';
-
-    context.beginPath();
-    context.moveTo(initialPadding, 1);
-    context.lineTo(initialPadding + (pixelRatioVals.rulerLength * pixelRatioVals.dpi),1);
-    context.stroke();
-
-    let currentWholeNumber = 0;
-    let offset = 2;
-
-    for(let interval = 0; interval <= pixelRatioVals.rulerLength; interval += pixelRatioVals.drawInterval){
-      let xPosA = Math.round(interval*pixelRatioVals.dpi)+0.5;
-    
-      if(interval == Math.floor(interval) && interval > 0){
-        if(currentWholeNumber+1 == 10){ offset+=4; }
-        context.fillText(++currentWholeNumber,initialPadding+xPosA-offset,14);
-      }
-      else if(interval == Math.floor(interval)+0.5){
-        context.beginPath();
-        context.moveTo(initialPadding+xPosA,15);
-        context.lineTo(initialPadding+xPosA,5); 
-        context.closePath();
-        context.stroke();   
-      }
-      else{
-        context.beginPath();
-        context.moveTo(initialPadding+xPosA,10);
-        context.lineTo(initialPadding+xPosA,5);
-        context.closePath();
-        context.stroke();
-      }
-    }
-  
-    triangleAt(lftindnt,context,pixelRatioVals,initialPadding,canvasWidth);
-    triangleAt(pixelRatioVals.rulerLength-rgtindnt,context,pixelRatioVals,initialPadding,canvasWidth);
-    context.translate(-pixelRatioVals.dpr, -0);
-
-  });
-  
-};
-jQuery(document).ready(function(){
-    let pixelRatioVals = getPixelRatioVals(7," & InterfaceInCM.ToString.ToLower & ");
-    let leftindent = " & My.Settings.LeftIndent.ToString("F1", CultureInfo.InvariantCulture) & " * pixelRatioVals.dpi + 35;
-    let rightindent = " & My.Settings.RightIndent.ToString("F1", CultureInfo.InvariantCulture) & " * pixelRatioVals.dpi + 35;
-    let bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);
-    $('.bibleQuote').css({""width"":bestWidth+""px"",""padding-left"":leftindent+""px"",""padding-right"":rightindent+""px""}); 
-            + "drawRuler(7," & InterfaceInCM.ToString.ToLower & "," & My.Settings.LeftIndent.ToString("F1", CultureInfo.InvariantCulture) & "," & My.Settings.RightIndent.ToString("F1", CultureInfo.InvariantCulture) & ");"
+            + "$canvas = jQuery('.previewRuler');"
+            + "$canvas.each(function(){"
+            + "let canvas = this,"
+            + "context = canvas.getContext('2d'),"
+            + "canvasWidth = (rulerLen * 96 * pixelRatioVals.dpr) + (initialPadding*2);"
+            + "canvas.style.width = canvasWidth + 'px';"
+            + "canvas.style.height = '20px';"
+            + "canvas.width = Math.round(canvasWidth * pixelRatioVals.dpr);"
+            + "canvas.height = Math.round(20 * pixelRatioVals.dpr);"
+            + "canvas.style.width = Math.round(canvas.width / pixelRatioVals.dpr) + 'px';"
+            + "canvas.style.height = Math.round(canvas.height / pixelRatioVals.dpr) + 'px';"
+            + "context.scale(pixelRatioVals.dpr,pixelRatioVals.dpr);"
+            + "context.translate(pixelRatioVals.dpr, 0);"
+            + "context.lineWidth = 0.5;"
+            + "context.strokeStyle = '#000';"
+            + "context.font = 'bold 10px Arial';"
+            + "context.beginPath();"
+            + "context.moveTo(initialPadding, 1);"
+            + "context.lineTo(initialPadding + (pixelRatioVals.rulerLength * pixelRatioVals.dpi),1);"
+            + "context.stroke();"
+            + "let currentWholeNumber = 0;"
+            + "let offset = 2;"
+            + "for(let interval = 0; interval <= pixelRatioVals.rulerLength; interval += pixelRatioVals.drawInterval){"
+            + "let xPosA = Math.round(interval*pixelRatioVals.dpi)+0.5;"
+            + "if(interval == Math.floor(interval) && interval > 0){"
+            + "if(currentWholeNumber+1 == 10){ offset+=4; }"
+            + "context.fillText(++currentWholeNumber,initialPadding+xPosA-offset,14);"
+            + "}"
+            + "else if(interval == Math.floor(interval)+0.5){"
+            + "context.beginPath();"
+            + "context.moveTo(initialPadding+xPosA,15);"
+            + "context.lineTo(initialPadding+xPosA,5);"
+            + "context.closePath();"
+            + "context.stroke();"
+            + "}"
+            + "else{"
+            + "context.beginPath();"
+            + "context.moveTo(initialPadding+xPosA,10);"
+            + "context.lineTo(initialPadding+xPosA,5);"
+            + "context.closePath();"
+            + "context.stroke();"
+            + "}"
+            + "}"
+            + "triangleAt(lftindnt,context,pixelRatioVals,initialPadding,canvasWidth);"
+            + "triangleAt(pixelRatioVals.rulerLength-rgtindnt,context,pixelRatioVals,initialPadding,canvasWidth);"
+            + "context.translate(-pixelRatioVals.dpr, -0);"
+            + "});"
+            + "};"
+            + "jQuery(document).ready(function(){"
+            + "let pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
+            + "let leftindent = " + String.format(Locale.ROOT, "%.2f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
+            + "let rightindent = " + String.format(Locale.ROOT, "%.2f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
+            + "let bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
+            + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
+            + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.2f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.2f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");"
             + "});";
         
         previewDocument = "<html><head><meta charset=\"utf-8\">" + previewDocStylesheet
-                + "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>" 
-                + "<script>const dPR = 1.0;</script>" 
-                + "</head><body>"
-        + "<canvas class=\"previewRuler\"></canvas>"
-        + "<p class=\"bibleversion showtop\" style=\"display:"+(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW && USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION==BGET.POS.TOP?"block":"none")+";\"><span class=\"bcWrap\">" + bibleVersionWrapBefore + "</span>NVBSE<span class=\"bcWrap\">" + bibleVersionWrapAfter + "</span></p>"
-        + "<div class=\"bookchapterWrapper\">"
-        + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.TOP) ? "<span class=\"bookchapter\" style=\"display:block;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcText1Sam\">" + bkChptr1Sam213 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
-        + "<div class=\"liveview-quote\">"
-        + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">1</span><span class=\"versetext\">"+ ISam2_1 +"</span>"
-        + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">2</span><span class=\"versetext\">"+ ISam2_2 +"</span>"
-        + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">3</span><span class=\"versetext\">"+ ISam2_3 +"</span>"
-        + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOMINLINE) ? "<span class=\"bookchapter\" style=\"margin-left:6px;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcText1Sam\">" + bkChptr1Sam213 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
-        + "</div>"
-        + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOM) ? "<span class=\"bookchapter\" style=\"display:block;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcText1Sam\">" + bkChptr1Sam213 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
-        + "</div>"
-        + "<div class=\"bookchapterWrapper\">"
-        + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.TOP) ? "<span class=\"bookchapter\" style=\"display:block;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcTextPs\">" + bkChptrPs11412 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
-        + "<div class=\"liveview-quote\">"
-        + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">1</span><span class=\"versetext\">"+ Ps114_1 +"</span>"
-        + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">2</span><span class=\"versetext\">factus est Iuda sanctuarium eius, Israel potestas eius.</span>"
-        + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOMINLINE) ? "<span class=\"bookchapter\" style=\"margin-left:6px;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcTextPs\">" + bkChptrPs11412 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
-        + "</div>"
-        + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOM) ? "<span class=\"bookchapter\" style=\"display:block;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcTextPs\">" + bkChptrPs11412 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
-        + "</div>"
-        + "<p class=\"bibleversion showbottom\" style=\"display:"+(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW && USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION==BGET.POS.BOTTOM?"block":"none")+";\"><span class=\"bcWrap\">" + bibleVersionWrapBefore + "</span>NVBSE<span class=\"bcWrap\">" + bibleVersionWrapAfter + "</span></p>"
-        + "</body>";
+            + "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>" 
+            + "<script>const dPR = 1.0;</script>" 
+            + "</head><body>"
+            + "<canvas class=\"previewRuler\"></canvas>"
+            + "<p class=\"bibleversion showtop\" style=\"display:"+(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW && USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION==BGET.POS.TOP?"block":"none")+";\"><span class=\"bcWrap\">" + bibleVersionWrapBefore + "</span>NVBSE<span class=\"bcWrap\">" + bibleVersionWrapAfter + "</span></p>"
+            + "<div class=\"bookchapterWrapper\">"
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.TOP ? "<span class=\"bookchapter\" style=\"display:block;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcText1Sam\">" + bkChptr1Sam213 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : "")
+            + "<div class=\"liveview-quote\">"
+            + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">1</span><span class=\"versetext\">"+ ISam2_1 +"</span>"
+            + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">2</span><span class=\"versetext\">"+ ISam2_2 +"</span>"
+            + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">3</span><span class=\"versetext\">"+ ISam2_3 +"</span>"
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOMINLINE) ? "<span class=\"bookchapter\" style=\"margin-left:6px;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcText1Sam\">" + bkChptr1Sam213 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
+            + "</div>"
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOM) ? "<span class=\"bookchapter\" style=\"display:block;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcText1Sam\">" + bkChptr1Sam213 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
+            + "</div>"
+            + "<div class=\"bookchapterWrapper\">"
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.TOP) ? "<span class=\"bookchapter\" style=\"display:block;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcTextPs\">" + bkChptrPs11412 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
+            + "<div class=\"liveview-quote\">"
+            + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">1</span><span class=\"versetext\">"+ Ps114_1 +"</span>"
+            + "<span class=\"versenumber\" style=\"display:"+(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW ? "inline" : "none")+";\">2</span><span class=\"versetext\">factus est Iuda sanctuarium eius, Israel potestas eius.</span>"
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOMINLINE) ? "<span class=\"bookchapter\" style=\"margin-left:6px;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcTextPs\">" + bkChptrPs11412 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
+            + "</div>"
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOM) ? "<span class=\"bookchapter\" style=\"display:block;\"><span class=\"bcWrap\">" + bookChapterWrapBefore + "</span><span class=\"bcTextPs\">" + bkChptrPs11412 + "</span><span class=\"bcWrap\">" + bookChapterWrapAfter + "</span></span>" : ""
+            + "</div>"
+            + "<p class=\"bibleversion showbottom\" style=\"display:"+(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW && USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION==BGET.POS.BOTTOM?"block":"none")+";\"><span class=\"bcWrap\">" + bibleVersionWrapBefore + "</span>NVBSE<span class=\"bcWrap\">" + bibleVersionWrapAfter + "</span></p>"
+            + "</body>";
 
         
         Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
