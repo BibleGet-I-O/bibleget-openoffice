@@ -422,11 +422,12 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "let bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
             + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
             + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.2f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.2f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");"
-            + "});";
+            + "});"
+            + "</script>";
         
         previewDocument = "<html><head><meta charset=\"utf-8\">" + previewDocStylesheet
             + "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>" 
-            + "<script>const dPR = 1.0;</script>" 
+            + previewDocScript 
             + "</head><body>"
             + "<canvas class=\"previewRuler\"></canvas>"
             + "<p class=\"bibleversion showtop\" style=\"display:"+(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW && USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION==BGET.POS.TOP?"block":"none")+";\"><span class=\"bcWrap\">" + bibleVersionWrapBefore + "</span>NVBSE<span class=\"bcWrap\">" + bibleVersionWrapAfter + "</span></p>"
@@ -587,7 +588,7 @@ public class OptionsFrame extends javax.swing.JFrame {
 
         buttonGroup1.add(jToggleButton3);
         jToggleButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/align_left.png"))); // NOI18N
-        jToggleButton3.setSelected(paragraphAlignment.equals("left"));
+        jToggleButton3.setSelected(USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.equals(BGET.ALIGN.LEFT));
         jToggleButton3.setFocusable(false);
         jToggleButton3.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton3.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -602,7 +603,7 @@ public class OptionsFrame extends javax.swing.JFrame {
 
         buttonGroup1.add(jToggleButton2);
         jToggleButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/align_center.png"))); // NOI18N
-        jToggleButton2.setSelected(paragraphAlignment.equals("center"));
+        jToggleButton2.setSelected(USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.equals(BGET.ALIGN.CENTER));
         jToggleButton2.setFocusable(false);
         jToggleButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton2.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -617,7 +618,7 @@ public class OptionsFrame extends javax.swing.JFrame {
 
         buttonGroup1.add(jToggleButton4);
         jToggleButton4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/align_right.png"))); // NOI18N
-        jToggleButton4.setSelected(paragraphAlignment.equals("right"));
+        jToggleButton4.setSelected(USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.equals(BGET.ALIGN.RIGHT));
         jToggleButton4.setFocusable(false);
         jToggleButton4.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton4.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -632,7 +633,7 @@ public class OptionsFrame extends javax.swing.JFrame {
 
         buttonGroup1.add(jToggleButton5);
         jToggleButton5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/align_justify.png"))); // NOI18N
-        jToggleButton5.setSelected(paragraphAlignment.equals("justify"));
+        jToggleButton5.setSelected(USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.equals(BGET.ALIGN.JUSTIFY));
         jToggleButton5.setFocusable(false);
         jToggleButton5.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton5.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -875,7 +876,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBar2.add(jComboBox2);
 
-        jToggleButton8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/superscript.png"))); // NOI18N
+        jToggleButton8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/subscript.png"))); // NOI18N
         jToggleButton8.setSelected(USERPREFS.BOOKCHAPTERSTYLES_VALIGN.equals(BGET.VALIGN.SUPERSCRIPT));
         jToggleButton8.setFocusable(false);
         jToggleButton8.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -888,7 +889,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBar2.add(jToggleButton8);
 
-        jToggleButton9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/subscript.png"))); // NOI18N
+        jToggleButton9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/superscript.png"))); // NOI18N
         jToggleButton9.setSelected(USERPREFS.BOOKCHAPTERSTYLES_VALIGN.equals(BGET.VALIGN.SUBSCRIPT));
         jToggleButton9.setFocusable(false);
         jToggleButton9.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -996,8 +997,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBar3.add(jComboBox3);
 
-        jToggleButton13.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/superscript.png"))); // NOI18N
-        jToggleButton13.setSelected(vAlignVerseNumber.equals("super"));
+        jToggleButton13.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/subscript.png"))); // NOI18N
+        jToggleButton13.setSelected(USERPREFS.VERSENUMBERSTYLES_VALIGN.equals(BGET.VALIGN.SUPERSCRIPT));
         jToggleButton13.setFocusable(false);
         jToggleButton13.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton13.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -1009,8 +1010,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBar3.add(jToggleButton13);
 
-        jToggleButton14.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/subscript.png"))); // NOI18N
-        jToggleButton14.setSelected(vAlignVerseNumber.equals("sub"));
+        jToggleButton14.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/superscript.png"))); // NOI18N
+        jToggleButton14.setSelected(USERPREFS.VERSENUMBERSTYLES_VALIGN.equals(BGET.VALIGN.SUBSCRIPT));
         jToggleButton14.setFocusable(false);
         jToggleButton14.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton14.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -1117,8 +1118,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBar4.add(jComboBox4);
 
-        jToggleButton18.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/superscript.png"))); // NOI18N
-        jToggleButton18.setSelected(vAlignVerseText.equals("super"));
+        jToggleButton18.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/subscript.png"))); // NOI18N
+        jToggleButton18.setSelected(USERPREFS.VERSETEXTSTYLES_VALIGN.equals(BGET.VALIGN.SUPERSCRIPT));
         jToggleButton18.setFocusable(false);
         jToggleButton18.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton18.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -1130,8 +1131,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBar4.add(jToggleButton18);
 
-        jToggleButton19.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/subscript.png"))); // NOI18N
-        jToggleButton19.setSelected(vAlignVerseText.equals("sub"));
+        jToggleButton19.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/superscript.png"))); // NOI18N
+        jToggleButton19.setSelected(USERPREFS.VERSETEXTSTYLES_VALIGN.equals(BGET.VALIGN.SUBSCRIPT));
         jToggleButton19.setFocusable(false);
         jToggleButton19.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton19.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -1183,7 +1184,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jLabel1.setForeground(new java.awt.Color(255, 0, 0));
         jLabel1.setText("(*"+__("line-spacing not visible in the preview")+")");
 
-        jCheckBox1.setSelected(noVersionFormatting);
+        jCheckBox1.setSelected(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING);
         jCheckBox1.setText(__("Override Bible Version Formatting"));
         jCheckBox1.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
