@@ -301,9 +301,10 @@ public class BibleGetDB {
                             + "true,false,false,false,'#AA0000','#FFFFFF',12," + BGET.VALIGN.NORMAL.getValue() + ","    //BOOK CHAPTER STYLES
                             + "false,false,false,false,'#AA0000','#FFFFFF',10," + BGET.VALIGN.SUPERSCRIPT.getValue() + ","    //VERSENUMBER STYLES
                             + "false,false,false,false,'#696969','#FFFFFF',12," + BGET.VALIGN.NORMAL.getValue() + ","    //VERSETEXT STYLES
-                            + BGET.VISIBILITY.SHOW.getValue() + ","
-                            + "'NVBSE',"
-                            + "false"
+                            + BGET.VISIBILITY.SHOW.getValue() + "," + BGET.ALIGN.LEFT.getValue() + "," + BGET.POS.TOP.getValue() + "," + BGET.WRAP.NONE.getValue() + "," 
+                            + BGET.ALIGN.LEFT.getValue() + "," + BGET.POS.TOP.getValue() + "," + BGET.WRAP.NONE.getValue() + ","
+                            + BGET.FORMAT.BIBLELANG.getValue() + ",true," + BGET.VISIBILITY.SHOW.getValue() + ","
+                            + "'NVBSE'"
                             + ")";
                     boolean tableCreated = stmt.execute(tableCreate);
                     boolean rowsInserted;

@@ -23,8 +23,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import javax.json.Json;
 import javax.json.JsonArray;
-import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.json.stream.JsonParsingException;
 
 /**
  *
@@ -34,45 +34,90 @@ public class LocalizedBibleBooks {
     private final BibleGetDB biblegetDB;
     private final HashMap<Integer,String> BookAbbreviations = new HashMap<>();
     private final HashMap<Integer,String> BookNames = new HashMap<>();
-    private String curLangDisplayName;
+    private final String curLangDisplayName;
     private Integer curLangIdx;
     private JsonReader jsonReader;
+    private ArrayList<String> langsArr = new ArrayList<>();
+    private JsonArray bibleBooksInCurLang;
+    private String bbBooks;
+    private String bookName;
+    private String bookAbbrev;
+    private JsonArray bibleBooksArr;
+    private String langsSupported;
+    private JsonArray langsJArr;
 
     private static LocalizedBibleBooks instance = null;
     
     private LocalizedBibleBooks() throws ClassNotFoundException, SQLException{
-        curLangDisplayName = BibleGetIO.getUILocale().getDisplayName(Locale.ENGLISH).toUpperCase();
+        curLangDisplayName = BibleGetIO.getUILocale().getDisplayName(Locale.ENGLISH).toUpperCase().trim();
         biblegetDB = BibleGetDB.getInstance();
-        String langsSupported = biblegetDB.getMetaData("LANGUAGES");
+        langsSupported = biblegetDB.getMetaData("LANGUAGES");
         jsonReader = Json.createReader(new StringReader(langsSupported));
-        JsonArray langsJArr = jsonReader.readArray();
-        ArrayList<String> langsArr = new ArrayList<>();
-        JsonArray bibleBooksInCurLang;
-        ArrayList<String> langsArrInCurLang = new ArrayList<>();
+        langsJArr = jsonReader.readArray();
         if(langsJArr != null){
             for(int i=0;i<langsJArr.size();i++){
-                langsArr.add(langsJArr.get(i).toString());
+                langsArr.add(langsJArr.getString(i));
             }
-            curLangIdx = langsArr.indexOf(curLangDisplayName);
-            String bbBooks;
-            String bookName;
-            String bookAbbrev;
-            JsonArray bibleBooksObj;
+            if(langsArr.contains(curLangDisplayName)){
+                curLangIdx = langsArr.indexOf(curLangDisplayName);
+                System.out.println("langsArr at least does seem to have the value " + curLangDisplayName);
+            } else {
+                System.out.println("For some strange reason, it seems that langsArr does not have the value " + curLangDisplayName + "?");
+                System.out.println("langsArr has size " + langsArr.size());
+                System.out.println("langsArr = " + langsArr);
+                if(langsArr.contains("\"" + curLangDisplayName + "\"")){
+                    System.out.println("Oh so that's it, language names include parentheses, arghhh");
+                } else {
+                    System.out.println("It's not the parentheses, then what is it?");
+                }
+                curLangIdx = 0;
+            }
             for(int i=0;i<=72;i++){
                 bbBooks = biblegetDB.getMetaData("BIBLEBOOKS"+i);
-                jsonReader = Json.createReader(new StringReader(bbBooks));
-                bibleBooksObj = jsonReader.readArray();
-                bibleBooksInCurLang = bibleBooksObj.getJsonArray(curLangIdx);
-                bookName = bibleBooksInCurLang.getString(0);
-                bookAbbrev = bibleBooksInCurLang.getString(1);
-                if(bookName.contains("|")){
-                    bookName = bookName.split("|")[0].trim();
+                //System.out.println("BIBLEBOOKS"+i+" = "+bbBooks);
+                try{
+                    jsonReader = Json.createReader(new StringReader(bbBooks));
+                    bibleBooksArr = jsonReader.readArray();
+                    bibleBooksInCurLang = bibleBooksArr.getJsonArray(curLangIdx);
+                    bookName = bibleBooksInCurLang.getString(0);
+                    bookAbbrev = bibleBooksInCurLang.getString(1);
+                    if(bookName.contains("|")){
+                        bookName = bookName.split("|")[0].trim();
+                    }
+                    if(bookAbbrev.contains("|")){
+                        bookAbbrev = bookAbbrev.split("|")[0].trim();
+                    }
+                    System.out.println("book at index " + i + " = " + bookAbbrev + " :: " + bookName);
+                    BookAbbreviations.put(i, bookAbbrev);
+                    BookNames.put(i, bookName);
+                } catch(JsonParsingException ex) {
+                    System.out.println("LOCALIZEDBIBLEBOOKS.JAVA | Error while parsing JSON: " + ex.getMessage());
+                } catch(ArrayIndexOutOfBoundsException ex){
+                    System.out.println("LOCALIZEDBIBLEBOOKS.JAVA | Which array is giving out of bounds exeption?");
+                    if(bibleBooksArr == null){
+                        System.out.println("bibleBooksArr is null!");
+                    } else {
+                        System.out.println("bibleBooksArr at least is not null, size is " + bibleBooksArr.size());
+                        System.out.println(bibleBooksArr);
+                    }
+                    
+                    if(bibleBooksInCurLang == null){
+                        System.out.println("bibleBooksInCurLang is null!");
+                        System.out.println("curLangDisplayName = " + curLangDisplayName);
+                        System.out.println("langsSupported = " + langsSupported);
+                        System.out.println("langsJArr has size " + langsJArr.size());
+                        System.out.println("langsArr has size " + langsArr.size());
+                        System.out.println("langsArr = " + langsArr);
+                        System.out.println("curLangIdx = " + curLangIdx);
+                    } else {
+                        System.out.println("bibleBooksInCurLang at least is not null, size is " + bibleBooksInCurLang.size());
+                        System.out.println(bibleBooksInCurLang);
+                    }
+                    
+                } catch(Exception ex){
+                    System.out.println("LOCALIZEDBIBLEBOOKS.JAVA | Error: " + ex.getMessage());
+                    System.out.println(ex);
                 }
-                if(bookAbbrev.contains("|")){
-                    bookAbbrev = bookAbbrev.split("|")[0].trim();
-                }
-                BookAbbreviations.put(i, bookAbbrev);
-                BookNames.put(i, bookName);
             }
         }
         

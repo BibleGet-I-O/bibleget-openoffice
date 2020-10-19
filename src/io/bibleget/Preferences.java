@@ -16,14 +16,21 @@
 package io.bibleget;
 
 import java.awt.Color;
+import java.sql.SQLException;
+import javax.json.JsonArray;
+import javax.json.JsonNumber;
+import javax.json.JsonObject;
+import javax.json.JsonString;
+import javax.json.JsonValue;
 
 /**
  *
  * @author John R. D'Orazio <priest@johnromanodorazio.com>
  */
 public class Preferences {
-    private static final Preferences USERPREFS = new Preferences();
-
+    private static Preferences instance;
+    private final BibleGetDB biblegetDB;    
+    
     public Integer PARAGRAPHSTYLES_LINEHEIGHT;
     public Integer PARAGRAPHSTYLES_LEFTINDENT;
     public Integer PARAGRAPHSTYLES_RIGHTINDENT;
@@ -77,11 +84,129 @@ public class Preferences {
     public BGET.VISIBILITY LAYOUTPREFS_VERSENUMBER_SHOW;
     public String PREFERREDVERSIONS;
     
-    private Preferences(){}
-    
-    public static Preferences getInstance(){
-        return USERPREFS;
+    private Preferences() throws ClassNotFoundException, SQLException{
+        biblegetDB = BibleGetDB.getInstance();
+        JsonObject myOptions = biblegetDB.getOptions();
+        System.out.println("PREFERENCES :: " + myOptions.toString());
+        System.out.println("PREFERENCES :: getting JsonValue of options rows");
+        JsonValue myResults = myOptions.get("rows");
+        System.out.println("PREFERENCES :: " + myResults.toString());
+        System.out.println("PREFERENCES :: navigating values in json tree and setting global variables");
+        navigateTree(myResults, null);        
     }
     
+    public static Preferences getInstance() throws ClassNotFoundException, SQLException{
+        if(instance == null){
+            instance = new Preferences();
+        }
+        return instance;
+    }
+    
+    private void navigateTree(JsonValue tree, String key) {
+        if (key != null){
+            //System.out.print("Key " + key + ": ");
+        }
+        switch(tree.getValueType()) {
+            case OBJECT:
+                System.out.println("OBJECT");
+                JsonObject object = (JsonObject) tree;
+                for (String name : object.keySet())
+                   navigateTree(object.get(name), name);
+                break;
+            case ARRAY:
+                System.out.println("ARRAY");
+                JsonArray array = (JsonArray) tree;
+                for (JsonValue val : array)
+                   navigateTree(val, null);
+                break;
+            case STRING:
+                System.out.println("STRING");
+                JsonString st = (JsonString) tree;
+                System.out.println("key " + key + " | STRING " + st.getString());
+                getStringOption(key,st.getString());
+                break;
+            case NUMBER:
+                JsonNumber num = (JsonNumber) tree;
+                System.out.println("NUMBER " + num.toString());
+                getNumberOption(key,num.intValue());
+                break;
+            case TRUE:
+                getBooleanOption(key,true);
+                System.out.println("BOOLEAN " + tree.getValueType().toString());
+                break;
+            case FALSE:
+                getBooleanOption(key,false);
+                System.out.println("BOOLEAN " + tree.getValueType().toString());
+                break;
+            case NULL:
+                System.out.println("NULL " + tree.getValueType().toString());
+                break;
+        }
+    }
+    
+    private void getStringOption(String key,String value){
+        switch(key){
+            case "PARAGRAPHSTYLES_FONTFAMILY": PARAGRAPHSTYLES_FONTFAMILY = value; break;
+            case "BIBLEVERSIONSTYLES_TEXTCOLOR": BIBLEVERSIONSTYLES_TEXTCOLOR = Color.decode(value); break; //will need to decode string representation of hex value with Color.decode(BGET.BIBLEVERSIONSTYLES_TEXTCOLOR)
+            case "BIBLEVERSIONSTYLES_BGCOLOR": BIBLEVERSIONSTYLES_BGCOLOR = Color.decode(value); break; //decode string representation of hex value
+            case "BOOKCHAPTERSTYLES_TEXTCOLOR": BOOKCHAPTERSTYLES_TEXTCOLOR = Color.decode(value); break; //decode string representation of hex value
+            case "BOOKCHAPTERSTYLES_BGCOLOR": BOOKCHAPTERSTYLES_BGCOLOR = Color.decode(value); break; //decode string representation of hex value
+            case "VERSENUMBERSTYLES_TEXTCOLOR": VERSENUMBERSTYLES_TEXTCOLOR = Color.decode(value); break;
+            case "VERSENUMBERSTYLES_BGCOLOR": VERSENUMBERSTYLES_BGCOLOR = Color.decode(value); break; //decode string representation of hex value
+            case "VERSETEXTSTYLES_TEXTCOLOR": VERSETEXTSTYLES_TEXTCOLOR = Color.decode(value); break; //decode string representation of hex value
+            case "VERSETEXTSTYLES_BGCOLOR": VERSETEXTSTYLES_BGCOLOR = Color.decode(value); break;
+            case "PREFERREDVERSIONS": PREFERREDVERSIONS = value; break;
+        }
+    }
+    
+    private void getNumberOption(String key,int value){
+        switch(key){
+            case "PARAGRAPHSTYLES_LINEHEIGHT": PARAGRAPHSTYLES_LINEHEIGHT = value; break; //think of it as percent
+            case "PARAGRAPHSTYLES_LEFTINDENT": PARAGRAPHSTYLES_LEFTINDENT = value; break;
+            case "PARAGRAPHSTYLES_RIGHTINDENT": PARAGRAPHSTYLES_RIGHTINDENT = value; break;
+            case "PARAGRAPHSTYLES_ALIGNMENT": PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.valueOf(value); break;
+            case "BIBLEVERSIONSTYLES_FONTSIZE": BIBLEVERSIONSTYLES_FONTSIZE = value; break;       
+            case "BIBLEVERSIONSTYLES_VALIGN": BIBLEVERSIONSTYLES_VALIGN = BGET.VALIGN.valueOf(value); break;
+            case "BOOKCHAPTERSTYLES_FONTSIZE": BOOKCHAPTERSTYLES_FONTSIZE = value; break;
+            case "BOOKCHAPTERSTYLES_VALIGN": BOOKCHAPTERSTYLES_VALIGN = BGET.VALIGN.valueOf(value); break;
+            case "VERSENUMBERSTYLES_FONTSIZE": VERSENUMBERSTYLES_FONTSIZE = value; break;
+            case "VERSENUMBERSTYLES_VALIGN": VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.valueOf(value); break;
+            case "VERSETEXTSTYLES_FONTSIZE": VERSETEXTSTYLES_FONTSIZE = value; break;
+            case "VERSETEXTSTYLES_VALIGN": VERSETEXTSTYLES_VALIGN = BGET.VALIGN.valueOf(value); break;
+            case "LAYOUTPREFS_BIBLEVERSION_SHOW": LAYOUTPREFS_BIBLEVERSION_SHOW = BGET.VISIBILITY.valueOf(value); break;
+            case "LAYOUTPREFS_BIBLEVERSION_ALIGNMENT": LAYOUTPREFS_BIBLEVERSION_ALIGNMENT = BGET.ALIGN.valueOf(value); break;
+            case "LAYOUTPREFS_BIBLEVERSION_POSITION": LAYOUTPREFS_BIBLEVERSION_POSITION = BGET.POS.valueOf(value); break;
+            case "LAYOUTPREFS_BIBLEVERSION_WRAP": LAYOUTPREFS_BIBLEVERSION_WRAP = BGET.WRAP.valueOf(value); break;
+            case "LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT": LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT = BGET.ALIGN.valueOf(value); break;
+            case "LAYOUTPREFS_BOOKCHAPTER_POSITION": LAYOUTPREFS_BOOKCHAPTER_POSITION = BGET.POS.valueOf(value); break;
+            case "LAYOUTPREFS_BOOKCHAPTER_WRAP": LAYOUTPREFS_BOOKCHAPTER_WRAP = BGET.WRAP.valueOf(value); break;
+            case "LAYOUTPREFS_BOOKCHAPTER_FORMAT": LAYOUTPREFS_BOOKCHAPTER_FORMAT = BGET.FORMAT.valueOf(value); break;
+            case "LAYOUTPREFS_VERSENUMBER_SHOW": LAYOUTPREFS_VERSENUMBER_SHOW = BGET.VISIBILITY.valueOf(value); break;
+        }    
+    }
+    
+    private void getBooleanOption(String key,boolean value){
+        switch(key){
+            case "PARAGRAPHSTYLES_NOVERSIONFORMATTING": PARAGRAPHSTYLES_NOVERSIONFORMATTING = value; break;
+            case "PARAGRAPHSTYLES_INTERFACEINCM": PARAGRAPHSTYLES_INTERFACEINCM = value; break;
+            case "BIBLEVERSIONSTYLES_BOLD": BIBLEVERSIONSTYLES_BOLD = value; break;
+            case "BIBLEVERSIONSTYLES_ITALIC": BIBLEVERSIONSTYLES_ITALIC = value; break;
+            case "BIBLEVERSIONSTYLES_UNDERLINE": BIBLEVERSIONSTYLES_UNDERLINE = value; break;
+            case "BIBLEVERSIONSTYLES_STRIKETHROUGH": BIBLEVERSIONSTYLES_STRIKETHROUGH = value; break;
+            case "BOOKCHAPTERSTYLES_BOLD": BOOKCHAPTERSTYLES_BOLD = value; break;
+            case "BOOKCHAPTERSTYLES_ITALIC": BOOKCHAPTERSTYLES_ITALIC = value; break;
+            case "BOOKCHAPTERSTYLES_UNDERLINE": BOOKCHAPTERSTYLES_UNDERLINE = value; break;
+            case "BOOKCHAPTERSTYLES_STRIKETHROUGH": BOOKCHAPTERSTYLES_STRIKETHROUGH = value; break;
+            case "VERSENUMBERSTYLES_BOLD": VERSENUMBERSTYLES_BOLD = value; break;
+            case "VERSENUMBERSTYLES_ITALIC": VERSENUMBERSTYLES_ITALIC = value; break;
+            case "VERSENUMBERSTYLES_UNDERLINE": VERSENUMBERSTYLES_UNDERLINE = value; break;
+            case "VERSENUMBERSTYLES_STRIKETHROUGH": VERSENUMBERSTYLES_STRIKETHROUGH = value; break;
+            case "VERSETEXTSTYLES_BOLD": VERSETEXTSTYLES_BOLD = value; break;
+            case "VERSETEXTSTYLES_ITALIC": VERSETEXTSTYLES_ITALIC = value; break;
+            case "VERSETEXTSTYLES_UNDERLINE": VERSETEXTSTYLES_UNDERLINE = value; break;
+            case "VERSETEXTSTYLES_STRIKETHROUGH": VERSETEXTSTYLES_STRIKETHROUGH = value; break;
+            case "LAYOUTPREFS_BOOKCHAPTER_FULLQUERY": LAYOUTPREFS_BOOKCHAPTER_FULLQUERY = value; break;
+        }    
+    }
     //other methods here...
 }

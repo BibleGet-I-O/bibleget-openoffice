@@ -16,8 +16,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -112,15 +114,13 @@ public class OptionsFrame extends javax.swing.JFrame {
         //System.out.println("getting instance of BibleGetDB");
         biblegetDB = BibleGetDB.getInstance();
         USERPREFS = Preferences.getInstance();
-        
+        if(USERPREFS != null){
+            System.out.println("USERPREFS is not null at least.");
+            System.out.println("USERPREFS.toString = " + USERPREFS.toString());
+            Field[] fields = Preferences.class.getFields();
+            System.out.println(Arrays.toString(fields));
+        }
         //System.out.println("getting JsonObject of biblegetDB options");
-        JsonObject myOptions = biblegetDB.getOptions();
-        //System.out.println(myOptions.toString());
-        //System.out.println("getting JsonValue of options rows");
-        JsonValue myResults = myOptions.get("rows");
-        //System.out.println(myResults.toString());
-        //System.out.println("navigating values in json tree and setting global variables");
-        navigateTree(myResults, null);
         this.fontFamilies = BibleGetIO.getFontFamilies();
         
         //System.out.println("(OptionsFrame: 127) USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR ="+USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);
@@ -257,7 +257,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         }
 
         String bookChapter = "";
-        LocalizedBibleBook LocalizedBookSamuel = L10NBibleBooks.GetBookByIndex(8);
+        LocalizedBibleBook LocalizedBookSamuel = (L10NBibleBooks != null ? L10NBibleBooks.GetBookByIndex(8) : new LocalizedBibleBook("1Sam","1Samuel") );
         switch(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT){
             case BIBLELANG:
                 bookChapter = "I Samuelis 1";
@@ -1341,7 +1341,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             styles.addRule("div.results p.verses span.sup { color:"+rgb+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setStringOption("TEXTCOLORVERSENUMBER", rgb)){
+            if(biblegetDB.setStringOption("VERSENUMBERSTYLES_TEXTCOLOR", rgb)){
                 //System.out.println("TEXTCOLORVERSENUMBER was successfully updated in database to value "+rgb);
             }
             else{
@@ -1365,7 +1365,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             styles.addRule("div.results p.verses span.sup { background-color:"+rgb+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setStringOption("BGCOLORVERSENUMBER", rgb)){
+            if(biblegetDB.setStringOption("VERSENUMBERSTYLES_BGCOLOR", rgb)){
                 //System.out.println("BGCOLORVERSENUMBER was successfully updated in database to value "+rgb);
             }
             else{
@@ -1389,7 +1389,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             styles.addRule("div.results p.verses span.text { color:"+rgb+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setStringOption("TEXTCOLORVERSETEXT", rgb)){
+            if(biblegetDB.setStringOption("VERSETEXTSTYLES_TEXTCOLOR", rgb)){
                 //System.out.println("TEXTCOLORVERSETEXT was successfully updated in database to value "+rgb);
             }
             else{
@@ -1413,7 +1413,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             styles.addRule("div.results p.verses span.text { background-color:"+rgb+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setStringOption("BGCOLORVERSETEXT", rgb)){
+            if(biblegetDB.setStringOption("VERSETEXTSTYLES_BGCOLOR", rgb)){
                 //System.out.println("BGCOLORVERSETEXT was successfully updated in database to value "+rgb);
             }
             else{
@@ -1464,7 +1464,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("ITALICSBOOKCHAPTER", USERPREFS.BOOKCHAPTERSTYLES_ITALIC)){
+        if(biblegetDB.setBooleanOption("BOOKCHAPTERSTYLES_ITALIC", USERPREFS.BOOKCHAPTERSTYLES_ITALIC)){
             //System.out.println("ITALICSBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_ITALIC);
         }
         else{
@@ -1486,7 +1486,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("UNDERSCOREBOOKCHAPTER", USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE)){
+        if(biblegetDB.setBooleanOption("BOOKCHAPTERSTYLES_UNDERLINE", USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE)){
             //System.out.println("UNDERSCOREBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE);
         }
         else{
@@ -1508,7 +1508,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("BOLDVERSENUMBER", USERPREFS.VERSENUMBERSTYLES_BOLD)){
+        if(biblegetDB.setBooleanOption("VERSENUMBERSTYLES_BOLD", USERPREFS.VERSENUMBERSTYLES_BOLD)){
             //System.out.println("BOLDVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_BOLD);
         }
         else{
@@ -1530,7 +1530,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("ITALICSVERSENUMBER", USERPREFS.VERSENUMBERSTYLES_ITALIC)){
+        if(biblegetDB.setBooleanOption("VERSENUMBERSTYLES_ITALIC", USERPREFS.VERSENUMBERSTYLES_ITALIC)){
             //System.out.println("ITALICSVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_ITALIC);
         }
         else{
@@ -1552,7 +1552,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("UNDERSCOREVERSENUMBER", USERPREFS.VERSENUMBERSTYLES_UNDERLINE)){
+        if(biblegetDB.setBooleanOption("VERSENUMBERSRTYLES_UNDERLINE", USERPREFS.VERSENUMBERSTYLES_UNDERLINE)){
             //System.out.println("UNDERSCOREVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_UNDERLINE);
         }
         else{
@@ -1574,7 +1574,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("BOLDVERSETEXT", USERPREFS.VERSETEXTSTYLES_BOLD)){
+        if(biblegetDB.setBooleanOption("VERSETEXTSTYLES_BOLD", USERPREFS.VERSETEXTSTYLES_BOLD)){
             //System.out.println("BOLDVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_BOLD);
         }
         else{
@@ -1596,7 +1596,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("ITALICSVERSETEXT", USERPREFS.VERSETEXTSTYLES_ITALIC)){
+        if(biblegetDB.setBooleanOption("VERSETEXTSTYLES_ITALIC", USERPREFS.VERSETEXTSTYLES_ITALIC)){
             //System.out.println("ITALICSVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_ITALIC);
         }
         else{
@@ -1618,7 +1618,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("UNDERSCOREVERSETEXT", USERPREFS.VERSETEXTSTYLES_UNDERLINE)){
+        if(biblegetDB.setBooleanOption("VERSETEXTSTYLES_UNDERLINE", USERPREFS.VERSETEXTSTYLES_UNDERLINE)){
             //System.out.println("UNDERSCOREVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_UNDERLINE);
         }
         else{
@@ -2103,112 +2103,6 @@ public class OptionsFrame extends javax.swing.JFrame {
         //rootEntityComboBox.setSelectedItem(selectedItem.getDisplayName());     
     }
     
-    private void navigateTree(JsonValue tree, String key) {
-        if (key != null){
-            //System.out.print("Key " + key + ": ");
-        }
-        switch(tree.getValueType()) {
-            case OBJECT:
-                System.out.println("OBJECT");
-                JsonObject object = (JsonObject) tree;
-                for (String name : object.keySet())
-                   navigateTree(object.get(name), name);
-                break;
-            case ARRAY:
-                System.out.println("ARRAY");
-                JsonArray array = (JsonArray) tree;
-                for (JsonValue val : array)
-                   navigateTree(val, null);
-                break;
-            case STRING:
-                System.out.println("STRING");
-                JsonString st = (JsonString) tree;
-                System.out.println("key " + key + " | STRING " + st.getString());
-                getStringOption(key,st.getString());
-                break;
-            case NUMBER:
-                JsonNumber num = (JsonNumber) tree;
-                System.out.println("NUMBER " + num.toString());
-                getNumberOption(key,num.intValue());
-                break;
-            case TRUE:
-                getBooleanOption(key,true);
-                System.out.println("BOOLEAN " + tree.getValueType().toString());
-                break;
-            case FALSE:
-                getBooleanOption(key,false);
-                System.out.println("BOOLEAN " + tree.getValueType().toString());
-                break;
-            case NULL:
-                System.out.println("NULL " + tree.getValueType().toString());
-                break;
-        }
-    }
-    
-    private void getStringOption(String key,String value){
-        switch(key){
-            case "PARAGRAPHSTYLES_FONTFAMILY": USERPREFS.PARAGRAPHSTYLES_FONTFAMILY = value; break;
-            case "BIBLEVERSIONSTYLES_TEXTCOLOR": USERPREFS.BIBLEVERSIONSTYLES_TEXTCOLOR = Color.decode(value); break; //will need to decode string representation of hex value with Color.decode(BGET.BIBLEVERSIONSTYLES_TEXTCOLOR)
-            case "BIBLEVERSIONSTYLES_BGCOLOR": USERPREFS.BIBLEVERSIONSTYLES_BGCOLOR = Color.decode(value); break; //decode string representation of hex value
-            case "BOOKCHAPTERSTYLES_TEXTCOLOR": USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR = Color.decode(value); break; //decode string representation of hex value
-            case "BOOKCHAPTERSTYLES_BGCOLOR": USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR = Color.decode(value); break; //decode string representation of hex value
-            case "VERSENUMBERSTYLES_TEXTCOLOR": USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR = Color.decode(value); break;
-            case "VERSENUMBERSTYLES_BGCOLOR": USERPREFS.VERSENUMBERSTYLES_BGCOLOR = Color.decode(value); break; //decode string representation of hex value
-            case "VERSETEXTSTYLES_TEXTCOLOR": USERPREFS.VERSETEXTSTYLES_TEXTCOLOR = Color.decode(value); break; //decode string representation of hex value
-            case "VERSETEXTSTYLES_BGCOLOR": USERPREFS.VERSETEXTSTYLES_BGCOLOR = Color.decode(value); break;
-            case "PREFERREDVERSIONS": USERPREFS.PREFERREDVERSIONS = value; break;
-        }
-    }
-    
-    private void getNumberOption(String key,int value){
-        switch(key){
-            case "PARAGRAPHSTYLES_LINEHEIGHT": USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT = value; break; //think of it as percent
-            case "PARAGRAPHSTYLES_LEFTINDENT": USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = value; break;
-            case "PARAGRAPHSTYLES_RIGHTINDENT": USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = value; break;
-            case "PARAGRAPHSTYLES_ALIGNMENT": USERPREFS.PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.valueOf(value); break;
-            case "BIBLEVERSIONSTYLES_FONTSIZE": USERPREFS.BIBLEVERSIONSTYLES_FONTSIZE = value; break;       
-            case "BIBLEVERSIONSTYLES_VALIGN": USERPREFS.BIBLEVERSIONSTYLES_VALIGN = BGET.VALIGN.valueOf(value); break;
-            case "BOOKCHAPTERSTYLES_FONTSIZE": USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE = value; break;
-            case "BOOKCHAPTERSTYLES_VALIGN": USERPREFS.BOOKCHAPTERSTYLES_VALIGN = BGET.VALIGN.valueOf(value); break;
-            case "VERSENUMBERSTYLES_FONTSIZE": USERPREFS.VERSENUMBERSTYLES_FONTSIZE = value; break;
-            case "VERSENUMBERSTYLES_VALIGN": USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.valueOf(value); break;
-            case "VERSETEXTSTYLES_FONTSIZE": USERPREFS.VERSETEXTSTYLES_FONTSIZE = value; break;
-            case "VERSETEXTSTYLES_VALIGN": USERPREFS.VERSETEXTSTYLES_VALIGN = BGET.VALIGN.valueOf(value); break;
-            case "LAYOUTPREFS_BIBLEVERSION_SHOW": USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW = BGET.VISIBILITY.valueOf(value); break;
-            case "LAYOUTPREFS_BIBLEVERSION_ALIGNMENT": USERPREFS.LAYOUTPREFS_BIBLEVERSION_ALIGNMENT = BGET.ALIGN.valueOf(value); break;
-            case "LAYOUTPREFS_BIBLEVERSION_POSITION": USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION = BGET.POS.valueOf(value); break;
-            case "LAYOUTPREFS_BIBLEVERSION_WRAP": USERPREFS.LAYOUTPREFS_BIBLEVERSION_WRAP = BGET.WRAP.valueOf(value); break;
-            case "LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT": USERPREFS.LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT = BGET.ALIGN.valueOf(value); break;
-            case "LAYOUTPREFS_BOOKCHAPTER_POSITION": USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION = BGET.POS.valueOf(value); break;
-            case "LAYOUTPREFS_BOOKCHAPTER_WRAP": USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP = BGET.WRAP.valueOf(value); break;
-            case "LAYOUTPREFS_BOOKCHAPTER_FORMAT": USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT = BGET.FORMAT.valueOf(value); break;
-            case "LAYOUTPREFS_VERSENUMBER_SHOW": USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW = BGET.VISIBILITY.valueOf(value); break;
-        }    
-    }
-    
-    private void getBooleanOption(String key,boolean value){
-        switch(key){
-            case "PARAGRAPHSTYLES_NOVERSIONFORMATTING": USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING = value; break;
-            case "PARAGRAPHSTYLES_INTERFACEINCM": USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM = value; break;
-            case "BIBLEVERSIONSTYLES_BOLD": USERPREFS.BIBLEVERSIONSTYLES_BOLD = value; break;
-            case "BIBLEVERSIONSTYLES_ITALIC": USERPREFS.BIBLEVERSIONSTYLES_ITALIC = value; break;
-            case "BIBLEVERSIONSTYLES_UNDERLINE": USERPREFS.BIBLEVERSIONSTYLES_UNDERLINE = value; break;
-            case "BIBLEVERSIONSTYLES_STRIKETHROUGH": USERPREFS.BIBLEVERSIONSTYLES_STRIKETHROUGH = value; break;
-            case "BOOKCHAPTERSTYLES_BOLD": USERPREFS.BOOKCHAPTERSTYLES_BOLD = value; break;
-            case "BOOKCHAPTERSTYLES_ITALIC": USERPREFS.BOOKCHAPTERSTYLES_ITALIC = value; break;
-            case "BOOKCHAPTERSTYLES_UNDERLINE": USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE = value; break;
-            case "BOOKCHAPTERSTYLES_STRIKETHROUGH": USERPREFS.BOOKCHAPTERSTYLES_STRIKETHROUGH = value; break;
-            case "VERSENUMBERSTYLES_BOLD": USERPREFS.VERSENUMBERSTYLES_BOLD = value; break;
-            case "VERSENUMBERSTYLES_ITALIC": USERPREFS.VERSENUMBERSTYLES_ITALIC = value; break;
-            case "VERSENUMBERSTYLES_UNDERLINE": USERPREFS.VERSENUMBERSTYLES_UNDERLINE = value; break;
-            case "VERSENUMBERSTYLES_STRIKETHROUGH": USERPREFS.VERSENUMBERSTYLES_STRIKETHROUGH = value; break;
-            case "VERSETEXTSTYLES_BOLD": USERPREFS.VERSETEXTSTYLES_BOLD = value; break;
-            case "VERSETEXTSTYLES_ITALIC": USERPREFS.VERSETEXTSTYLES_ITALIC = value; break;
-            case "VERSETEXTSTYLES_UNDERLINE": USERPREFS.VERSETEXTSTYLES_UNDERLINE = value; break;
-            case "VERSETEXTSTYLES_STRIKETHROUGH": USERPREFS.VERSETEXTSTYLES_STRIKETHROUGH = value; break;
-            case "LAYOUTPREFS_BOOKCHAPTER_FULLQUERY": USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY = value; break;
-        }    
-    }
 
     private int getParaLineSpaceVal()
     {
