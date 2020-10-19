@@ -292,7 +292,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "div.results .bookChapter { text-align: " + USERPREFS.LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT.getCSSValue() + "; }"
             + "div.results span.bookChapter { display: inline-block; margin-left: 6px; }"
             + "div.results .versesParagraph { text-align: " + USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getCSSValue() + "; }"
-            + "div.results .versesParagraph { line-height: " + String.format(Locale.ROOT, "%.2f", lineHeight) + "em; }"
+            + "div.results .versesParagraph { line-height: " + String.format(Locale.ROOT, "%.1f", lineHeight) + "em; }"
             + "div.results .versesParagraph .verseNum { font-family: " + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "; }"
             + "div.results .versesParagraph .verseNum { font-size: " + USERPREFS.VERSENUMBERSTYLES_FONTSIZE + "pt; }"
             + "div.results .versesParagraph .verseNum { font-weight: " + (USERPREFS.VERSENUMBERSTYLES_BOLD ? "bold" : "normal") + "; }"
@@ -409,11 +409,11 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "};"
             + "jQuery(document).ready(function(){"
             + "let pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
-            + "let leftindent = " + String.format(Locale.ROOT, "%.2f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
-            + "let rightindent = " + String.format(Locale.ROOT, "%.2f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
+            + "let leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
+            + "let rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
             + "let bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
             + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-            + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.2f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.2f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");"
+            + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");"
             + "});"
             + "</script>";
         
@@ -1959,7 +1959,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             
             styles.addRule("div.results p.book { line-height: "+USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT+"%; }");
             styles.addRule("div.results p.verses { line-height: "+USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT+"%; }");
-            
+            /*
             styleSheetRules.replace("paragraphLineSpacing1", "div.results p.book { line-height: "+USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT+"%; }");
             styleSheetRules.replace("paragraphLineSpacing2", "div.results p.verses { line-height: "+USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT+"%; }");
             String s = styleSheetRules.entrySet()
@@ -1970,8 +1970,11 @@ public class OptionsFrame extends javax.swing.JFrame {
             System.out.println(s);
 
             String HTMLStrWithStyles = String.format(HTMLStr,s);
-            browser.loadURL(DataUri.create("text/html",HTMLStrWithStyles));
-            
+            */
+            //browser.loadURL(DataUri.create("text/html",HTMLStrWithStyles));
+            Double lineHeight = Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT) / 100;
+            //"div.results .versesParagraph { line-height: " + String.format(Locale.ROOT, "%.1f", lineHeight) + "em; }"
+            browser.executeJavaScript("jQuery(\"div.results .versesParagraph\").css({\"line-height\":\"" + String.format(Locale.ROOT, "%.1f", lineHeight) + "em\"}) ", browser.getURL(),0);
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
             if(biblegetDB.setIntOption("PARAGRAPHSTYLES_LINEHEIGHT", USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT)){
