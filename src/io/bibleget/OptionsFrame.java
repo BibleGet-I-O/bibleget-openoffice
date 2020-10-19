@@ -289,7 +289,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             + (USERPREFS.BIBLEVERSIONSTYLES_UNDERLINE ? "div.results .bibleVersion { text-decoration: underline; }" : "")
             + "div.results .bibleVersion { color: " + ColorToHexString(USERPREFS.BIBLEVERSIONSTYLES_TEXTCOLOR) + "; }"
             + "div.results .bibleVersion { background-color: " + ColorToHexString(USERPREFS.BIBLEVERSIONSTYLES_BGCOLOR) + "; }"
-            + "div.results .bibleVersion { text-align: " + USERPREFS.BIBLEVERSIONSTYLES_ALIGNMENT.getCSSValue() + "; }"
+            + "div.results .bibleVersion { text-align: " + USERPREFS.LAYOUTPREFS_BIBLEVERSION_ALIGNMENT.getCSSValue() + "; }"
             + "div.results .bookChapter { font-family: " + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "; }"
             + "div.results .bookChapter { font-size: " + USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE + "pt; }"
             + "div.results .bookChapter { font-weight: " + (USERPREFS.BOOKCHAPTERSTYLES_BOLD ? "bold" : "normal") + "; }"
@@ -297,7 +297,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             + (USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE ? "div.results .bookChapter { text-decoration: underline; }" : "")
             + "div.results .bookChapter { color: " + ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR) + "; }"
             + "div.results .bookChapter { background-color: " + ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR) + "; }"
-            + "div.results .bookChapter { text-align: " + USERPREFS.BOOKCHAPTERSTYLES_ALIGNMENT.getCSSValue() + "; }"
+            + "div.results .bookChapter { text-align: " + USERPREFS.LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT.getCSSValue() + "; }"
             + "div.results span.bookChapter { display: inline-block; margin-left: 6px; }"
             + "div.results .versesParagraph { text-align: " + USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getCSSValue() + "; }"
             + "div.results .versesParagraph { line-height: " + String.format(Locale.ROOT, "%.2f", lineHeight) + "em; }"
