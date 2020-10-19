@@ -26,14 +26,6 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static java.util.stream.Collectors.joining;
-import javax.json.JsonArray;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
-import javax.json.JsonString;
-import javax.json.JsonValue;
-import static javax.json.JsonValue.ValueType.NUMBER;
-import static javax.json.JsonValue.ValueType.OBJECT;
-import static javax.json.JsonValue.ValueType.STRING;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
@@ -320,7 +312,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "div.results .versesParagraph .verseText { background-color: " + ColorToHexString(USERPREFS.VERSETEXTSTYLES_BGCOLOR) + "; }"
             + "</style>";
         
-        previewDocScript = "<script type=\"text/javascript\">"
+        previewDocScript = "<script>"
             + "var getPixelRatioVals = function(rulerLength,convertToCM){"
             + "let inchesToCM = 2.54,"
             + "dpr = window.devicePixelRatio,"
@@ -344,7 +336,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "};"
             + "},"
             + "triangleAt = function (x,context,pixelRatioVals,initialPadding,canvasWidth){"
-            + "let xPos = x*pixelRatioVals.dpi;//x.map(0,pixelRatioVals.rulerLength,0,(canvasWidth-(initialPadding*2)));"
+            + "let xPos = x*pixelRatioVals.dpi;" //x.map(0,pixelRatioVals.rulerLength,0,(canvasWidth-(initialPadding*2)));
             + "window.xVal = x;"
             + "window.xPos = xPos;"
             + "context.lineWidth = 0.5;"
@@ -1247,11 +1239,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         jInternalFrame1.getContentPane().setLayout(jInternalFrame1Layout);
         jInternalFrame1Layout.setHorizontalGroup(
             jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 437, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
         jInternalFrame1Layout.setVerticalGroup(
             jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGap(0, 232, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -1260,18 +1252,20 @@ public class OptionsFrame extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jInternalFrame1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jInternalFrame1))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jInternalFrame1))
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jInternalFrame1)
                 .addContainerGap())
         );
 
