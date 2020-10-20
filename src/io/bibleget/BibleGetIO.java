@@ -238,6 +238,8 @@ public final class BibleGetIO extends WeakBase
                     }
                 } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.lang.Exception ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 return;
                 //JOptionPane.showMessageDialog(null, msg, __("About this plugin"), JOptionPane.INFORMATION_MESSAGE);
@@ -483,6 +485,8 @@ public final class BibleGetIO extends WeakBase
                     }
                     //System.out.println("Assigning myFrame and myOptionFrame while we create instance");        
                 } catch (ClassNotFoundException | SQLException | UnsupportedEncodingException ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.lang.Exception ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }

@@ -48,7 +48,7 @@ public class LocalizedBibleBooks {
 
     private static LocalizedBibleBooks instance = null;
     
-    private LocalizedBibleBooks() throws ClassNotFoundException, SQLException{
+    private LocalizedBibleBooks() throws ClassNotFoundException, SQLException, Exception{
         curLangDisplayName = BibleGetIO.getUILocale().getDisplayName(Locale.ENGLISH).toUpperCase().trim();
         biblegetDB = BibleGetDB.getInstance();
         langsSupported = biblegetDB.getMetaData("LANGUAGES");
@@ -124,7 +124,7 @@ public class LocalizedBibleBooks {
     }
     
     
-    public static LocalizedBibleBooks getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException
+    public static LocalizedBibleBooks getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
     {
         if(instance == null)
         {

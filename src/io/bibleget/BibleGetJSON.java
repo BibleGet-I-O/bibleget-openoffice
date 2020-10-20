@@ -84,7 +84,7 @@ public class BibleGetJSON {
      * @param xController
      * @throws java.lang.ClassNotFoundException
      */
-    public BibleGetJSON(XController xController) throws ClassNotFoundException, SQLException{
+    public BibleGetJSON(XController xController) throws ClassNotFoundException, SQLException, Exception{
         m_xController = xController;
         if (xController != null) {
             m_xModel = (XModel) xController.getModel();

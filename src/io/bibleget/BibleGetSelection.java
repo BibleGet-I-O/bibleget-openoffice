@@ -37,7 +37,7 @@ public class BibleGetSelection {
     private final XTextDocument m_xTextDocument;
     private static BibleGetDB biblegetDB;
     
-    private BibleGetSelection(XController xController) throws ClassNotFoundException, SQLException
+    private BibleGetSelection(XController xController) throws ClassNotFoundException, SQLException, Exception
     {
         m_xController = xController;
         m_xModel = (XModel) m_xController.getModel();
@@ -50,7 +50,7 @@ public class BibleGetSelection {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    public static BibleGetSelection getInstance(XController xController) throws ClassNotFoundException, SQLException
+    public static BibleGetSelection getInstance(XController xController) throws ClassNotFoundException, SQLException, Exception
     {
         if(instance == null)
         {

@@ -14,10 +14,13 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,9 +45,12 @@ public class BibleGetDB {
     private Connection conn = null;
     //private DatabaseMetaData dbMeta = null;
     //private ResultSet rs = null;
+    private ResultSet currentTable;
     
     private final List<String> colNames = new ArrayList<>();
     private final List<Class> colDataTypes = new ArrayList<>();
+    
+    private static HashMap<String, Entry<Integer, Entry<String, String>>> tableSchemas = new HashMap<>(); //<String tableName, Entry<Integer schemaVersion, Entry<String tableSchema, String tableData>>
     
     
     private BibleGetDB() throws ClassNotFoundException {
@@ -54,9 +60,138 @@ public class BibleGetDB {
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
         }
+        String defaultFont = "";
+        if(SystemUtils.IS_OS_WINDOWS){
+            defaultFont = "Times New Roman";
+        }
+        else if(SystemUtils.IS_OS_MAC_OSX){
+            defaultFont = "Helvetica";
+        }
+        else if(SystemUtils.IS_OS_LINUX){
+            defaultFont = "Arial";
+        }
+        
+        String optionsTableSchema = "CREATE TABLE OPTIONS ("
+                + "PARAGRAPHSTYLES_LINEHEIGHT INT, "
+                + "PARAGRAPHSTYLES_LEFTINDENT INT, "
+                + "PARAGRAPHSTYLES_RIGHTINDENT INT, "
+                + "PARAGRAPHSTYLES_FONTFAMILY VARCHAR(50), "
+                + "PARAGRAPHSTYLES_ALIGNMENT INT, "
+                + "PARAGRAPHSTYLES_NOVERSIONFORMATTING BOOLEAN, "
+                + "PARAGRAPHSTYLES_INTERFACEINCM BOOLEAN, "
+                + "BIBLEVERSIONSTYLES_BOLD BOOLEAN, "
+                + "BIBLEVERSIONSTYLES_ITALIC BOOLEAN, "
+                + "BIBLEVERSIONSTYLES_UNDERLINE BOOLEAN, "
+                + "BIBLEVERSIONSTYLES_STRIKETHROUGH BOOLEAN, "
+                + "BIBLEVERSIONSTYLES_TEXTCOLOR VARCHAR(15), "
+                + "BIBLEVERSIONSTYLES_BGCOLOR VARCHAR(15), "
+                + "BIBLEVERSIONSTYLES_FONTSIZE INT, "
+                + "BIBLEVERSIONSTYLES_VALIGN INT, "
+                + "BOOKCHAPTERSTYLES_BOLD BOOLEAN, "
+                + "BOOKCHAPTERSTYLES_ITALIC BOOLEAN, "
+                + "BOOKCHAPTERSTYLES_UNDERLINE BOOLEAN, "
+                + "BOOKCHAPTERSTYLES_STRIKETHROUGH BOOLEAN, "
+                + "BOOKCHAPTERSTYLES_TEXTCOLOR VARCHAR(15), "
+                + "BOOKCHAPTERSTYLES_BGCOLOR VARCHAR(15), "
+                + "BOOKCHAPTERSTYLES_FONTSIZE INT, "
+                + "BOOKCHAPTERSTYLES_VALIGN INT, "
+                + "VERSENUMBERSTYLES_BOLD BOOLEAN, "
+                + "VERSENUMBERSTYLES_ITALIC BOOLEAN, "
+                + "VERSENUMBERSTYLES_UNDERLINE BOOLEAN, "
+                + "VERSENUMBERSTYLES_STRIKETHROUGH BOOLEAN, "
+                + "VERSENUMBERSTYLES_TEXTCOLOR VARCHAR(15), "
+                + "VERSENUMBERSTYLES_BGCOLOR VARCHAR(15), "
+                + "VERSENUMBERSTYLES_FONTSIZE INT, "
+                + "VERSENUMBERSTYLES_VALIGN INT, "
+                + "VERSETEXTSTYLES_BOLD BOOLEAN, "
+                + "VERSETEXTSTYLES_ITALIC BOOLEAN, "
+                + "VERSETEXTSTYLES_UNDERLINE BOOLEAN, "
+                + "VERSETEXTSTYLES_STRIKETHROUGH BOOLEAN, "
+                + "VERSETEXTSTYLES_TEXTCOLOR VARCHAR(15), "
+                + "VERSETEXTSTYLES_BGCOLOR VARCHAR(15), "
+                + "VERSETEXTSTYLES_FONTSIZE INT, "
+                + "VERSETEXTSTYLES_VALIGN INT, "
+                + "LAYOUTPREFS_BIBLEVERSION_SHOW INT, "
+                + "LAYOUTPREFS_BIBLEVERSION_ALIGNMENT INT, "
+                + "LAYOUTPREFS_BIBLEVERSION_POSITION INT, "
+                + "LAYOUTPREFS_BIBLEVERSION_WRAP INT, "
+                + "LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT INT, "
+                + "LAYOUTPREFS_BOOKCHAPTER_POSITION INT, "
+                + "LAYOUTPREFS_BOOKCHAPTER_WRAP INT, "
+                + "LAYOUTPREFS_BOOKCHAPTER_FORMAT INT, "
+                + "LAYOUTPREFS_BOOKCHAPTER_FULLQUERY BOOLEAN, "
+                + "LAYOUTPREFS_VERSENUMBER_SHOW INT, "
+                + "PREFERREDVERSIONS VARCHAR(50)"
+                + ")";
+                
+        String optionsTableInitialData = "INSERT INTO OPTIONS ("
+                + "PARAGRAPHSTYLES_LINEHEIGHT, "
+                + "PARAGRAPHSTYLES_LEFTINDENT, "
+                + "PARAGRAPHSTYLES_RIGHTINDENT, "
+                + "PARAGRAPHSTYLES_FONTFAMILY, "
+                + "PARAGRAPHSTYLES_ALIGNMENT, "
+                + "PARAGRAPHSTYLES_NOVERSIONFORMATTING, "
+                + "PARAGRAPHSTYLES_INTERFACEINCM, "
+                + "BIBLEVERSIONSTYLES_BOLD, "
+                + "BIBLEVERSIONSTYLES_ITALIC, "
+                + "BIBLEVERSIONSTYLES_UNDERLINE, "
+                + "BIBLEVERSIONSTYLES_STRIKETHROUGH, "
+                + "BIBLEVERSIONSTYLES_TEXTCOLOR, "
+                + "BIBLEVERSIONSTYLES_BGCOLOR, "
+                + "BIBLEVERSIONSTYLES_FONTSIZE, "
+                + "BIBLEVERSIONSTYLES_VALIGN, "
+                + "BOOKCHAPTERSTYLES_BOLD, "
+                + "BOOKCHAPTERSTYLES_ITALIC, "
+                + "BOOKCHAPTERSTYLES_UNDERLINE, "
+                + "BOOKCHAPTERSTYLES_STRIKETHROUGH, "
+                + "BOOKCHAPTERSTYLES_TEXTCOLOR, "
+                + "BOOKCHAPTERSTYLES_BGCOLOR, "
+                + "BOOKCHAPTERSTYLES_FONTSIZE, "
+                + "BOOKCHAPTERSTYLES_VALIGN, "
+                + "VERSENUMBERSTYLES_BOLD, "
+                + "VERSENUMBERSTYLES_ITALIC, "
+                + "VERSENUMBERSTYLES_UNDERLINE, "
+                + "VERSENUMBERSTYLES_STRIKETHROUGH, "
+                + "VERSENUMBERSTYLES_TEXTCOLOR, "
+                + "VERSENUMBERSTYLES_BGCOLOR, "
+                + "VERSENUMBERSTYLES_FONTSIZE, "
+                + "VERSENUMBERSTYLES_VALIGN, "
+                + "VERSETEXTSTYLES_BOLD, "
+                + "VERSETEXTSTYLES_ITALIC, "
+                + "VERSETEXTSTYLES_UNDERLINE, "
+                + "VERSETEXTSTYLES_STRIKETHROUGH, "
+                + "VERSETEXTSTYLES_TEXTCOLOR, "
+                + "VERSETEXTSTYLES_BGCOLOR, "
+                + "VERSETEXTSTYLES_FONTSIZE, "
+                + "VERSETEXTSTYLES_VALIGN, "
+                + "LAYOUTPREFS_BIBLEVERSION_SHOW, "
+                + "LAYOUTPREFS_BIBLEVERSION_ALIGNMENT, "
+                + "LAYOUTPREFS_BIBLEVERSION_POSITION, "
+                + "LAYOUTPREFS_BIBLEVERSION_WRAP, "
+                + "LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT, "
+                + "LAYOUTPREFS_BOOKCHAPTER_POSITION, "
+                + "LAYOUTPREFS_BOOKCHAPTER_WRAP, "
+                + "LAYOUTPREFS_BOOKCHAPTER_FORMAT, "
+                + "LAYOUTPREFS_BOOKCHAPTER_FULLQUERY, "
+                + "LAYOUTPREFS_VERSENUMBER_SHOW, "
+                + "PREFERREDVERSIONS"
+                + ") VALUES ("
+                + "150,0,0,'"+defaultFont+"'," + BGET.ALIGN.JUSTIFY.getValue() + ",false,false,"            //PARAGRAPH STYLES
+                + "true,false,false,false,'#0000FF','#FFFFFF',14," + BGET.VALIGN.NORMAL.getValue() + ","    //BIBLE VERSION STYLES
+                + "true,false,false,false,'#AA0000','#FFFFFF',12," + BGET.VALIGN.NORMAL.getValue() + ","    //BOOK CHAPTER STYLES
+                + "false,false,false,false,'#AA0000','#FFFFFF',10," + BGET.VALIGN.SUPERSCRIPT.getValue() + ","    //VERSENUMBER STYLES
+                + "false,false,false,false,'#696969','#FFFFFF',12," + BGET.VALIGN.NORMAL.getValue() + ","    //VERSETEXT STYLES
+                + BGET.VISIBILITY.SHOW.getValue() + "," + BGET.ALIGN.LEFT.getValue() + "," + BGET.POS.TOP.getValue() + "," + BGET.WRAP.NONE.getValue() + "," 
+                + BGET.ALIGN.LEFT.getValue() + "," + BGET.POS.TOP.getValue() + "," + BGET.WRAP.NONE.getValue() + ","
+                + BGET.FORMAT.BIBLELANG.getValue() + ",true," + BGET.VISIBILITY.SHOW.getValue() + ","
+                + "'NVBSE'"
+                + ")";
+        
+        BibleGetDB.tableSchemas.put("OPTIONS", new SimpleEntry<Integer,Entry<String,String>>(2, new SimpleEntry<String,String>(optionsTableSchema,optionsTableInitialData)));
+
     }
     
-    public static BibleGetDB getInstance() throws ClassNotFoundException, SQLException {
+    public static BibleGetDB getInstance() throws ClassNotFoundException, SQLException, Exception {
         if(instance == null)
         {            
             instance = new BibleGetDB();
@@ -115,7 +250,7 @@ public class BibleGetDB {
     }
  
 
-    public boolean initialize() throws SQLException {
+    public boolean initialize() throws SQLException, Exception {
     
         try {
             instance.conn = DriverManager.getConnection(
@@ -128,17 +263,21 @@ public class BibleGetDB {
             }
             else{
                 System.out.println("instance.conn is not null, which means a connection was correctly established in order to create the BibleGet database.");
-                return instance.getOrSetDBData("SET");
+                //Since it is confirmed that we are creating the Database, then we obviously need to initialize the schemas
+                //(create the tables and populate with data)
+                return instance.initializeSchemas();
             }
         } catch (SQLException ex) {
             if( ex.getSQLState().equals("X0Y32") ) {
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.INFO, null, "Table OPTIONS or Table METADATA already exists.  No need to recreate");
-                System.out.println("Table OPTIONS or Table METADATA already exists.  No need to recreate: "+ex.getMessage());
-                return instance.getOrSetDBData("GET");
+                Logger.getLogger(BibleGetDB.class.getName()).log(Level.INFO, null, "Database BIBLEGET already exists.  No need to recreate");
+                System.out.println("Database BIBLEGET already exists.  No need to recreate: "+ex.getMessage());
+                //return instance.getOrSetDBData("GET");
+                return instance.initializeSchemas();
             } else if (ex.getNextException().getErrorCode() ==  45000) {
-                //this means we already have a connection, so this is good too
+                //this means another JVM has already connected to the database, which means we cannot use it (perhaps Netbeans)
+                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, "Another JVM is already connected to the BIBLEGET database. We cannot use it like this.");
                 System.out.println("Seems like we already have a connection: "+ex.getMessage()+" "+ex.getNextException().getMessage());
-                return instance.getOrSetDBData("GET");
+                return false;
             } else {
                 //Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex.getMessage() + " : " + Arrays.toString(ex.getStackTrace()));
                 Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
@@ -148,228 +287,29 @@ public class BibleGetDB {
         }                
     }
    
-    private boolean getOrSetDBData(String whatToDo) throws SQLException{
+    
+    
+    private boolean initializeSchemas() throws SQLException, Exception{
         DatabaseMetaData dbMeta;
         dbMeta = instance.conn.getMetaData();
-        if("SET".equals(whatToDo)){
-            System.out.println("Surely we have to create the tables at this point");
-        }
-        else if("GET".equals(whatToDo)){
-            System.out.println("Seems that the tables already exist, so we need only get the data in order to build the Json Object");
-        }
-        try (ResultSet rs1 = dbMeta.getTables(null, null, "OPTIONS", null)) {
-            if(rs1.next())
-            {
-                System.out.println("Table "+rs1.getString("TABLE_NAME")+" already exists, now adding Column names to colNames array, and corresponding Data Types to colDataTypes array !!");
-                listColNamesTypes(dbMeta,rs1);
-                //StringBuilder sb = new StringBuilder();
-                //int i=0;
-                //for (String s : colNames) {
-                //    sb.append(s);
-                //    sb.append(":");
-                //    sb.append(colDataTypes.get(i));
-                //    sb.append(",");
-                //    i = i+1;
-                //}
-                //System.out.println(sb.toString());
-            }
-            else
-            {
-                System.out.println("Table OPTIONS does not yet exist, now attempting to create...");
-                try ( Statement stmt = instance.conn.createStatement()) {
-
-                    String defaultFont = "";
-                    if(SystemUtils.IS_OS_WINDOWS){
-                        defaultFont = "Times New Roman";
-                    }
-                    else if(SystemUtils.IS_OS_MAC_OSX){
-                        defaultFont = "Helvetica";
-                    }
-                    else if(SystemUtils.IS_OS_LINUX){
-                        defaultFont = "Arial";
-                    }
-
-                    String tableCreate = "CREATE TABLE OPTIONS ("
-                            + "PARAGRAPHSTYLES_LINEHEIGHT INT, "
-                            + "PARAGRAPHSTYLES_LEFTINDENT INT, "
-                            + "PARAGRAPHSTYLES_RIGHTINDENT INT, "
-                            + "PARAGRAPHSTYLES_FONTFAMILY VARCHAR(50), "
-                            + "PARAGRAPHSTYLES_ALIGNMENT INT, "
-                            + "PARAGRAPHSTYLES_NOVERSIONFORMATTING BOOLEAN, "
-                            + "PARAGRAPHSTYLES_INTERFACEINCM BOOLEAN, "
-                            + "BIBLEVERSIONSTYLES_BOLD BOOLEAN, "
-                            + "BIBLEVERSIONSTYLES_ITALIC BOOLEAN, "
-                            + "BIBLEVERSIONSTYLES_UNDERLINE BOOLEAN, "
-                            + "BIBLEVERSIONSTYLES_STRIKETHROUGH BOOLEAN, "
-                            + "BIBLEVERSIONSTYLES_TEXTCOLOR VARCHAR(15), "
-                            + "BIBLEVERSIONSTYLES_BGCOLOR VARCHAR(15), "
-                            + "BIBLEVERSIONSTYLES_FONTSIZE INT, "
-                            + "BIBLEVERSIONSTYLES_VALIGN INT, "
-                            + "BOOKCHAPTERSTYLES_BOLD BOOLEAN, "
-                            + "BOOKCHAPTERSTYLES_ITALIC BOOLEAN, "
-                            + "BOOKCHAPTERSTYLES_UNDERLINE BOOLEAN, "
-                            + "BOOKCHAPTERSTYLES_STRIKETHROUGH BOOLEAN, "
-                            + "BOOKCHAPTERSTYLES_TEXTCOLOR VARCHAR(15), "
-                            + "BOOKCHAPTERSTYLES_BGCOLOR VARCHAR(15), "
-                            + "BOOKCHAPTERSTYLES_FONTSIZE INT, "
-                            + "BOOKCHAPTERSTYLES_VALIGN INT, "
-                            + "VERSENUMBERSTYLES_BOLD BOOLEAN, "
-                            + "VERSENUMBERSTYLES_ITALIC BOOLEAN, "
-                            + "VERSENUMBERSTYLES_UNDERLINE BOOLEAN, "
-                            + "VERSENUMBERSTYLES_STRIKETHROUGH BOOLEAN, "
-                            + "VERSENUMBERSTYLES_TEXTCOLOR VARCHAR(15), "
-                            + "VERSENUMBERSTYLES_BGCOLOR VARCHAR(15), "
-                            + "VERSENUMBERSTYLES_FONTSIZE INT, "
-                            + "VERSENUMBERSTYLES_VALIGN INT, "
-                            + "VERSETEXTSTYLES_BOLD BOOLEAN, "
-                            + "VERSETEXTSTYLES_ITALIC BOOLEAN, "
-                            + "VERSETEXTSTYLES_UNDERLINE BOOLEAN, "
-                            + "VERSETEXTSTYLES_STRIKETHROUGH BOOLEAN, "
-                            + "VERSETEXTSTYLES_TEXTCOLOR VARCHAR(15), "
-                            + "VERSETEXTSTYLES_BGCOLOR VARCHAR(15), "
-                            + "VERSETEXTSTYLES_FONTSIZE INT, "
-                            + "VERSETEXTSTYLES_VALIGN INT, "
-                            + "LAYOUTPREFS_BIBLEVERSION_SHOW INT, "
-                            + "LAYOUTPREFS_BIBLEVERSION_ALIGNMENT INT, "
-                            + "LAYOUTPREFS_BIBLEVERSION_POSITION INT, "
-                            + "LAYOUTPREFS_BIBLEVERSION_WRAP INT, "
-                            + "LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT INT, "
-                            + "LAYOUTPREFS_BOOKCHAPTER_POSITION INT, "
-                            + "LAYOUTPREFS_BOOKCHAPTER_WRAP INT, "
-                            + "LAYOUTPREFS_BOOKCHAPTER_FORMAT INT, "
-                            + "LAYOUTPREFS_BOOKCHAPTER_FULLQUERY BOOLEAN, "
-                            + "LAYOUTPREFS_VERSENUMBER_SHOW INT, "
-                            + "PREFERREDVERSIONS VARCHAR(50)"
-                            + ")";
-
-
-                    String tableInsert;
-                    tableInsert = "INSERT INTO OPTIONS ("
-                            + "PARAGRAPHSTYLES_LINEHEIGHT, "
-                            + "PARAGRAPHSTYLES_LEFTINDENT, "
-                            + "PARAGRAPHSTYLES_RIGHTINDENT, "
-                            + "PARAGRAPHSTYLES_FONTFAMILY, "
-                            + "PARAGRAPHSTYLES_ALIGNMENT, "
-                            + "PARAGRAPHSTYLES_NOVERSIONFORMATTING, "
-                            + "PARAGRAPHSTYLES_INTERFACEINCM, "
-                            + "BIBLEVERSIONSTYLES_BOLD, "
-                            + "BIBLEVERSIONSTYLES_ITALIC, "
-                            + "BIBLEVERSIONSTYLES_UNDERLINE, "
-                            + "BIBLEVERSIONSTYLES_STRIKETHROUGH, "
-                            + "BIBLEVERSIONSTYLES_TEXTCOLOR, "
-                            + "BIBLEVERSIONSTYLES_BGCOLOR, "
-                            + "BIBLEVERSIONSTYLES_FONTSIZE, "
-                            + "BIBLEVERSIONSTYLES_VALIGN, "
-                            + "BOOKCHAPTERSTYLES_BOLD, "
-                            + "BOOKCHAPTERSTYLES_ITALIC, "
-                            + "BOOKCHAPTERSTYLES_UNDERLINE, "
-                            + "BOOKCHAPTERSTYLES_STRIKETHROUGH, "
-                            + "BOOKCHAPTERSTYLES_TEXTCOLOR, "
-                            + "BOOKCHAPTERSTYLES_BGCOLOR, "
-                            + "BOOKCHAPTERSTYLES_FONTSIZE, "
-                            + "BOOKCHAPTERSTYLES_VALIGN, "
-                            + "VERSENUMBERSTYLES_BOLD, "
-                            + "VERSENUMBERSTYLES_ITALIC, "
-                            + "VERSENUMBERSTYLES_UNDERLINE, "
-                            + "VERSENUMBERSTYLES_STRIKETHROUGH, "
-                            + "VERSENUMBERSTYLES_TEXTCOLOR, "
-                            + "VERSENUMBERSTYLES_BGCOLOR, "
-                            + "VERSENUMBERSTYLES_FONTSIZE, "
-                            + "VERSENUMBERSTYLES_VALIGN, "
-                            + "VERSETEXTSTYLES_BOLD, "
-                            + "VERSETEXTSTYLES_ITALIC, "
-                            + "VERSETEXTSTYLES_UNDERLINE, "
-                            + "VERSETEXTSTYLES_STRIKETHROUGH, "
-                            + "VERSETEXTSTYLES_TEXTCOLOR, "
-                            + "VERSETEXTSTYLES_BGCOLOR, "
-                            + "VERSETEXTSTYLES_FONTSIZE, "
-                            + "VERSETEXTSTYLES_VALIGN, "
-                            + "LAYOUTPREFS_BIBLEVERSION_SHOW, "
-                            + "LAYOUTPREFS_BIBLEVERSION_ALIGNMENT, "
-                            + "LAYOUTPREFS_BIBLEVERSION_POSITION, "
-                            + "LAYOUTPREFS_BIBLEVERSION_WRAP, "
-                            + "LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT, "
-                            + "LAYOUTPREFS_BOOKCHAPTER_POSITION, "
-                            + "LAYOUTPREFS_BOOKCHAPTER_WRAP, "
-                            + "LAYOUTPREFS_BOOKCHAPTER_FORMAT, "
-                            + "LAYOUTPREFS_BOOKCHAPTER_FULLQUERY, "
-                            + "LAYOUTPREFS_VERSENUMBER_SHOW, "
-                            + "PREFERREDVERSIONS"
-                            + ") VALUES ("
-                            + "150,0,0,'"+defaultFont+"'," + BGET.ALIGN.JUSTIFY.getValue() + ",false,false,"            //PARAGRAPH STYLES
-                            + "true,false,false,false,'#0000FF','#FFFFFF',14," + BGET.VALIGN.NORMAL.getValue() + ","    //BIBLE VERSION STYLES
-                            + "true,false,false,false,'#AA0000','#FFFFFF',12," + BGET.VALIGN.NORMAL.getValue() + ","    //BOOK CHAPTER STYLES
-                            + "false,false,false,false,'#AA0000','#FFFFFF',10," + BGET.VALIGN.SUPERSCRIPT.getValue() + ","    //VERSENUMBER STYLES
-                            + "false,false,false,false,'#696969','#FFFFFF',12," + BGET.VALIGN.NORMAL.getValue() + ","    //VERSETEXT STYLES
-                            + BGET.VISIBILITY.SHOW.getValue() + "," + BGET.ALIGN.LEFT.getValue() + "," + BGET.POS.TOP.getValue() + "," + BGET.WRAP.NONE.getValue() + "," 
-                            + BGET.ALIGN.LEFT.getValue() + "," + BGET.POS.TOP.getValue() + "," + BGET.WRAP.NONE.getValue() + ","
-                            + BGET.FORMAT.BIBLELANG.getValue() + ",true," + BGET.VISIBILITY.SHOW.getValue() + ","
-                            + "'NVBSE'"
-                            + ")";
-                    boolean tableCreated = stmt.execute(tableCreate);
-                    boolean rowsInserted;
-                    int count;
-                    if(tableCreated==false){
-                        //is false when it's an update count!
-                        count = stmt.getUpdateCount();
-                        if(count==-1){
-                            //System.out.println("The result is a ResultSet object or there are no more results.");
-                        }
-                        else{
-                            //this is our expected behaviour: 0 rows affected
-                            //System.out.println("The Table Creation statement produced results: "+count+" rows affected.");
-                            try (Statement stmt2 = instance.conn.createStatement()) {
-                                rowsInserted = stmt2.execute(tableInsert);
-                                if(rowsInserted==false){
-                                    count = stmt2.getUpdateCount();
-                                    if(count==-1){
-                                        //System.out.println("The result is a ResultSet object or there are no more results.");
-                                    }
-                                    else{
-                                        //this is our expected behaviour: n rows affected
-                                        //System.out.println("The Row Insertion statement produced results: "+count+" rows affected.");
-                                        dbMeta = instance.conn.getMetaData();
-                                        try (ResultSet rs2 = dbMeta.getTables(null, null, "OPTIONS", null)) {
-                                            if(rs2.next())
-                                            {
-                                                listColNamesTypes(dbMeta,rs2);
-                                            }
-                                            rs2.close();
-                                        }
-                                    }
-                                }
-                                else{
-                                    //is true when it returns a resultset, which shouldn't be the case here
-                                    try ( ResultSet rx = stmt2.getResultSet()) {
-                                        while(rx.next()){
-                                            //System.out.println("This isn't going to happen anyways, so...");
-                                        }
-                                        rx.close();
-                                    }
-                                }
-                                stmt2.close();
-                            }
-                        }
-
-                    }
-                    else{
-                        //is true when it returns a resultset, which shouldn't be the case here
-                        try (ResultSet rx = stmt.getResultSet()) {
-                            while(rx.next()){
-                                //System.out.println("This isn't going to happen anyways, so...");
-                            }
-                            rx.close();
-                        }
-                    }
-                    stmt.close();
+        
+        if(instance.tableExists("OPTIONS")){
+            System.out.println("Table " + instance.currentTable.getString("TABLE_NAME") + " already exists, now adding Column names to colNames array, and corresponding Data Types to colDataTypes array !!");
+            //CHECK THE SCHEMA VERSION!
+            
+            listColNamesTypes(dbMeta,instance.currentTable);
+        } else {
+            System.out.println("Table OPTIONS does not yet exist, now attempting to create...");
+            if(instance.createTable("OPTIONS")){
+                if(instance.initializeTable("OPTIONS")){
+                    dbMeta = instance.conn.getMetaData();
+                    if(instance.tableExists("OPTIONS")){
+                        listColNamesTypes(dbMeta,instance.currentTable);
+                    }                
                 }
             }
-            rs1.close();
         }
-        catch(SQLException ex){
-            System.out.println("Error initializing database: "+ex.getMessage());
-            return false;
-        }
+        instance.currentTable.close();
         //System.out.println("Finished with first ResultSet resource, now going on to next...");
         try (ResultSet rs3 = dbMeta.getTables(null, null, "METADATA", null)) {
             if(rs3.next())
@@ -1017,6 +957,67 @@ public class BibleGetDB {
                 return false;
             }
             return true;
+        }
+        return false;
+    }
+    
+    public boolean tableExists(String tableName) throws Exception{
+        try {
+            DatabaseMetaData dbMeta;
+            dbMeta = instance.conn.getMetaData();
+            if(!"".equals(tableName)){
+                ResultSet rs = dbMeta.getTables(null, null, tableName, null); //catalog, pattern, tablename, types
+                if(rs.next()){
+                    instance.currentTable = rs;
+                    return true;
+                }
+            } else {
+                throw new Exception("Table name cannot be an empty string!");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+    
+    public boolean createTable(String tableName) throws Exception{
+        if(!"".equals(tableName)){
+            try(Statement stmt = instance.conn.createStatement()) {
+                Entry<Integer, Entry<String,String>> tableSchemaEntry = BibleGetDB.tableSchemas.get(tableName);
+                //int schemaDefinitionVersion = tableSchemaEntry.getKey();
+                Entry<String,String> tableSchemaDefData = tableSchemaEntry.getValue();
+                String schemaDefinition = tableSchemaDefData.getKey();
+                //String schemaInitialData = tableSchemaDefData.getValue();
+                if(stmt.execute(schemaDefinition)==false && stmt.getUpdateCount() != -1){
+                    stmt.close();
+                    return true;
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            throw new Exception("Table name cannot be an empty string!");
+        }
+        return false;
+    }
+    
+    public boolean initializeTable(String tableName) throws Exception{
+        if(!"".equals(tableName)){
+            try(Statement stmt = instance.conn.createStatement()) {
+                Entry<Integer, Entry<String,String>> tableSchemaEntry = BibleGetDB.tableSchemas.get(tableName);
+                //int schemaDefinitionVersion = tableSchemaEntry.getKey();
+                Entry<String,String> tableSchemaDefData = tableSchemaEntry.getValue();
+                //String schemaDefinition = tableSchemaDefData.getKey();
+                String schemaInitialData = tableSchemaDefData.getValue();
+                if(stmt.execute(schemaInitialData)==false && stmt.getUpdateCount() != -1){
+                    stmt.close();
+                    return true;
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            throw new Exception("Table name cannot be an empty string!");
         }
         return false;
     }

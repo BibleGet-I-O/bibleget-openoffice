@@ -60,7 +60,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             
     private final BibleGetDB biblegetDB;
     private final Preferences USERPREFS;
-    private final LocalizedBibleBooks L10NBibleBooks = LocalizedBibleBooks.getInstance();
+    private final LocalizedBibleBooks L10NBibleBooks;
     
     private final HTMLEditorKit kit;
     private final Document doc;
@@ -95,7 +95,8 @@ public class OptionsFrame extends javax.swing.JFrame {
      * Creates new form OptionsFrame
      * @param pkgPath
      */
-    private OptionsFrame() throws ClassNotFoundException, UnsupportedEncodingException, SQLException {
+    private OptionsFrame() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception {
+        this.L10NBibleBooks = LocalizedBibleBooks.getInstance();
         this.FFLCRenderer = new FontFamilyListCellRenderer();
                 
         //jTextPane does not initialize correctly, it causes a Null Exception Pointer
@@ -464,7 +465,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         //jInternalFrame1.setVisible(true);
     }
 
-    public static OptionsFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException
+    public static OptionsFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
     {
         if(instance == null)
         {
@@ -2143,6 +2144,8 @@ public class OptionsFrame extends javax.swing.JFrame {
             try {
                 new OptionsFrame().setVisible(true);
             } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
+                Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
                 Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
         });

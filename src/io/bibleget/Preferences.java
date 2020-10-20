@@ -82,7 +82,7 @@ public class Preferences {
     public BGET.VISIBILITY LAYOUTPREFS_VERSENUMBER_SHOW;
     public String PREFERREDVERSIONS;
     
-    private Preferences() throws ClassNotFoundException, SQLException{
+    private Preferences() throws ClassNotFoundException, SQLException, Exception{
         biblegetDB = BibleGetDB.getInstance();
         JsonObject myOptions = biblegetDB.getOptions();
         System.out.println("PREFERENCES :: " + myOptions.toString());
@@ -93,7 +93,7 @@ public class Preferences {
         navigateTree(myResults, null);        
     }
     
-    public static Preferences getInstance() throws ClassNotFoundException, SQLException{
+    public static Preferences getInstance() throws ClassNotFoundException, SQLException, Exception{
         if(instance == null){
             instance = new Preferences();
         }
