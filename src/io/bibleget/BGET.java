@@ -217,6 +217,35 @@ public class BGET {
         public int getValue() {
             return value;
         }
-    }    
+    }
+    
+    public enum TABLE {
+        CREATED(1),
+        INITIALIZED(2),
+        DELETED(3),
+        UPDATED(4),
+        ERROR(5);
+        
+        private int value;
+        private static final HashMap<Integer,TABLE> map = new HashMap<>();
+        
+        private TABLE(int value) {
+            this.value = value;
+        }
+        
+        static {
+            for (TABLE table : TABLE.values()) {
+                map.put(table.value, table);
+            }
+        }
+        
+        public static TABLE valueOf(int table){
+            return (TABLE) map.get(table);
+        }
+        
+        public int getValue(){
+            return value;
+        }
+    }
    
 }

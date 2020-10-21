@@ -416,10 +416,11 @@ public final class BibleGetFrame extends javax.swing.JFrame {
         @Override
         public void valueChanged(ListSelectionEvent e) {
             ListSelectionModel lsm = (ListSelectionModel)e.getSource();
+            /*
             int firstIndex = e.getFirstIndex();
             int lastIndex = e.getLastIndex();
             boolean isAdjusting = e.getValueIsAdjusting();
-            
+            */
             List<String> selectedVersions = new ArrayList<>();
             if (lsm.isSelectionEmpty()) {
             } else {
@@ -504,11 +505,8 @@ public final class BibleGetFrame extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new BibleGetFrame().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new BibleGetFrame().setVisible(true);
         });
     }
 

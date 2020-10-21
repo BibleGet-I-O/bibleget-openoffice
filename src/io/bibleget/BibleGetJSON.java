@@ -83,6 +83,7 @@ public class BibleGetJSON {
      *
      * @param xController
      * @throws java.lang.ClassNotFoundException
+     * @throws java.sql.SQLException
      */
     public BibleGetJSON(XController xController) throws ClassNotFoundException, SQLException, Exception{
         m_xController = xController;
@@ -439,7 +440,7 @@ public class BibleGetJSON {
             {                
                 Pattern pattern1 = Pattern.compile("(.*?)<((speaker|sm|po)[f|l|s|i|3]{0,1}[f|l]{0,1})>(.*?)</\\2>",Pattern.UNICODE_CHARACTER_CLASS);
                 Matcher matcher1 = pattern1.matcher(currentText);
-                int iteration = 0;
+                //int iteration = 0;
                 
                 while(matcher1.find()){
 //                    System.out.print("Iteration ");
@@ -471,7 +472,7 @@ public class BibleGetJSON {
                             String remainingText2 = formattingTagContents;
                             
                             Matcher matcher2 = pattern1.matcher(formattingTagContents);
-                            int iteration2 = 0;
+                            //int iteration2 = 0;
                             while(matcher2.find()){
                                 if(matcher2.group(2) != null && matcher2.group(2).isEmpty() == false && "speaker".equals(matcher2.group(2))){
                                     if(matcher2.group(1) != null && matcher2.group(1).isEmpty() == false){

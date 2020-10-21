@@ -66,7 +66,7 @@ public class LocalizedBibleBooks {
                 System.out.println("langsArr has size " + langsArr.size());
                 System.out.println("langsArr = " + langsArr);
                 if(langsArr.contains("\"" + curLangDisplayName + "\"")){
-                    System.out.println("Oh so that's it, language names include parentheses, arghhh");
+                    System.out.println("Oh so that's it, language names include quotation marks, arghhh");
                 } else {
                     System.out.println("It's not the parentheses, then what is it?");
                 }
