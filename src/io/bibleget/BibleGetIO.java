@@ -186,6 +186,8 @@ public final class BibleGetIO extends WeakBase
                     }
                 } catch (ClassNotFoundException | SQLException ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.lang.Exception ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 return;
             }
@@ -201,6 +203,8 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.myFrame.setVisible(true);                
                     }
                 } catch (ClassNotFoundException | SQLException ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.lang.Exception ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 return;
@@ -218,6 +222,8 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.myOptionFrame.setVisible(true);
                     }
                 } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.lang.Exception ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 return;
@@ -266,6 +272,8 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.myHelpFrame = BibleGetHelp.getInstance();
                         BibleGetIO.myHelpFrame.setVisible(true);
                     } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
+                        Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (java.lang.Exception ex) {
                         Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }

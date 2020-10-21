@@ -317,6 +317,8 @@ public final class BibleGetFrame extends javax.swing.JFrame {
             }
         } catch (HeadlessException | ClassNotFoundException | UnknownPropertyException | PropertyVetoException | IllegalArgumentException | WrappedTargetException | UnsupportedEncodingException | SQLException ex) {
             Logger.getLogger(BibleGetFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(BibleGetFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
             
     }//GEN-LAST:event_jButton1MouseClicked

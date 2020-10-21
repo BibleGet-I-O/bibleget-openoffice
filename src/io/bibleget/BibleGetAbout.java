@@ -281,6 +281,8 @@ public class BibleGetAbout extends javax.swing.JFrame {
                 bbGetFrameInstance.updateDynamicInformation();
             } catch (ClassNotFoundException | SQLException ex) {
                 Logger.getLogger(BibleGetAbout.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
+                Logger.getLogger(BibleGetAbout.class.getName()).log(Level.SEVERE, null, ex);
             }
             
         }

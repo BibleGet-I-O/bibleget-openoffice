@@ -16,6 +16,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -50,12 +52,12 @@ public class BibleGetDB {
     private final List<String> colNames = new ArrayList<>();
     private final List<Class> colDataTypes = new ArrayList<>();
     
-    private static HashMap<String, Entry<Integer, Entry<String, String>>> tableSchemas = new HashMap<>(); //<String tableName, Entry<Integer schemaVersion, Entry<String tableSchema, String tableData>>
+    private static final HashMap<String, Entry<Integer, Entry<String, String>>> tableSchemas = new HashMap<>(); //<String tableName, Entry<Integer schemaVersion, Entry<String tableSchema, String tableData>>
     
     
     private BibleGetDB() throws ClassNotFoundException {
         try {
-            setDBSystemDir();
+            BibleGetDB.setDBSystemDir();
             Class.forName("org.apache.derby.jdbc.EmbeddedDriver");            
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
@@ -187,8 +189,9 @@ public class BibleGetDB {
                 + "'NVBSE'"
                 + ")";
         
-        BibleGetDB.tableSchemas.put("OPTIONS", new SimpleEntry<Integer,Entry<String,String>>(2, new SimpleEntry<String,String>(optionsTableSchema,optionsTableInitialData)));
-
+        final int OptionsTableSchemaVersion = 2;
+        BibleGetDB.tableSchemas.put("OPTIONS", new SimpleEntry<>(OptionsTableSchemaVersion, new SimpleEntry<>(optionsTableSchema,optionsTableInitialData)));
+        
     }
     
     public static BibleGetDB getInstance() throws ClassNotFoundException, SQLException, Exception {
@@ -258,7 +261,7 @@ public class BibleGetDB {
                     "bibleget",
                     "bibleget");
             if(instance.conn==null){ 
-                System.out.println("Careful there! Connection not established! BibleGetDB.java line 81");
+                System.out.println("Careful there! Connection not established! BibleGetDB.java line 262");
                 return false;
             }
             else{
@@ -292,6 +295,33 @@ public class BibleGetDB {
     private boolean initializeSchemas() throws SQLException, Exception{
         DatabaseMetaData dbMeta;
         dbMeta = instance.conn.getMetaData();
+
+        //first table to check is the SCHEMA_VERSIONS table so we don't have to check for every other table initialization
+        //if it doesn't exist, but the other tables exist, then their schemas obviously need updating
+        //the easiest way to do this is simply delete them and recreate them
+        //with the adverse side effect that user preferences will be lost
+        //not a huge loss, even though it's not the best user experience...
+        //for less drastic changes maybe it will be easier to transition user preferences to a new table
+        if(instance.tableExists("SCHEMA_VERSIONS") == false){
+            instance.createTable("SCHEMA_VERSIONS");
+            instance.initializeTable("SCHEMA_VERSIONS");
+            //since creating the SCHEMA_VERSIONS table is equivalent to updating the schemas,
+            //we also have to empty and re-initialize any other existing tables
+            Set<String> keys = BibleGetDB.tableSchemas.keySet();            
+            for(String tableName : keys){
+                if(instance.tableExists(tableName)){
+                    instance.deleteTable(tableName);
+                    if(instance.createTable(tableName)){
+                        instance.initializeTable(tableName);
+                    }
+                } else {
+                    if(instance.createTable(tableName)){
+                        instance.initializeTable(tableName);
+                    }
+                }
+            }
+        }
+
         
         if(instance.tableExists("OPTIONS")){
             System.out.println("Table " + instance.currentTable.getString("TABLE_NAME") + " already exists, now adding Column names to colNames array, and corresponding Data Types to colDataTypes array !!");
@@ -1003,21 +1033,59 @@ public class BibleGetDB {
     
     public boolean initializeTable(String tableName) throws Exception{
         if(!"".equals(tableName)){
-            try(Statement stmt = instance.conn.createStatement()) {
-                Entry<Integer, Entry<String,String>> tableSchemaEntry = BibleGetDB.tableSchemas.get(tableName);
-                //int schemaDefinitionVersion = tableSchemaEntry.getKey();
-                Entry<String,String> tableSchemaDefData = tableSchemaEntry.getValue();
-                //String schemaDefinition = tableSchemaDefData.getKey();
-                String schemaInitialData = tableSchemaDefData.getValue();
-                if(stmt.execute(schemaInitialData)==false && stmt.getUpdateCount() != -1){
-                    stmt.close();
-                    return true;
+            if("SCHEMA_VERSIONS".equals(tableName)){
+                Set<String> keys = BibleGetDB.tableSchemas.keySet();
+                String tableNames[] = keys.toArray(new String[keys.size()]);
+                int[] schemaVersions = new int[keys.size()];
+                int idx = 0;
+                for(String schemaName : tableNames) {
+                    Entry<Integer, Entry<String,String>> tableSchemaEntry = BibleGetDB.tableSchemas.get(schemaName);
+                    //System.out.println(pair.getKey() + " = " + pair.getValue());
+                    schemaVersions[idx++] = tableSchemaEntry.getKey();
                 }
-            } catch (SQLException ex) {
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                String schemaVersionsStr;
+                //schemaVersionsStr = StringUtils.join(ArrayUtils.toObject(schemaVersions), ",");
+                //the above is the same as below; below only from JAVA 8
+                schemaVersionsStr = Arrays.stream(schemaVersions).mapToObj(String::valueOf)
+                    .collect(Collectors.joining(","));
+                try(Statement stmt = instance.conn.createStatement()){
+                    String initializeSchemaVersions = "INSERT INTO SCHEMA_VERSIONS (" + String.join(",", tableNames) + ") VALUES (" + schemaVersionsStr + ")";
+                    if(stmt.execute(initializeSchemaVersions)==false && stmt.getUpdateCount() != -1){
+                        stmt.close();
+                        return true;
+                    }
+                } catch (SQLException ex){
+                    Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                //all other cases
+                try(Statement stmt = instance.conn.createStatement()) {
+                    Entry<Integer, Entry<String,String>> tableSchemaEntry = BibleGetDB.tableSchemas.get(tableName);
+                    //int schemaDefinitionVersion = tableSchemaEntry.getKey();
+                    Entry<String,String> tableSchemaDefData = tableSchemaEntry.getValue();
+                    //String schemaDefinition = tableSchemaDefData.getKey();
+                    String schemaInitialData = tableSchemaDefData.getValue();
+                    if(stmt.execute(schemaInitialData)==false && stmt.getUpdateCount() != -1){
+                        stmt.close();
+                        return true;
+                    }
+                } catch (SQLException ex) {
+                    Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
+            
         } else {
             throw new Exception("Table name cannot be an empty string!");
+        }
+        return false;
+    }
+    
+    public boolean deleteTable(String tableName) throws Exception{
+        try(Statement stmt = instance.conn.createStatement()) {
+            stmt.execute("DROP TABLE " + tableName);
+            return(!instance.tableExists(tableName));
+        } catch(SQLException ex){
+            Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }
