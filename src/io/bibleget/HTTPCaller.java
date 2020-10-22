@@ -218,7 +218,7 @@ public class HTTPCaller {
      * FUNCTION isValidBook 
      * @var book
      */
-    public int isValidBook(String book) throws SQLException{
+    public int isValidBook(String book) throws SQLException, Exception{
         try {
             JsonArrayBuilder biblebooksBldr = Json.createArrayBuilder();
             BibleGetDB bibleGetDB;
@@ -249,7 +249,7 @@ public class HTTPCaller {
      * @throws java.io.UnsupportedEncodingException
      * @throws java.sql.SQLException
      */
-    public boolean integrityCheck(String myQuery,List<String> selectedVersions) throws ClassNotFoundException, UnsupportedEncodingException, SQLException
+    public boolean integrityCheck(String myQuery,List<String> selectedVersions) throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
     {
         //String versionsStr = StringUtils.join(selectedVersions.toArray(), ',');
         //System.out.println("Starting integrity check on query "+myQuery+" for versions: "+versionsStr);

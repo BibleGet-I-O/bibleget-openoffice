@@ -54,7 +54,7 @@ public class BibleGetAbout extends javax.swing.JFrame {
     /**
      * Creates new form BibleGetAbout
      */
-    private BibleGetAbout() throws ClassNotFoundException, UnsupportedEncodingException, SQLException {
+    private BibleGetAbout() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception {
         //jTextPane does not initialize correctly, it causes a Null Exception Pointer
         //Following line keeps this from crashing the program
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
@@ -95,14 +95,14 @@ public class BibleGetAbout extends javax.swing.JFrame {
         initComponents();
     }
     
-    public static BibleGetAbout getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException{
+    public static BibleGetAbout getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception{
         if(instance ==  null){
             instance = new BibleGetAbout();
         }
         return instance;
     }
 
-    private void prepareDynamicInformation() throws ClassNotFoundException, SQLException {
+    private void prepareDynamicInformation() throws ClassNotFoundException, SQLException, Exception {
         bibleGetDB = BibleGetDB.getInstance();
         jList1 = new VersionsSelect();
         jList1.setFont(new java.awt.Font("Tahoma",0,14));
@@ -266,6 +266,8 @@ public class BibleGetAbout extends javax.swing.JFrame {
                 prepareDynamicInformation();
             } catch (ClassNotFoundException | SQLException ex) {
                 Logger.getLogger(BibleGetAbout.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
+                Logger.getLogger(BibleGetAbout.class.getName()).log(Level.SEVERE, null, ex);
             }
             jLabel2.setText(MessageFormat.format(__("The BibleGet database currently supports {0} versions of the Bible in {1} different languages:"),versionCount,versionLangs));
             jLabel2.revalidate();
@@ -278,6 +280,8 @@ public class BibleGetAbout extends javax.swing.JFrame {
                 bbGetFrameInstance = BibleGetFrame.getInstance(BibleGetIO.getXController());
                 bbGetFrameInstance.updateDynamicInformation();
             } catch (ClassNotFoundException | SQLException ex) {
+                Logger.getLogger(BibleGetAbout.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
                 Logger.getLogger(BibleGetAbout.class.getName()).log(Level.SEVERE, null, ex);
             }
             
@@ -358,6 +362,8 @@ public class BibleGetAbout extends javax.swing.JFrame {
             try {
                 new BibleGetAbout().setVisible(true);
             } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
+                Logger.getLogger(BibleGetAbout.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
                 Logger.getLogger(BibleGetAbout.class.getName()).log(Level.SEVERE, null, ex);
             }
         });

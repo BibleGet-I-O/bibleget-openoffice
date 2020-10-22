@@ -41,7 +41,7 @@ public class VersionsSelect extends javax.swing.JList {
    
     private static BibleGetDB biblegetDB;
         
-    public VersionsSelect() throws ClassNotFoundException, SQLException
+    public VersionsSelect() throws ClassNotFoundException, SQLException, Exception
     {       
         biblegetDB = BibleGetDB.getInstance();
         String bibleVersionsStr = biblegetDB.getMetaData("VERSIONS");

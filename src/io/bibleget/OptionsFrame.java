@@ -6,7 +6,9 @@
 package io.bibleget;
 
 import static io.bibleget.BibleGetI18N.__;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -14,29 +16,34 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.json.JsonArray;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
-import javax.json.JsonString;
-import javax.json.JsonValue;
-import static javax.json.JsonValue.ValueType.NUMBER;
-import static javax.json.JsonValue.ValueType.OBJECT;
-import static javax.json.JsonValue.ValueType.STRING;
+import static java.util.stream.Collectors.joining;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JTextPane;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
+import javax.swing.plaf.InternalFrameUI;
+import javax.swing.plaf.basic.BasicInternalFrameUI;
 import javax.swing.text.Document;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
+import org.cef.CefApp;
+import org.cef.CefClient;
+import org.cef.CefSettings;
+import org.cef.OS;
+import org.cef.browser.CefBrowser;
 
 /**
  *
@@ -50,47 +57,15 @@ public class OptionsFrame extends javax.swing.JFrame {
     private final int frameHeight;
     private final int frameLeft;
     private final int frameTop;
-    
-    private String paragraphAlignment;
-    private int paragraphLineSpacing; 
-    private String paragraphFontFamily;
-    private int paragraphLeftIndent;
-    
-    private Color textColorBookChapter;
-    private Color bgColorBookChapter;
-    private boolean boldBookChapter;
-    private boolean italicsBookChapter;
-    private boolean underscoreBookChapter;
-    private int fontSizeBookChapter;
-    private String vAlignBookChapter;
-
-    private Color textColorVerseNumber;
-    private Color bgColorVerseNumber;
-    private boolean boldVerseNumber;
-    private boolean italicsVerseNumber;
-    private boolean underscoreVerseNumber;
-    private int fontSizeVerseNumber;
-    private String vAlignVerseNumber;
-
-    private Color textColorVerseText;
-    private Color bgColorVerseText;
-    private boolean boldVerseText;
-    private boolean italicsVerseText;
-    private boolean underscoreVerseText;
-    private int fontSizeVerseText;
-    private String vAlignVerseText;
-    
-    private boolean noVersionFormatting;
-    
+            
     private final BibleGetDB biblegetDB;
+    private final Preferences USERPREFS;
+    private final LocalizedBibleBooks L10NBibleBooks;
     
     private final HTMLEditorKit kit;
     private final Document doc;
     private final String HTMLStr;
     private final StyleSheet styles;
-    
-    private JTextPane myjtextpane;
-    //private JEditorPane myjeditorpane;
     
     private final FontFamilyListCellRenderer FFLCRenderer;
     private final DefaultComboBoxModel fontFamilies;
@@ -105,14 +80,23 @@ public class OptionsFrame extends javax.swing.JFrame {
     }
     */
     //private final ResourceBundle myMessages;
+    private final CefApp cefApp;
+    private final CefClient client;
+    private final CefBrowser browser;
+    private final Component browserUI;
+    private final HashMap<String, String> styleSheetRules = new HashMap<>();
+    private final String previewDocument;
+    private final String previewDocStylesheet;
+    private final String previewDocScript;
     
     private static OptionsFrame instance;
-    
+        
     /**
      * Creates new form OptionsFrame
      * @param pkgPath
      */
-    private OptionsFrame() throws ClassNotFoundException, UnsupportedEncodingException, SQLException {
+    private OptionsFrame() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception {
+        this.L10NBibleBooks = LocalizedBibleBooks.getInstance();
         this.FFLCRenderer = new FontFamilyListCellRenderer();
                 
         //jTextPane does not initialize correctly, it causes a Null Exception Pointer
@@ -122,42 +106,104 @@ public class OptionsFrame extends javax.swing.JFrame {
         // Get preferences from database       
         //System.out.println("getting instance of BibleGetDB");
         biblegetDB = BibleGetDB.getInstance();
+        USERPREFS = Preferences.getInstance();
+        if(USERPREFS != null){
+            System.out.println("USERPREFS is not null at least.");
+            System.out.println("USERPREFS.toString = " + USERPREFS.toString());
+            Field[] fields = Preferences.class.getFields();
+            System.out.println(Arrays.toString(fields));
+        }
         //System.out.println("getting JsonObject of biblegetDB options");
-        JsonObject myOptions = biblegetDB.getOptions();
-        //System.out.println(myOptions.toString());
-        //System.out.println("getting JsonValue of options rows");
-        JsonValue myResults = myOptions.get("rows");
-        //System.out.println(myResults.toString());
-        //System.out.println("navigating values in json tree and setting global variables");
-        navigateTree(myResults, null);
         this.fontFamilies = BibleGetIO.getFontFamilies();
         
-        //System.out.println("(OptionsFrame: 127) textColorBookChapter ="+textColorBookChapter);
+        //System.out.println("(OptionsFrame: 127) USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR ="+USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);
         
         this.kit = new HTMLEditorKit();
         this.doc = kit.createDefaultDocument();
         this.styles = kit.getStyleSheet();
+        
+        String bkChVAlign = "";
+        switch(USERPREFS.BOOKCHAPTERSTYLES_VALIGN){
+            case SUPERSCRIPT:
+                bkChVAlign = "super";
+                break;
+            case SUBSCRIPT:
+                bkChVAlign = "sub";
+                break;
+            case NORMAL:
+                bkChVAlign = "initial";
+        }
+        
+        String vsNumVAlign = "";
+        switch(USERPREFS.VERSENUMBERSTYLES_VALIGN){
+            case SUPERSCRIPT:
+                vsNumVAlign = "super";
+                break;
+            case SUBSCRIPT:
+                vsNumVAlign = "sub";
+                break;
+            case NORMAL:
+                vsNumVAlign = "initial";
+        }
+        
+        String vsTxtVAlign = "";
+        switch(USERPREFS.VERSETEXTSTYLES_VALIGN){
+            case SUPERSCRIPT:
+                vsTxtVAlign = "super";
+                break;
+            case SUBSCRIPT:
+                vsTxtVAlign = "sub";
+                break;
+            case NORMAL:
+                vsTxtVAlign = "initial";
+        }
+        
         styles.addRule("body { padding: 6px; background-color: #FFFFFF; }");
-        styles.addRule("div.results { font-family: "+paragraphFontFamily+"; }");
-        styles.addRule("div.results p.book { font-size:"+fontSizeBookChapter+"pt; }");
-        styles.addRule("div.results p.book { font-weight:"+(boldBookChapter?"bold":"normal")+"; }");
-        styles.addRule("div.results p.book { color:"+ColorToHexString(textColorBookChapter)+"; }");
-        styles.addRule("div.results p.book { background-color:"+ColorToHexString(bgColorBookChapter)+"; }");
-        styles.addRule("div.results p.book { line-height: "+paragraphLineSpacing+"%; }");
-        styles.addRule("div.results p.book span { vertical-align: "+vAlignBookChapter+"; }");
-        styles.addRule("div.results p.verses { text-align: "+paragraphAlignment+"; }");
-        styles.addRule("div.results p.verses { line-height: "+paragraphLineSpacing+"%; }");
-        styles.addRule("div.results p.verses span.sup { font-size:"+fontSizeVerseNumber+"pt; }");
-        styles.addRule("div.results p.verses span.sup { color:"+ColorToHexString(textColorVerseNumber)+";");
-        styles.addRule("div.results p.verses span.sup { background-color:"+ColorToHexString(bgColorVerseNumber)+";");
-        styles.addRule("div.results p.verses span.sup { vertical-align: "+vAlignVerseNumber+"; }");
-        styles.addRule("div.results p.verses span.text { font-size:"+fontSizeVerseText+"pt; }");
-        styles.addRule("div.results p.verses span.text { color:"+ColorToHexString(textColorVerseText)+"; }");
-        styles.addRule("div.results p.verses span.text { background-color:"+ColorToHexString(bgColorVerseText)+"; }");
-        styles.addRule("div.results p.verses span.text { vertical-align: "+vAlignVerseText+"; }");
+        styles.addRule("div.results { font-family: "+USERPREFS.PARAGRAPHSTYLES_FONTFAMILY+"; }");
+        styles.addRule("div.results p.book { font-size:"+USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE+"pt; }");
+        styles.addRule("div.results p.book { font-weight:"+(USERPREFS.BOOKCHAPTERSTYLES_BOLD?"bold":"normal")+"; }");
+        styles.addRule("div.results p.book { color:"+ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR)+"; }");
+        styles.addRule("div.results p.book { background-color:"+ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR)+"; }");
+        styles.addRule("div.results p.book { line-height: "+USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT+"%; }");
+        styles.addRule("div.results p.book span { vertical-align: "+bkChVAlign+"; }");
+        styles.addRule("div.results p.verses { text-align: "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT+"; }");
+        styles.addRule("div.results p.verses { line-height: "+USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT+"%; }");
+        styles.addRule("div.results p.verses span.sup { font-size:"+USERPREFS.VERSENUMBERSTYLES_FONTSIZE+"pt; }");
+        styles.addRule("div.results p.verses span.sup { color:"+ColorToHexString(USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR)+";");
+        styles.addRule("div.results p.verses span.sup { background-color:"+ColorToHexString(USERPREFS.VERSENUMBERSTYLES_BGCOLOR)+";");
+        styles.addRule("div.results p.verses span.sup { vertical-align: "+vsNumVAlign+"; }");
+        styles.addRule("div.results p.verses span.text { font-size:"+USERPREFS.VERSETEXTSTYLES_FONTSIZE+"pt; }");
+        styles.addRule("div.results p.verses span.text { color:"+ColorToHexString(USERPREFS.VERSETEXTSTYLES_TEXTCOLOR)+"; }");
+        styles.addRule("div.results p.verses span.text { background-color:"+ColorToHexString(USERPREFS.VERSETEXTSTYLES_BGCOLOR)+"; }");
+        styles.addRule("div.results p.verses span.text { vertical-align: "+vsTxtVAlign+"; }");
 
+        styleSheetRules.put("body", "body { padding: 6px; background-color: #FFFFFF; }");
+        styleSheetRules.put("paragraphFontFamily", "div.results { font-family: "+USERPREFS.PARAGRAPHSTYLES_FONTFAMILY+"; }");
+        styleSheetRules.put("fontSizeBookChapter", "div.results p.book { font-size:"+USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE+"pt; }");
+        styleSheetRules.put("boldBookChapter", "div.results p.book { font-weight:"+(USERPREFS.BOOKCHAPTERSTYLES_BOLD?"bold":"normal")+"; }");
+        styleSheetRules.put("textColorBookChapter", "div.results p.book { color:"+ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR)+"; }");
+        styleSheetRules.put("bgColorBookChapter", "div.results p.book { background-color:"+ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR)+"; }");
+        styleSheetRules.put("paragraphLineSpacing1", "div.results p.book { line-height: "+USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT+"%; }");
+        styleSheetRules.put("vAlignBookChapter", "div.results p.book span { vertical-align: "+bkChVAlign+"; }");
+        styleSheetRules.put("paragraphAlignment", "div.results p.verses { text-align: "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT+"; }");
+        styleSheetRules.put("paragraphLineSpacing2", "div.results p.verses { line-height: "+USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT+"%; }");
+        styleSheetRules.put("fontSizeVerseNumber", "div.results p.verses span.sup { font-size:"+USERPREFS.VERSENUMBERSTYLES_FONTSIZE+"pt; }");
+        styleSheetRules.put("textColorVerseNumber", "div.results p.verses span.sup { color:"+ColorToHexString(USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR)+"; }");
+        styleSheetRules.put("bgColorVerseNumber", "div.results p.verses span.sup { background-color:"+ColorToHexString(USERPREFS.VERSENUMBERSTYLES_BGCOLOR)+"; }");
+        styleSheetRules.put("vAlignVerseNumber", "div.results p.verses span.sup { vertical-align: "+vsNumVAlign+"; }");
+        styleSheetRules.put("fontSizeVerseText", "div.results p.verses span.text { font-size:"+USERPREFS.VERSETEXTSTYLES_FONTSIZE+"pt; }");
+        styleSheetRules.put("textColorVerseText", "div.results p.verses span.text { color:"+ColorToHexString(USERPREFS.VERSETEXTSTYLES_TEXTCOLOR)+"; }");
+        styleSheetRules.put("bgColorVerseText", "div.results p.verses span.text { background-color:"+ColorToHexString(USERPREFS.VERSETEXTSTYLES_BGCOLOR)+"; }");
+        styleSheetRules.put("USERPREFS.VERSETEXTSTYLES_VALIGN", "div.results p.verses span.text { vertical-align: "+vsTxtVAlign+"; }");
+        String s = styleSheetRules.entrySet()
+                     .stream()
+                     .map(e -> e.getValue()) //e.getKey()+"="+
+                     .collect(joining(System.lineSeparator()));
+        System.out.println("styleSheetRules = ");
+        System.out.println(s);
+        
         String tempStr = "";
-        tempStr += "<html><head><meta charset=\"utf-8\"></head><body><div class=\"results\"><p class=\"book\"><span>";
+        tempStr += "<html><head><meta charset=\"utf-8\"><style>%s</style></head><body><div class=\"results\"><p class=\"book\"><span>";
         tempStr += __("Genesi")+"&nbsp;1";
         tempStr += "</span></p><p class=\"verses\" style=\"margin-top:0px;\"><span class=\"sup\">1</span><span class=\"text\">";
         tempStr += __("In the beginning, when God created the heavens and the earth");
@@ -166,8 +212,234 @@ public class OptionsFrame extends javax.swing.JFrame {
         tempStr += "</span><span class=\"sup\">3</span><span class=\"text\">";
         tempStr += __("Then God said: Let there be light, and there was light.");
         tempStr += "</span></p></div></body></html>";
+        HTMLStr = tempStr;
+
+        String vnPosition = USERPREFS.VERSENUMBERSTYLES_VALIGN == BGET.VALIGN.NORMAL ? "position: static;" : "position: relative;";
+        String vnTop = "";
+        switch(USERPREFS.VERSENUMBERSTYLES_VALIGN){
+            case SUPERSCRIPT:
+                vnTop = " top: -0.6em;";
+                break;
+            case SUBSCRIPT:
+                vnTop = " top: 0.6em;";
+                break;
+            case NORMAL:
+                vnTop = "";
+        }
         
-        this.HTMLStr = tempStr;
+        String bibleVersionWrapBefore = "";
+        String bibleVersionWrapAfter = "";
+        if(USERPREFS.LAYOUTPREFS_BIBLEVERSION_WRAP == BGET.WRAP.PARENTHESES){
+            bibleVersionWrapBefore = "(";
+            bibleVersionWrapAfter = ")";
+        }
+        else if(USERPREFS.LAYOUTPREFS_BIBLEVERSION_WRAP == BGET.WRAP.BRACKETS){
+            bibleVersionWrapBefore = "[";
+            bibleVersionWrapAfter = "]";
+        }
+
+        String bookChapterWrapBefore = "";
+        String bookChapterWrapAfter = "";
+        if(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP == BGET.WRAP.PARENTHESES){
+            bookChapterWrapBefore = "(";
+            bookChapterWrapAfter = ")";
+        }
+        else if(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP == BGET.WRAP.BRACKETS){
+            bookChapterWrapBefore = "[";
+            bookChapterWrapAfter = "]";
+        }
+
+        String bookChapter = "";
+        LocalizedBibleBook LocalizedBookSamuel = (L10NBibleBooks != null ? L10NBibleBooks.GetBookByIndex(8) : new LocalizedBibleBook("1Sam","1Samuel") );
+        switch(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT){
+            case BIBLELANG:
+                bookChapter = "I Samuelis 1";
+                break;
+            case BIBLELANGABBREV:
+                bookChapter = "I Sam 1";
+                break;
+            case USERLANG:
+                bookChapter = LocalizedBookSamuel.Fullname + " 1";
+                break;
+            case USERLANGABBREV:
+                bookChapter = LocalizedBookSamuel.Abbrev + " 1";
+        }
+        
+        if(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY){
+            bookChapter += ",1-3";
+        }
+        bookChapter = bookChapterWrapBefore + bookChapter + bookChapterWrapAfter;
+        Double lineHeight = Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT) / 100;
+        previewDocStylesheet = "<style type=\"text/css\">"
+            + "html,body { padding: 0px; margin: 0px; background-color: #FFFFFF; }"
+            + "p { padding: 0px; margin: 0px; }"
+            + ".previewRuler { margin: 0px auto; }"
+            + "div.results { box-sizing: border-box; margin: 0px auto; padding-left: 35px; padding-right:35px; }"
+            + "div.results .bibleVersion { font-family: '" + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "'; }"
+            + "div.results .bibleVersion { font-size: " + USERPREFS.BIBLEVERSIONSTYLES_FONTSIZE + "pt; }"
+            + "div.results .bibleVersion { font-weight: " + (USERPREFS.BIBLEVERSIONSTYLES_BOLD ? "bold" : "normal") + "; }"
+            + "div.results .bibleVersion { font-style: " + (USERPREFS.BIBLEVERSIONSTYLES_ITALIC ? "italic" : "normal") + "; }"
+            + (USERPREFS.BIBLEVERSIONSTYLES_UNDERLINE ? "div.results .bibleVersion { text-decoration: underline; }" : "")
+            + "div.results .bibleVersion { color: " + ColorToHexString(USERPREFS.BIBLEVERSIONSTYLES_TEXTCOLOR) + "; }"
+            + "div.results .bibleVersion { background-color: " + ColorToHexString(USERPREFS.BIBLEVERSIONSTYLES_BGCOLOR) + "; }"
+            + "div.results .bibleVersion { text-align: " + USERPREFS.LAYOUTPREFS_BIBLEVERSION_ALIGNMENT.getCSSValue() + "; }"
+            + "div.results .bookChapter { font-family: " + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "; }"
+            + "div.results .bookChapter { font-size: " + USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE + "pt; }"
+            + "div.results .bookChapter { font-weight: " + (USERPREFS.BOOKCHAPTERSTYLES_BOLD ? "bold" : "normal") + "; }"
+            + "div.results .bookChapter { font-style: " + (USERPREFS.BOOKCHAPTERSTYLES_ITALIC ? "italic" : "normal") + "; }"
+            + (USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE ? "div.results .bookChapter { text-decoration: underline; }" : "")
+            + "div.results .bookChapter { color: " + ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR) + "; }"
+            + "div.results .bookChapter { background-color: " + ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR) + "; }"
+            + "div.results .bookChapter { text-align: " + USERPREFS.LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT.getCSSValue() + "; }"
+            + "div.results span.bookChapter { display: inline-block; margin-left: 6px; }"
+            + "div.results .versesParagraph { text-align: " + USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getCSSValue() + "; }"
+            + "div.results .versesParagraph { line-height: " + String.format(Locale.ROOT, "%.1f", lineHeight) + "em; }"
+            + "div.results .versesParagraph .verseNum { font-family: " + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "; }"
+            + "div.results .versesParagraph .verseNum { font-size: " + USERPREFS.VERSENUMBERSTYLES_FONTSIZE + "pt; }"
+            + "div.results .versesParagraph .verseNum { font-weight: " + (USERPREFS.VERSENUMBERSTYLES_BOLD ? "bold" : "normal") + "; }"
+            + "div.results .versesParagraph .verseNum { font-style: " + (USERPREFS.VERSENUMBERSTYLES_ITALIC ? "italic" : "normal") + "; }"
+            + (USERPREFS.VERSENUMBERSTYLES_UNDERLINE ? "div.results .versesParagraph .verseNum { text-decoration: underline; }" : "")
+            + "div.results .versesParagraph .verseNum { color: " + ColorToHexString(USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR) + "; }"
+            + "div.results .versesParagraph .verseNum { background-color: " + ColorToHexString(USERPREFS.VERSENUMBERSTYLES_BGCOLOR) + "; }"
+            + "div.results .versesParagraph .verseNum { vertical-align: baseline; " + vnPosition + vnTop + " }"
+            + "div.results .versesParagraph .verseNum { padding-left: 3px; }"
+            + "div.results .versesParagraph .verseNum:first-child { padding-left: 0px; }"
+            + "div.results .versesParagraph .verseText { font-family: " + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "; }"
+            + "div.results .versesParagraph .verseText { font-size: " + USERPREFS.VERSETEXTSTYLES_FONTSIZE + "pt; }"
+            + "div.results .versesParagraph .verseText { font-weight: " + (USERPREFS.VERSETEXTSTYLES_BOLD ? "bold" : "normal") + "; }"
+            + "div.results .versesParagraph .verseText { font-style: " + (USERPREFS.VERSETEXTSTYLES_ITALIC ? "italic" : "normal") + "; }"
+            + (USERPREFS.VERSETEXTSTYLES_UNDERLINE ? "div.results .versesParagraph .verseText { text-decoration: underline; }" : "")
+            + "div.results .versesParagraph .verseText { color: " + ColorToHexString(USERPREFS.VERSETEXTSTYLES_TEXTCOLOR) + "; }"
+            + "div.results .versesParagraph .verseText { background-color: " + ColorToHexString(USERPREFS.VERSETEXTSTYLES_BGCOLOR) + "; }"
+            + "</style>";
+        
+        previewDocScript = "<script>"
+            + "var getPixelRatioVals = function(rulerLength,convertToCM){"
+            + "let inchesToCM = 2.54,"
+            + "dpr = window.devicePixelRatio,"
+            //ppi = ((96 * dpr) / 100),
+            //dpi = (96 * ppi),
+            + "dpi = 96 * dpr,"
+            + "drawInterval = 0.125;"
+            + "if(convertToCM){"
+            //ppi /= inchesToCM;
+            + "dpi /= inchesToCM;"
+            + "rulerLength *= inchesToCM;"
+            + "drawInterval = 0.25;"
+            + "}"
+            + "return {"
+            + "inchesToCM: inchesToCM,"
+            + "dpr: dpr,"
+            //ppi: ppi,
+            + "dpi: dpi,"
+            + "rulerLength: rulerLength,"
+            + "drawInterval: drawInterval"
+            + "};"
+            + "},"
+            + "triangleAt = function (x,context,pixelRatioVals,initialPadding,canvasWidth){"
+            + "let xPos = x*pixelRatioVals.dpi;" //x.map(0,pixelRatioVals.rulerLength,0,(canvasWidth-(initialPadding*2)));
+            + "window.xVal = x;"
+            + "window.xPos = xPos;"
+            + "context.lineWidth = 0.5;"
+            + "context.fillStyle = \"#4285F4\";"
+            + "context.beginPath();"
+            + "context.moveTo(initialPadding+xPos-6,11);"
+            + "context.lineTo(initialPadding+xPos+6,11);"
+            + "context.lineTo(initialPadding+xPos,18);"
+            + "context.closePath();"
+            + "context.stroke();"
+            + "context.fill();"
+            + "},"
+            /**
+             * FUNCTION drawRuler
+             * @ rulerLen (float) in Inches (e.g. 7)
+             * @ cvtToCM (boolean) whether to convert values from inches to centimeters
+             * @ lftindnt (float) in Inches, to set xPos of triangle for left indent
+             * @ rgtindnt (float) in Inches, to set xPos of triangle for right indent
+            */
+            + "drawRuler = function(rulerLen, cvtToCM, lftindnt, rgtindnt){"
+            + "var pixelRatioVals = getPixelRatioVals(rulerLen,cvtToCM),"
+            + "initialPadding = 35,"
+            + "$canvas = jQuery('.previewRuler');"
+            + "$canvas.each(function(){"
+            + "let canvas = this,"
+            + "context = canvas.getContext('2d'),"
+            + "canvasWidth = (rulerLen * 96 * pixelRatioVals.dpr) + (initialPadding*2);"
+            + "canvas.style.width = canvasWidth + 'px';"
+            + "canvas.style.height = '20px';"
+            + "canvas.width = Math.round(canvasWidth * pixelRatioVals.dpr);"
+            + "canvas.height = Math.round(20 * pixelRatioVals.dpr);"
+            + "canvas.style.width = Math.round(canvas.width / pixelRatioVals.dpr) + 'px';"
+            + "canvas.style.height = Math.round(canvas.height / pixelRatioVals.dpr) + 'px';"
+            + "context.scale(pixelRatioVals.dpr,pixelRatioVals.dpr);"
+            + "context.translate(pixelRatioVals.dpr, 0);"
+            + "context.lineWidth = 0.5;"
+            + "context.strokeStyle = '#000';"
+            + "context.font = 'bold 10px Arial';"
+            + "context.beginPath();"
+            + "context.moveTo(initialPadding, 1);"
+            + "context.lineTo(initialPadding + (pixelRatioVals.rulerLength * pixelRatioVals.dpi),1);"
+            + "context.stroke();"
+            + "let currentWholeNumber = 0;"
+            + "let offset = 2;"
+            + "for(let interval = 0; interval <= pixelRatioVals.rulerLength; interval += pixelRatioVals.drawInterval){"
+            + "let xPosA = Math.round(interval*pixelRatioVals.dpi)+0.5;"
+            + "if(interval == Math.floor(interval) && interval > 0){"
+            + "if(currentWholeNumber+1 == 10){ offset+=4; }"
+            + "context.fillText(++currentWholeNumber,initialPadding+xPosA-offset,14);"
+            + "}"
+            + "else if(interval == Math.floor(interval)+0.5){"
+            + "context.beginPath();"
+            + "context.moveTo(initialPadding+xPosA,15);"
+            + "context.lineTo(initialPadding+xPosA,5);"
+            + "context.closePath();"
+            + "context.stroke();"
+            + "}"
+            + "else{"
+            + "context.beginPath();"
+            + "context.moveTo(initialPadding+xPosA,10);"
+            + "context.lineTo(initialPadding+xPosA,5);"
+            + "context.closePath();"
+            + "context.stroke();"
+            + "}"
+            + "}"
+            + "triangleAt(lftindnt,context,pixelRatioVals,initialPadding,canvasWidth);"
+            + "triangleAt(pixelRatioVals.rulerLength-rgtindnt,context,pixelRatioVals,initialPadding,canvasWidth);"
+            + "context.translate(-pixelRatioVals.dpr, -0);"
+            + "});"
+            + "};"
+            + "jQuery(document).ready(function(){"
+            + "let pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
+            + "let leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
+            + "let rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
+            + "let bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
+            + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
+            + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");"
+            + "});"
+            + "</script>";
+        
+        previewDocument = "<html><head><meta charset=\"utf-8\">" + previewDocStylesheet
+            + "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>" 
+            + previewDocScript 
+            + "</head><body>"
+            + "<div style=\"text-align: center;\"><canvas class=\"previewRuler\"></canvas></div>"
+            + "<div class=\"results bibleQuote\">"
+            + (USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION == BGET.POS.TOP && USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW == BGET.VISIBILITY.SHOW ? "<p class=\"bibleVersion\">" + bibleVersionWrapBefore + "NVBSE" + bibleVersionWrapAfter + "</p>" : "")
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.TOP ? "<p class=\"bookChapter\">" + bookChapter + "</p>" : "")
+            + "<p class=\"versesParagraph\" style=\"margin-top:0px;\">"
+            + (USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW == BGET.VISIBILITY.SHOW ? "<span class=\"verseNum\">1</span>" : "")
+            + "<span class=\"verseText\">Fuit vir unus de Ramathaim Suphita de monte Ephraim, et nomen eius Elcana filius Ieroham filii Eliu filii Thohu filii Suph, Ephrathaeus.</span>"
+            + (USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW == BGET.VISIBILITY.SHOW ? "<span class=\"verseNum\">2</span>" : "")
+            + "<span class=\"verseText\">Et habuit duas uxores: nomen uni Anna et nomen secundae Phenenna. Fueruntque Phenennae filii, Annae autem non erant liberi.</span>"
+            + (USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW == BGET.VISIBILITY.SHOW ? "<span class=\"verseNum\">3</span>" : "")
+            + "<span class=\"verseText\">Et ascendebat vir ille de civitate sua singulis annis, ut adoraret et sacrificaret Domino exercituum in Silo. Erant autem ibi duo filii Heli, Ophni et Phinees, sacerdotes Domini.</span>"
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.BOTTOMINLINE ? "<span class=\"bookChapter\">" + bookChapter + "</span>" : "")
+            + "</p>"
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.BOTTOM ? "<p class=\"bookChapter\">" + bookChapter + "</p>" : "")
+            + (USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION == BGET.POS.BOTTOM && USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW == BGET.VISIBILITY.SHOW ? "<p class=\"bibleVersion\">" + bibleVersionWrapBefore + "NVBSE" + bibleVersionWrapAfter + "</p>" : "")
+            + "</div>"
+            + "</body>";
+
         
         Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         screenWidth = (int)screenSize.getWidth();
@@ -178,12 +450,22 @@ public class OptionsFrame extends javax.swing.JFrame {
         frameTop = (screenHeight / 2) - (frameHeight / 2);
                 
         //this.myMessages = BibleGetI18N.getMessages();
+        CefSettings settings = new CefSettings();
+        settings.windowless_rendering_enabled = OS.isLinux();
+        cefApp = CefApp.getInstance(settings);
+        client = cefApp.createClient();
+        //String HTMLStrWithStyles = String.format(HTMLStr,s);
+        browser = client.createBrowser( DataUri.create("text/html",previewDocument), OS.isLinux(), false);
+        browserUI = browser.getUIComponent();
         
         initComponents();
-        
+        jInternalFrame1.setLayout(new BorderLayout());
+        jInternalFrame1.getContentPane().add(browserUI, BorderLayout.CENTER);
+        //jInternalFrame1.setSize(400, 300);
+        //jInternalFrame1.setVisible(true);
     }
 
-    public static OptionsFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException
+    public static OptionsFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
     {
         if(instance == null)
         {
@@ -264,6 +546,15 @@ public class OptionsFrame extends javax.swing.JFrame {
         jCheckBox1 = new javax.swing.JCheckBox();
         jLabel2 = new javax.swing.JLabel();
         jSeparator7 = new javax.swing.JSeparator();
+        jInternalFrame1 = new JInternalFrame() {
+            @Override
+            public void setUI(InternalFrameUI ui) {
+                super.setUI(ui); // this gets called internally when updating the ui and makes the northPane reappear
+                BasicInternalFrameUI frameUI = (BasicInternalFrameUI) getUI(); // so...
+                if (frameUI != null) frameUI.setNorthPane(null); // lets get rid of it
+            }
+        };
+        //jInternalFrame1.setBorder(null);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(__("User Preferences"));
@@ -284,7 +575,7 @@ public class OptionsFrame extends javax.swing.JFrame {
 
         buttonGroup1.add(jToggleButton3);
         jToggleButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/align_left.png"))); // NOI18N
-        jToggleButton3.setSelected(paragraphAlignment.equals("left"));
+        jToggleButton3.setSelected(USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.equals(BGET.ALIGN.LEFT));
         jToggleButton3.setFocusable(false);
         jToggleButton3.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton3.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -299,7 +590,7 @@ public class OptionsFrame extends javax.swing.JFrame {
 
         buttonGroup1.add(jToggleButton2);
         jToggleButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/align_center.png"))); // NOI18N
-        jToggleButton2.setSelected(paragraphAlignment.equals("center"));
+        jToggleButton2.setSelected(USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.equals(BGET.ALIGN.CENTER));
         jToggleButton2.setFocusable(false);
         jToggleButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton2.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -314,7 +605,7 @@ public class OptionsFrame extends javax.swing.JFrame {
 
         buttonGroup1.add(jToggleButton4);
         jToggleButton4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/align_right.png"))); // NOI18N
-        jToggleButton4.setSelected(paragraphAlignment.equals("right"));
+        jToggleButton4.setSelected(USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.equals(BGET.ALIGN.RIGHT));
         jToggleButton4.setFocusable(false);
         jToggleButton4.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton4.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -329,7 +620,7 @@ public class OptionsFrame extends javax.swing.JFrame {
 
         buttonGroup1.add(jToggleButton5);
         jToggleButton5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/align_justify.png"))); // NOI18N
-        jToggleButton5.setSelected(paragraphAlignment.equals("justify"));
+        jToggleButton5.setSelected(USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.equals(BGET.ALIGN.JUSTIFY));
         jToggleButton5.setFocusable(false);
         jToggleButton5.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton5.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -406,6 +697,11 @@ public class OptionsFrame extends javax.swing.JFrame {
                 jComboBox6ItemStateChanged(evt);
             }
         });
+        jComboBox6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBox6ActionPerformed(evt);
+            }
+        });
         jToolBar7.add(jComboBox6);
 
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
@@ -429,10 +725,10 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar6.setFloatable(false);
         jToolBar6.setRollover(true);
 
-        jComboBox1.setFont(new java.awt.Font(paragraphFontFamily, java.awt.Font.PLAIN, 18));
+        jComboBox1.setFont(new java.awt.Font(USERPREFS.PARAGRAPHSTYLES_FONTFAMILY, java.awt.Font.PLAIN, 18));
         jComboBox1.setMaximumRowCount(6);
         jComboBox1.setModel(fontFamilies);
-        jComboBox1.setSelectedItem(paragraphFontFamily);
+        jComboBox1.setSelectedItem(USERPREFS.PARAGRAPHSTYLES_FONTFAMILY);
         jComboBox1.setPreferredSize(new java.awt.Dimension(300, 41));
         jComboBox1.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -491,7 +787,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar2.setRollover(true);
 
         jToggleButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/bold.png"))); // NOI18N
-        jToggleButton1.setSelected(boldBookChapter);
+        jToggleButton1.setSelected(USERPREFS.BOOKCHAPTERSTYLES_BOLD);
         jToggleButton1.setFocusable(false);
         jToggleButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton1.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -504,7 +800,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar2.add(jToggleButton1);
 
         jToggleButton6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/italic.png"))); // NOI18N
-        jToggleButton6.setSelected(italicsBookChapter);
+        jToggleButton6.setSelected(USERPREFS.BOOKCHAPTERSTYLES_ITALIC);
         jToggleButton6.setFocusable(false);
         jToggleButton6.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton6.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -517,7 +813,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar2.add(jToggleButton6);
 
         jToggleButton7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/underline.png"))); // NOI18N
-        jToggleButton7.setSelected(underscoreBookChapter);
+        jToggleButton7.setSelected(USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE);
         jToggleButton7.setFocusable(false);
         jToggleButton7.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton7.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -556,7 +852,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar2.add(jSeparator4);
 
         jComboBox2.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "18", "20", "22", "24", "26", "28", "32", "36", "40", "44", "48", "54", "60", "66", "72", "80", "88", "96" }));
-        jComboBox2.setSelectedItem(""+fontSizeBookChapter+"");
+        jComboBox2.setSelectedItem(""+USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE+"");
         jComboBox2.setToolTipText("Book / Chapter font size");
         jComboBox2.setMinimumSize(new java.awt.Dimension(47, 37));
         jComboBox2.setPreferredSize(new java.awt.Dimension(47, 37));
@@ -567,8 +863,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBar2.add(jComboBox2);
 
-        jToggleButton8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/superscript.png"))); // NOI18N
-        jToggleButton8.setSelected(vAlignBookChapter.equals("super"));
+        jToggleButton8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/subscript.png"))); // NOI18N
+        jToggleButton8.setSelected(USERPREFS.BOOKCHAPTERSTYLES_VALIGN.equals(BGET.VALIGN.SUPERSCRIPT));
         jToggleButton8.setFocusable(false);
         jToggleButton8.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton8.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -580,8 +876,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBar2.add(jToggleButton8);
 
-        jToggleButton9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/subscript.png"))); // NOI18N
-        jToggleButton9.setSelected(vAlignBookChapter.equals("sub"));
+        jToggleButton9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/superscript.png"))); // NOI18N
+        jToggleButton9.setSelected(USERPREFS.BOOKCHAPTERSTYLES_VALIGN.equals(BGET.VALIGN.SUBSCRIPT));
         jToggleButton9.setFocusable(false);
         jToggleButton9.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton9.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -612,7 +908,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar3.setRollover(true);
 
         jToggleButton10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/bold.png"))); // NOI18N
-        jToggleButton10.setSelected(boldVerseNumber);
+        jToggleButton10.setSelected(USERPREFS.VERSENUMBERSTYLES_BOLD);
         jToggleButton10.setFocusable(false);
         jToggleButton10.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton10.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -625,7 +921,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar3.add(jToggleButton10);
 
         jToggleButton11.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/italic.png"))); // NOI18N
-        jToggleButton11.setSelected(italicsVerseNumber);
+        jToggleButton11.setSelected(USERPREFS.VERSENUMBERSTYLES_ITALIC);
         jToggleButton11.setFocusable(false);
         jToggleButton11.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton11.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -638,7 +934,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar3.add(jToggleButton11);
 
         jToggleButton12.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/underline.png"))); // NOI18N
-        jToggleButton12.setSelected(underscoreVerseNumber);
+        jToggleButton12.setSelected(USERPREFS.VERSENUMBERSTYLES_UNDERLINE);
         jToggleButton12.setFocusable(false);
         jToggleButton12.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton12.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -677,7 +973,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar3.add(jSeparator5);
 
         jComboBox3.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "18", "20", "22", "24", "26", "28", "32", "36", "40", "44", "48", "54", "60", "66", "72", "80", "88", "96" }));
-        jComboBox3.setSelectedItem(""+fontSizeVerseNumber+"");
+        jComboBox3.setSelectedItem(""+USERPREFS.VERSENUMBERSTYLES_FONTSIZE+"");
         jComboBox3.setToolTipText("Verse Number font size");
         jComboBox3.setMinimumSize(new java.awt.Dimension(47, 37));
         jComboBox3.setPreferredSize(new java.awt.Dimension(47, 37));
@@ -688,8 +984,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBar3.add(jComboBox3);
 
-        jToggleButton13.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/superscript.png"))); // NOI18N
-        jToggleButton13.setSelected(vAlignVerseNumber.equals("super"));
+        jToggleButton13.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/subscript.png"))); // NOI18N
+        jToggleButton13.setSelected(USERPREFS.VERSENUMBERSTYLES_VALIGN.equals(BGET.VALIGN.SUPERSCRIPT));
         jToggleButton13.setFocusable(false);
         jToggleButton13.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton13.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -701,8 +997,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBar3.add(jToggleButton13);
 
-        jToggleButton14.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/subscript.png"))); // NOI18N
-        jToggleButton14.setSelected(vAlignVerseNumber.equals("sub"));
+        jToggleButton14.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/superscript.png"))); // NOI18N
+        jToggleButton14.setSelected(USERPREFS.VERSENUMBERSTYLES_VALIGN.equals(BGET.VALIGN.SUBSCRIPT));
         jToggleButton14.setFocusable(false);
         jToggleButton14.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton14.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -733,7 +1029,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar4.setRollover(true);
 
         jToggleButton15.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/bold.png"))); // NOI18N
-        jToggleButton15.setSelected(boldVerseText);
+        jToggleButton15.setSelected(USERPREFS.VERSETEXTSTYLES_BOLD);
         jToggleButton15.setFocusable(false);
         jToggleButton15.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton15.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -746,7 +1042,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar4.add(jToggleButton15);
 
         jToggleButton16.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/italic.png"))); // NOI18N
-        jToggleButton16.setSelected(italicsVerseText);
+        jToggleButton16.setSelected(USERPREFS.VERSETEXTSTYLES_ITALIC);
         jToggleButton16.setFocusable(false);
         jToggleButton16.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton16.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -759,7 +1055,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar4.add(jToggleButton16);
 
         jToggleButton17.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/underline.png"))); // NOI18N
-        jToggleButton17.setSelected(underscoreVerseText);
+        jToggleButton17.setSelected(USERPREFS.VERSETEXTSTYLES_UNDERLINE);
         jToggleButton17.setFocusable(false);
         jToggleButton17.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton17.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -798,7 +1094,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar4.add(jSeparator6);
 
         jComboBox4.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "18", "20", "22", "24", "26", "28", "32", "36", "40", "44", "48", "54", "60", "66", "72", "80", "88", "96" }));
-        jComboBox4.setSelectedItem(""+fontSizeVerseText+"");
+        jComboBox4.setSelectedItem(""+USERPREFS.VERSETEXTSTYLES_FONTSIZE+"");
         jComboBox4.setToolTipText("Verse Text font size");
         jComboBox4.setMinimumSize(new java.awt.Dimension(47, 37));
         jComboBox4.setPreferredSize(new java.awt.Dimension(47, 37));
@@ -809,8 +1105,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBar4.add(jComboBox4);
 
-        jToggleButton18.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/superscript.png"))); // NOI18N
-        jToggleButton18.setSelected(vAlignVerseText.equals("super"));
+        jToggleButton18.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/subscript.png"))); // NOI18N
+        jToggleButton18.setSelected(USERPREFS.VERSETEXTSTYLES_VALIGN.equals(BGET.VALIGN.SUPERSCRIPT));
         jToggleButton18.setFocusable(false);
         jToggleButton18.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton18.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -822,8 +1118,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBar4.add(jToggleButton18);
 
-        jToggleButton19.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/subscript.png"))); // NOI18N
-        jToggleButton19.setSelected(vAlignVerseText.equals("sub"));
+        jToggleButton19.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/superscript.png"))); // NOI18N
+        jToggleButton19.setSelected(USERPREFS.VERSETEXTSTYLES_VALIGN.equals(BGET.VALIGN.SUBSCRIPT));
         jToggleButton19.setFocusable(false);
         jToggleButton19.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton19.setMargin(new java.awt.Insets(4, 4, 4, 4));
@@ -875,7 +1171,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jLabel1.setForeground(new java.awt.Color(255, 0, 0));
         jLabel1.setText("(*"+__("line-spacing not visible in the preview")+")");
 
-        jCheckBox1.setSelected(noVersionFormatting);
+        jCheckBox1.setSelected(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING);
         jCheckBox1.setText(__("Override Bible Version Formatting"));
         jCheckBox1.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -937,20 +1233,40 @@ public class OptionsFrame extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
+        jInternalFrame1.setBorder(null);
+        jInternalFrame1.setVisible(true);
+
+        javax.swing.GroupLayout jInternalFrame1Layout = new javax.swing.GroupLayout(jInternalFrame1.getContentPane());
+        jInternalFrame1.getContentPane().setLayout(jInternalFrame1Layout);
+        jInternalFrame1Layout.setHorizontalGroup(
+            jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        jInternalFrame1Layout.setVerticalGroup(
+            jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 232, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jInternalFrame1))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jInternalFrame1)
                 .addContainerGap())
         );
 
@@ -965,19 +1281,19 @@ public class OptionsFrame extends javax.swing.JFrame {
     }
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
-        final JColorChooser jColorChooser = new JColorChooser(textColorBookChapter);
+        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);
         jColorChooserClean(jColorChooser);
         ActionListener okActionListener = (ActionEvent actionEvent) -> {
-            textColorBookChapter = jColorChooser.getColor();
-            String rgb = ColorToHexString(textColorBookChapter);
+            USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR = jColorChooser.getColor();
+            String rgb = ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);
             styles.addRule("div.results p.book { color:"+rgb+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setStringOption("TEXTCOLORBOOKCHAPTER", rgb)){
-                //System.out.println("TEXTCOLORBOOKCHAPTER was successfully updated in database to value "+rgb);
+            if(biblegetDB.setStringOption("BOOKCHAPTERSTYLES_TEXTCOLOR", rgb)){
+                //System.out.println("BOOKCHAPTERSTYLES_TEXTCOLOR was successfully updated in database to value "+rgb);
             }
             else{
-                //System.out.println("Error updating TEXTCOLORBOOKCHAPTER in database");
+                //System.out.println("Error updating BOOKCHAPTERSTYLES_TEXTCOLOR in database");
             }
         };
         ActionListener cancelActionListener = (ActionEvent actionEvent) -> {        
@@ -988,19 +1304,19 @@ public class OptionsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1MouseClicked
     
     private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
-        final JColorChooser jColorChooser = new JColorChooser(bgColorBookChapter);
+        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR);
         jColorChooserClean(jColorChooser);
         ActionListener okActionListener = (ActionEvent actionEvent) -> {
-            bgColorBookChapter = jColorChooser.getColor();
-            String rgb = ColorToHexString(bgColorBookChapter);
+            USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR = jColorChooser.getColor();
+            String rgb = ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR);
             styles.addRule("div.results p.book { background-color:"+rgb+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setStringOption("BGCOLORBOOKCHAPTER", rgb)){
-                //System.out.println("BGCOLORBOOKCHAPTER was successfully updated in database to value "+rgb);
+            if(biblegetDB.setStringOption("BOOKCHAPTERSTYLES_BGCOLOR", rgb)){
+                //System.out.println("BOOKCHAPTERSTYLES_BGCOLOR was successfully updated in database to value "+rgb);
             }
             else{
-                //System.out.println("Error updating BGCOLORBOOKCHAPTER in database");
+                //System.out.println("Error updating BOOKCHAPTERSTYLES_BGCOLOR in database");
             }
         };
         ActionListener cancelActionListener;
@@ -1012,15 +1328,15 @@ public class OptionsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton2MouseClicked
 
     private void jButton5MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton5MouseClicked
-        final JColorChooser jColorChooser = new JColorChooser(textColorVerseNumber);
+        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR);
         jColorChooserClean(jColorChooser);
         ActionListener okActionListener = (ActionEvent actionEvent) -> {
-            textColorVerseNumber = jColorChooser.getColor();
-            String rgb = ColorToHexString(textColorVerseNumber);
+            USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR = jColorChooser.getColor();
+            String rgb = ColorToHexString(USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR);
             styles.addRule("div.results p.verses span.sup { color:"+rgb+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setStringOption("TEXTCOLORVERSENUMBER", rgb)){
+            if(biblegetDB.setStringOption("VERSENUMBERSTYLES_TEXTCOLOR", rgb)){
                 //System.out.println("TEXTCOLORVERSENUMBER was successfully updated in database to value "+rgb);
             }
             else{
@@ -1036,15 +1352,15 @@ public class OptionsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton5MouseClicked
 
     private void jButton6MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton6MouseClicked
-        final JColorChooser jColorChooser = new JColorChooser(bgColorVerseNumber);
+        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.VERSENUMBERSTYLES_BGCOLOR);
         jColorChooserClean(jColorChooser);
         ActionListener okActionListener = (ActionEvent actionEvent) -> {
-            bgColorVerseNumber = jColorChooser.getColor();
-            String rgb = ColorToHexString(bgColorVerseNumber);
+            USERPREFS.VERSENUMBERSTYLES_BGCOLOR = jColorChooser.getColor();
+            String rgb = ColorToHexString(USERPREFS.VERSENUMBERSTYLES_BGCOLOR);
             styles.addRule("div.results p.verses span.sup { background-color:"+rgb+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setStringOption("BGCOLORVERSENUMBER", rgb)){
+            if(biblegetDB.setStringOption("VERSENUMBERSTYLES_BGCOLOR", rgb)){
                 //System.out.println("BGCOLORVERSENUMBER was successfully updated in database to value "+rgb);
             }
             else{
@@ -1060,15 +1376,15 @@ public class OptionsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton6MouseClicked
 
     private void jButton7MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton7MouseClicked
-        final JColorChooser jColorChooser = new JColorChooser(textColorVerseText);
+        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.VERSETEXTSTYLES_TEXTCOLOR);
         jColorChooserClean(jColorChooser);
         ActionListener okActionListener = (ActionEvent actionEvent) -> {
-            textColorVerseText = jColorChooser.getColor();
-            String rgb = ColorToHexString(textColorVerseText);
+            USERPREFS.VERSETEXTSTYLES_TEXTCOLOR = jColorChooser.getColor();
+            String rgb = ColorToHexString(USERPREFS.VERSETEXTSTYLES_TEXTCOLOR);
             styles.addRule("div.results p.verses span.text { color:"+rgb+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setStringOption("TEXTCOLORVERSETEXT", rgb)){
+            if(biblegetDB.setStringOption("VERSETEXTSTYLES_TEXTCOLOR", rgb)){
                 //System.out.println("TEXTCOLORVERSETEXT was successfully updated in database to value "+rgb);
             }
             else{
@@ -1084,15 +1400,15 @@ public class OptionsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton7MouseClicked
 
     private void jButton8MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton8MouseClicked
-        final JColorChooser jColorChooser = new JColorChooser(bgColorVerseText);
+        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.VERSETEXTSTYLES_BGCOLOR);
         jColorChooserClean(jColorChooser);
         ActionListener okActionListener = (ActionEvent actionEvent) -> {
-            bgColorVerseText = jColorChooser.getColor();
-            String rgb = ColorToHexString(bgColorVerseText);
+            USERPREFS.VERSETEXTSTYLES_BGCOLOR = jColorChooser.getColor();
+            String rgb = ColorToHexString(USERPREFS.VERSETEXTSTYLES_BGCOLOR);
             styles.addRule("div.results p.verses span.text { background-color:"+rgb+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setStringOption("BGCOLORVERSETEXT", rgb)){
+            if(biblegetDB.setStringOption("VERSETEXTSTYLES_BGCOLOR", rgb)){
                 //System.out.println("BGCOLORVERSETEXT was successfully updated in database to value "+rgb);
             }
             else{
@@ -1109,20 +1425,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton1ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton1ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            boldBookChapter = true;
+            USERPREFS.BOOKCHAPTERSTYLES_BOLD = true;
             styles.addRule("div.results p.book { font-weight:bold; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            boldBookChapter = false;
+            USERPREFS.BOOKCHAPTERSTYLES_BOLD = false;
             styles.addRule("div.results p.book { font-weight:normal; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("BOLDBOOKCHAPTER", boldBookChapter)){
-            //System.out.println("BOLDBOOKCHAPTER was successfully updated in database to value "+boldBookChapter);
+        if(biblegetDB.setBooleanOption("BOOKCHAPTERSTYLES_BOLD", USERPREFS.BOOKCHAPTERSTYLES_BOLD)){
+            //System.out.println("BOLDBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_BOLD);
         }
         else{
             //System.out.println("Error updating BOLDBOOKCHAPTER in database");
@@ -1131,20 +1447,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton6ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton6ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            italicsBookChapter = true;
+            USERPREFS.BOOKCHAPTERSTYLES_ITALIC = true;
             styles.addRule("div.results p.book { font-style:italic; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            italicsBookChapter = false;
+            USERPREFS.BOOKCHAPTERSTYLES_ITALIC = false;
             styles.addRule("div.results p.book { font-style:normal; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("ITALICSBOOKCHAPTER", italicsBookChapter)){
-            //System.out.println("ITALICSBOOKCHAPTER was successfully updated in database to value "+italicsBookChapter);
+        if(biblegetDB.setBooleanOption("BOOKCHAPTERSTYLES_ITALIC", USERPREFS.BOOKCHAPTERSTYLES_ITALIC)){
+            //System.out.println("ITALICSBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_ITALIC);
         }
         else{
             //System.out.println("Error updating ITALICSBOOKCHAPTER in database");
@@ -1153,20 +1469,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton7ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton7ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            underscoreBookChapter = true;
+            USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE = true;
             styles.addRule("div.results p.book { text-decoration:underline; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            underscoreBookChapter = false;
+            USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE = false;
             styles.addRule("div.results p.book { text-decoration:none; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("UNDERSCOREBOOKCHAPTER", underscoreBookChapter)){
-            //System.out.println("UNDERSCOREBOOKCHAPTER was successfully updated in database to value "+underscoreBookChapter);
+        if(biblegetDB.setBooleanOption("BOOKCHAPTERSTYLES_UNDERLINE", USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE)){
+            //System.out.println("UNDERSCOREBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE);
         }
         else{
             //System.out.println("Error updating UNDERSCOREBOOKCHAPTER in database");
@@ -1175,20 +1491,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton10ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton10ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            boldVerseNumber = true;
+            USERPREFS.VERSENUMBERSTYLES_BOLD = true;
             styles.addRule("div.results p.verses span.sup { font-weight:bold; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            boldVerseNumber = false;
+            USERPREFS.VERSENUMBERSTYLES_BOLD = false;
             styles.addRule("div.results p.verses span.sup { font-weight:normal; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("BOLDVERSENUMBER", boldVerseNumber)){
-            //System.out.println("BOLDVERSENUMBER was successfully updated in database to value "+boldVerseNumber);
+        if(biblegetDB.setBooleanOption("VERSENUMBERSTYLES_BOLD", USERPREFS.VERSENUMBERSTYLES_BOLD)){
+            //System.out.println("BOLDVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_BOLD);
         }
         else{
             //System.out.println("Error updating BOLDVERSENUMBER in database");
@@ -1197,20 +1513,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton11ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton11ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            italicsVerseNumber = true;
+            USERPREFS.VERSENUMBERSTYLES_ITALIC = true;
             styles.addRule("div.results p.verses span.sup { font-style:italic; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            italicsVerseNumber = false;
+            USERPREFS.VERSENUMBERSTYLES_ITALIC = false;
             styles.addRule("div.results p.verses span.sup { font-style:normal; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("ITALICSVERSENUMBER", italicsVerseNumber)){
-            //System.out.println("ITALICSVERSENUMBER was successfully updated in database to value "+italicsVerseNumber);
+        if(biblegetDB.setBooleanOption("VERSENUMBERSTYLES_ITALIC", USERPREFS.VERSENUMBERSTYLES_ITALIC)){
+            //System.out.println("ITALICSVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_ITALIC);
         }
         else{
             //System.out.println("Error updating ITALICSVERSENUMBER in database");
@@ -1219,20 +1535,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton12ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton12ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            underscoreVerseNumber = true;
+            USERPREFS.VERSENUMBERSTYLES_UNDERLINE = true;
             styles.addRule("div.results p.verses span.sup { text-decoration:underline; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            underscoreVerseNumber = false;
+            USERPREFS.VERSENUMBERSTYLES_UNDERLINE = false;
             styles.addRule("div.results p.verses span.sup { text-decoration:none; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("UNDERSCOREVERSENUMBER", underscoreVerseNumber)){
-            //System.out.println("UNDERSCOREVERSENUMBER was successfully updated in database to value "+underscoreVerseNumber);
+        if(biblegetDB.setBooleanOption("VERSENUMBERSRTYLES_UNDERLINE", USERPREFS.VERSENUMBERSTYLES_UNDERLINE)){
+            //System.out.println("UNDERSCOREVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_UNDERLINE);
         }
         else{
             //System.out.println("Error updating UNDERSCOREVERSENUMBER in database");
@@ -1241,20 +1557,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton15ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton15ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            boldVerseText = true;
+            USERPREFS.VERSETEXTSTYLES_BOLD = true;
             styles.addRule("div.results p.verses span.text { font-weight:bold; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            boldVerseText = false;
+            USERPREFS.VERSETEXTSTYLES_BOLD = false;
             styles.addRule("div.results p.verses span.text { font-weight:normal; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("BOLDVERSETEXT", boldVerseText)){
-            //System.out.println("BOLDVERSETEXT was successfully updated in database to value "+boldVerseText);
+        if(biblegetDB.setBooleanOption("VERSETEXTSTYLES_BOLD", USERPREFS.VERSETEXTSTYLES_BOLD)){
+            //System.out.println("BOLDVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_BOLD);
         }
         else{
             //System.out.println("Error updating BOLDVERSETEXT in database");
@@ -1263,20 +1579,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton16ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton16ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            italicsVerseText = true;
+            USERPREFS.VERSETEXTSTYLES_ITALIC = true;
             styles.addRule("div.results p.verses span.text { font-style:italic; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            italicsVerseText = false;
+            USERPREFS.VERSETEXTSTYLES_ITALIC = false;
             styles.addRule("div.results p.verses span.text { font-style:normal; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("ITALICSVERSETEXT", italicsVerseText)){
-            //System.out.println("ITALICSVERSETEXT was successfully updated in database to value "+italicsVerseText);
+        if(biblegetDB.setBooleanOption("VERSETEXTSTYLES_ITALIC", USERPREFS.VERSETEXTSTYLES_ITALIC)){
+            //System.out.println("ITALICSVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_ITALIC);
         }
         else{
             //System.out.println("Error updating ITALICSVERSETEXT in database");
@@ -1285,20 +1601,20 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton17ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton17ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            underscoreVerseText = true;
+            USERPREFS.VERSETEXTSTYLES_UNDERLINE = true;
             styles.addRule("div.results p.verses span.text { text-decoration:underline; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            underscoreVerseText = false;
+            USERPREFS.VERSETEXTSTYLES_UNDERLINE = false;
             styles.addRule("div.results p.verses span.text { text-decoration:none; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         
-        if(biblegetDB.setBooleanOption("UNDERSCOREVERSETEXT", underscoreVerseText)){
-            //System.out.println("UNDERSCOREVERSETEXT was successfully updated in database to value "+underscoreVerseText);
+        if(biblegetDB.setBooleanOption("VERSETEXTSTYLES_UNDERLINE", USERPREFS.VERSETEXTSTYLES_UNDERLINE)){
+            //System.out.println("UNDERSCOREVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_UNDERLINE);
         }
         else{
             //System.out.println("Error updating UNDERSCOREVERSETEXT in database");
@@ -1307,93 +1623,93 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     private void jToggleButton3ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton3ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            paragraphAlignment = "left";
-            styles.addRule("div.results p.verses { text-align:"+paragraphAlignment+"; }");
+            USERPREFS.PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.LEFT;
+            styles.addRule("div.results p.verses { text-align:"+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getCSSValue()+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         
-            if(biblegetDB.setStringOption("PARAGRAPHALIGNMENT", paragraphAlignment)){
-                //System.out.println("PARAGRAPHALIGNMENT was successfully updated in database to value "+paragraphAlignment);
+            if(biblegetDB.setIntOption("PARAGRAPHSTYLES_ALIGNMENT", USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getValue())){
+                //System.out.println("PARAGRAPHSTYLES_ALIGNMENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT);
             }
             else{
-                //System.out.println("Error updating PARAGRAPHALIGNMENT in database");
+                //System.out.println("Error updating PARAGRAPHSTYLES_ALIGNMENT in database");
             }
         }
     }//GEN-LAST:event_jToggleButton3ItemStateChanged
 
     private void jToggleButton2ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton2ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            paragraphAlignment = "center";
-            styles.addRule("div.results p.verses { text-align:"+paragraphAlignment+"; }");
+            USERPREFS.PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.CENTER;
+            styles.addRule("div.results p.verses { text-align:"+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getCSSValue()+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         
-            if(biblegetDB.setStringOption("PARAGRAPHALIGNMENT", paragraphAlignment)){
-                //System.out.println("PARAGRAPHALIGNMENT was successfully updated in database to value "+paragraphAlignment);
+            if(biblegetDB.setIntOption("PARAGRAPHSTYLES_ALIGNMENT", USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getValue())){
+                //System.out.println("PARAGRAPHSTYLES_ALIGNMENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT);
             }
             else{
-                //System.out.println("Error updating PARAGRAPHALIGNMENT in database");
+                //System.out.println("Error updating PARAGRAPHSTYLES_ALIGNMENT in database");
             }
         }
     }//GEN-LAST:event_jToggleButton2ItemStateChanged
 
     private void jToggleButton4ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton4ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            paragraphAlignment = "right";
-            styles.addRule("div.results p.verses { text-align:"+paragraphAlignment+"; }");
+            USERPREFS.PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.RIGHT;
+            styles.addRule("div.results p.verses { text-align:"+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getCSSValue()+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         
-            if(biblegetDB.setStringOption("PARAGRAPHALIGNMENT", paragraphAlignment)){
-                //System.out.println("PARAGRAPHALIGNMENT was successfully updated in database to value "+paragraphAlignment);
+            if(biblegetDB.setIntOption("PARAGRAPHSTYLES_ALIGNMENT", USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getValue())){
+                //System.out.println("PARAGRAPHSTYLES_ALIGNMENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT);
             }
             else{
-                //System.out.println("Error updating PARAGRAPHALIGNMENT in database");
+                //System.out.println("Error updating PARAGRAPHSTYLES_ALIGNMENT in database");
             }
         }
     }//GEN-LAST:event_jToggleButton4ItemStateChanged
 
     private void jToggleButton5ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton5ItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            paragraphAlignment = "justify";
-            styles.addRule("div.results p.verses { text-align:"+paragraphAlignment+"; }");
+            USERPREFS.PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.JUSTIFY;
+            styles.addRule("div.results p.verses { text-align:"+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getCSSValue()+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         
-            if(biblegetDB.setStringOption("PARAGRAPHALIGNMENT", paragraphAlignment)){
-                //System.out.println("PARAGRAPHALIGNMENT was successfully updated in database to value "+paragraphAlignment);
+            if(biblegetDB.setIntOption("PARAGRAPHSTYLES_ALIGNMENT", USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getValue())){
+                //System.out.println("PARAGRAPHSTYLES_ALIGNMENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT);
             }
             else{
-                //System.out.println("Error updating PARAGRAPHALIGNMENT in database");
+                //System.out.println("Error updating PARAGRAPHSTYLES_ALIGNMENT in database");
             }
         }
     }//GEN-LAST:event_jToggleButton5ItemStateChanged
 
     private void jButton3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton3MouseClicked
-        paragraphLeftIndent += 5;
-        styles.addRule("div.results { padding-left:"+paragraphLeftIndent+"pt; }");
+        USERPREFS.PARAGRAPHSTYLES_LEFTINDENT += 5;
+        styles.addRule("div.results { padding-left:"+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT+"pt; }");
         jTextPane1.setDocument(doc);
         jTextPane1.setText(HTMLStr);
         
-        if(biblegetDB.setIntOption("PARAGRAPHLEFTINDENT", paragraphLeftIndent)){
-            //System.out.println("PARAGRAPHLEFTINDENT was successfully updated in database to value "+paragraphLeftIndent);
+        if(biblegetDB.setIntOption("PARAGRAPHSTYLES_LEFTINDENT", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)){
+            //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
         }
         else{
-            //System.out.println("Error updating PARAGRAPHLEFTINDENT in database");
+            //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
         }
     }//GEN-LAST:event_jButton3MouseClicked
 
     private void jButton4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton4MouseClicked
-        if(paragraphLeftIndent>=5){paragraphLeftIndent -= 5;}
-        styles.addRule("div.results { padding-left:"+paragraphLeftIndent+"pt; }");
+        if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT>=5){USERPREFS.PARAGRAPHSTYLES_LEFTINDENT -= 5;}
+        styles.addRule("div.results { padding-left:"+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT+"pt; }");
         jTextPane1.setDocument(doc);
         jTextPane1.setText(HTMLStr);
         
-        if(biblegetDB.setIntOption("PARAGRAPHLEFTINDENT", paragraphLeftIndent)){
-            //System.out.println("PARAGRAPHLEFTINDENT was successfully updated in database to value "+paragraphLeftIndent);
+        if(biblegetDB.setIntOption("PARAGRAPHSTYLES_LEFTINDENT", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)){
+            //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
         }
         else{
-            //System.out.println("Error updating PARAGRAPHLEFTINDENT in database");
+            //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
         }
     }//GEN-LAST:event_jButton4MouseClicked
 
@@ -1401,22 +1717,22 @@ public class OptionsFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButton9.setSelected(false);
-            vAlignBookChapter = "super";
-            //System.out.println("setting book-chapter vertical-align to: "+vAlignBookChapter);
-            styles.addRule("div.results p.book span { vertical-align: "+vAlignBookChapter+"; }");
+            USERPREFS.BOOKCHAPTERSTYLES_VALIGN = BGET.VALIGN.SUPERSCRIPT;
+            //System.out.println("setting book-chapter vertical-align to: "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN);
+            styles.addRule("div.results p.book span { vertical-align: super; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            vAlignBookChapter = "initial";
-            //System.out.println("btn8 :: setting book-chapter vertical-align to: "+vAlignBookChapter);
-            styles.addRule("div.results p.book span { vertical-align: "+vAlignBookChapter+"; }");
+            USERPREFS.BOOKCHAPTERSTYLES_VALIGN = BGET.VALIGN.NORMAL;
+            //System.out.println("btn8 :: setting book-chapter vertical-align to: "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN);
+            styles.addRule("div.results p.book span { vertical-align: initial; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }        
         
-        if(biblegetDB.setStringOption("VALIGNBOOKCHAPTER", vAlignBookChapter)){
-            //System.out.println("VALIGNBOOKCHAPTER was successfully updated in database to value "+vAlignBookChapter);
+        if(biblegetDB.setIntOption("BOOKCHAPTERSTYLES_VALIGN", USERPREFS.BOOKCHAPTERSTYLES_VALIGN.getValue())){
+            //System.out.println("VALIGNBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN);
         }
         else{
             //System.out.println("Error updating VALIGNBOOKCHAPTER in database");
@@ -1427,22 +1743,22 @@ public class OptionsFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButton8.setSelected(false);
-            vAlignBookChapter = "sub";
-            //System.out.println("setting book-chapter vertical-align to: "+vAlignBookChapter);
-            styles.addRule("div.results p.book span { vertical-align: "+vAlignBookChapter+"; }");
+            USERPREFS.BOOKCHAPTERSTYLES_VALIGN = BGET.VALIGN.SUBSCRIPT;
+            //System.out.println("setting book-chapter vertical-align to: "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN);
+            styles.addRule("div.results p.book span { vertical-align: sub; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            vAlignBookChapter = "initial";
-            //System.out.println("btn9 :: setting book-chapter vertical-align to: "+vAlignBookChapter);
-            styles.addRule("div.results p.book span { vertical-align: "+vAlignBookChapter+"; }");
+            USERPREFS.BOOKCHAPTERSTYLES_VALIGN = BGET.VALIGN.NORMAL;
+            //System.out.println("btn9 :: setting book-chapter vertical-align to: "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN);
+            styles.addRule("div.results p.book span { vertical-align: initial; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }        
         
-        if(biblegetDB.setStringOption("VALIGNBOOKCHAPTER", vAlignBookChapter)){
-            System.out.println("VALIGNBOOKCHAPTER was successfully updated in database to value "+vAlignBookChapter);
+        if(biblegetDB.setIntOption("BOOKCHAPTERSTYLES_VALIGN", USERPREFS.BOOKCHAPTERSTYLES_VALIGN.getValue())){
+            //System.out.println("BOOKCHAPTERSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_VALIGN.toString());
         }
         else{
             //System.out.println("Error updating VALIGNBOOKCHAPTER in database");
@@ -1453,25 +1769,25 @@ public class OptionsFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButton14.setSelected(false);
-            vAlignVerseNumber = "super";
-            //System.out.println("setting verse-number vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.sup { vertical-align: "+vAlignVerseNumber+"; }");
+            USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.SUPERSCRIPT;
+            //System.out.println("setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.sup { vertical-align: super; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            vAlignVerseNumber = "initial";
-            //System.out.println("btn13 :: setting verse-number vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.sup { vertical-align: "+vAlignVerseNumber+"; }");
+            USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.NORMAL;
+            //System.out.println("btn13 :: setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.sup { vertical-align: initial; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }                
         
-        if(biblegetDB.setStringOption("VALIGNVERSENUMBER", vAlignVerseNumber)){
-            //System.out.println("VALIGNVERSENUMBER was successfully updated in database to value "+vAlignVerseNumber);
+        if(biblegetDB.setIntOption("VERSENUMBERSTYLES_VALIGN", USERPREFS.VERSENUMBERSTYLES_VALIGN.getValue())){
+            //System.out.println("VERSENUMBERSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
         }
         else{
-            //System.out.println("Error updating VALIGNVERSENUMBER in database");
+            //System.out.println("Error updating VERSENUMBERSTYLES_VALIGN in database");
         }
     }//GEN-LAST:event_jToggleButton13ItemStateChanged
 
@@ -1479,25 +1795,25 @@ public class OptionsFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButton13.setSelected(false);
-            vAlignVerseNumber = "sub";
-            //System.out.println("setting verse-number vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.sup { vertical-align: "+vAlignVerseNumber+"; }");
+            USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.SUBSCRIPT;
+            //System.out.println("setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.sup { vertical-align: sub; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            vAlignVerseNumber = "initial";
-            //System.out.println("btn14 :: setting verse-number vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.sup { vertical-align: "+vAlignVerseNumber+"; }");
+            USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.NORMAL;
+            //System.out.println("btn14 :: setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.sup { vertical-align: initial; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }        
         
-        if(biblegetDB.setStringOption("VALIGNVERSENUMBER", vAlignVerseNumber)){
-            //System.out.println("VALIGNVERSENUMBER was successfully updated in database to value "+vAlignVerseNumber);
+        if(biblegetDB.setIntOption("VERSENUMBERSTYLES_VALIGN", USERPREFS.VERSENUMBERSTYLES_VALIGN.getValue())){
+            //System.out.println("VERSENUMBERSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
         }
         else{
-            //System.out.println("Error updating VALIGNVERSENUMBER in database");
+            //System.out.println("Error updating VERSENUMBERSTYLES_VALIGN in database");
         }
     }//GEN-LAST:event_jToggleButton14ItemStateChanged
 
@@ -1505,25 +1821,25 @@ public class OptionsFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButton19.setSelected(false);
-            vAlignVerseText = "super";
-            //System.out.println("setting verse-text vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.text { vertical-align: "+vAlignVerseText+"; }");
+            USERPREFS.VERSETEXTSTYLES_VALIGN = BGET.VALIGN.SUPERSCRIPT;
+            //System.out.println("setting verse-text vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.text { vertical-align: super; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            vAlignVerseText = "initial";
-            //System.out.println("btn18 :: setting verse-text vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.text { vertical-align: "+vAlignVerseText+"; }");
+            USERPREFS.VERSETEXTSTYLES_VALIGN = BGET.VALIGN.NORMAL;
+            //System.out.println("btn18 :: setting verse-text vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.text { vertical-align: initial; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }        
         
-        if(biblegetDB.setStringOption("VALIGNVERSETEXT", vAlignVerseText)){
-            //System.out.println("VALIGNVERSETEXT was successfully updated in database to value "+vAlignVerseText);
+        if(biblegetDB.setIntOption("VERSETEXTSTYLES_VALIGN", USERPREFS.VERSETEXTSTYLES_VALIGN.getValue())){
+            //System.out.println("VERSETEXTSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_VALIGN);
         }
         else{
-            //System.out.println("Error updating VALIGNVERSETEXT in database");
+            //System.out.println("Error updating VERSENUMBERSTYLES_FONTSIZEVERSETEXTSTYLES_VALIGN in database");
         }
     }//GEN-LAST:event_jToggleButton18ItemStateChanged
 
@@ -1531,25 +1847,25 @@ public class OptionsFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButton18.setSelected(false);
-            vAlignVerseText = "sub";
-            //System.out.println("setting verse-text vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.text { vertical-align: "+vAlignVerseText+"; }");
+            USERPREFS.VERSETEXTSTYLES_VALIGN = BGET.VALIGN.SUBSCRIPT;
+            //System.out.println("setting verse-text vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.text { vertical-align: sub; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            vAlignVerseText = "initial";
-            //System.out.println("btn19 :: setting verse-text vertical-align to: "+vAlignVerseNumber);
-            styles.addRule("div.results p.verses span.text { vertical-align: "+vAlignVerseText+"; }");
+            USERPREFS.VERSETEXTSTYLES_VALIGN = BGET.VALIGN.NORMAL;
+            //System.out.println("btn19 :: setting verse-text vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            styles.addRule("div.results p.verses span.text { vertical-align: initial; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
         }        
         
-        if(biblegetDB.setStringOption("VALIGNVERSETEXT", vAlignVerseText)){
-            //System.out.println("VALIGNVERSETEXT was successfully updated in database to value "+vAlignVerseText);
+        if(biblegetDB.setIntOption("VERSETEXTSTYLES_VALIGN", USERPREFS.VERSETEXTSTYLES_VALIGN.getValue())){
+            //System.out.println("VERSETEXTSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_VALIGN);
         }
         else{
-            //System.out.println("Error updating VALIGNVERSETEXT in database");
+            //System.out.println("Error updating VERSENUMBERSTYLES_FONTSIZEVERSETEXTSTYLES_VALIGN in database");
         }
     }//GEN-LAST:event_jToggleButton19ItemStateChanged
 
@@ -1559,12 +1875,12 @@ public class OptionsFrame extends javax.swing.JFrame {
             Object item = evt.getItem();
             // do something with object
             String fontsize = item.toString();
-            fontSizeBookChapter = Integer.parseInt(fontsize);
-            styles.addRule("div.results p.book { font-size:"+fontSizeBookChapter+"pt; }");
+            USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE = Integer.parseInt(fontsize);
+            styles.addRule("div.results p.book { font-size:"+USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE+"pt; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setIntOption("FONTSIZEBOOKCHAPTER", fontSizeBookChapter)){
-                //System.out.println("FONTSIZEBOOKCHAPTER was successfully updated in database to value "+fontSizeBookChapter);
+            if(biblegetDB.setIntOption("BOOKCHAPTERSTYLES_FONTSIZE", USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE)){
+                //System.out.println("FONTSIZEBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE);
             }
             else{
                 //System.out.println("Error updating FONTSIZEBOOKCHAPTER in database");
@@ -1578,15 +1894,15 @@ public class OptionsFrame extends javax.swing.JFrame {
             Object item = evt.getItem();
             // do something with object
             String fontsize = item.toString();
-            fontSizeVerseNumber = Integer.parseInt(fontsize);
-            styles.addRule("div.results p.verses span.sup { font-size:"+fontSizeVerseNumber+"pt;}");
+            USERPREFS.VERSENUMBERSTYLES_FONTSIZE = Integer.parseInt(fontsize);
+            styles.addRule("div.results p.verses span.sup { font-size:"+USERPREFS.VERSENUMBERSTYLES_FONTSIZE+"pt;}");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setIntOption("FONTSIZEVERSENUMBER", fontSizeVerseNumber)){
-                //System.out.println("FONTSIZEVERSENUMBER was successfully updated in database to value "+fontSizeVerseNumber);
+            if(biblegetDB.setIntOption("VERSENUMBERSTYLES_FONTSIZE", USERPREFS.VERSENUMBERSTYLES_FONTSIZE)){
+                //System.out.println("VERSENUMBERSTYLES_FONTSIZE was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_FONTSIZE);
             }
             else{
-                //System.out.println("Error updating FONTSIZEVERSENUMBER in database");
+                //System.out.println("Error updating VERSENUMBERSTYLES_FONTSIZE in database");
             }                
         }
     }//GEN-LAST:event_jComboBox3ItemStateChanged
@@ -1597,12 +1913,12 @@ public class OptionsFrame extends javax.swing.JFrame {
           Object item = evt.getItem();
           // do something with object
             String fontsize = item.toString();
-            fontSizeVerseText = Integer.parseInt(fontsize);
-            styles.addRule("div.results p.verses span.text { font-size:"+fontSizeVerseText+"pt;}");
+            USERPREFS.VERSETEXTSTYLES_FONTSIZE = Integer.parseInt(fontsize);
+            styles.addRule("div.results p.verses span.text { font-size:"+USERPREFS.VERSETEXTSTYLES_FONTSIZE+"pt;}");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setIntOption("FONTSIZEVERSETEXT", fontSizeVerseText)){
-                //System.out.println("FONTSIZEVERSETEXT was successfully updated in database to value "+fontSizeVerseText);
+            if(biblegetDB.setIntOption("VERSETEXTSTYLES_FONTSIZE", USERPREFS.VERSETEXTSTYLES_FONTSIZE)){
+                //System.out.println("FONTSIZEVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_FONTSIZE);
             }
             else{
                 //System.out.println("Error updating FONTSIZEVERSETEXT in database");
@@ -1615,12 +1931,12 @@ public class OptionsFrame extends javax.swing.JFrame {
         if(evt.getStateChange()==ItemEvent.SELECTED) {
           Object item = evt.getItem();
           // do something with object
-            paragraphFontFamily = item.toString();
-            styles.addRule("div.results { font-family: "+paragraphFontFamily+"; }");
+            USERPREFS.PARAGRAPHSTYLES_FONTFAMILY = item.toString();
+            styles.addRule("div.results { font-family: "+USERPREFS.PARAGRAPHSTYLES_FONTFAMILY+"; }");
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setStringOption("PARAGRAPHFONTFAMILY", paragraphFontFamily)){
-                //System.out.println("PARAGRAPHFONTFAMILY was successfully updated in database to value "+paragraphFontFamily);
+            if(biblegetDB.setStringOption("PARAGRAPHSTYLES_FONTFAMILY", USERPREFS.PARAGRAPHSTYLES_FONTFAMILY)){
+                //System.out.println("PARAGRAPHFONTFAMILY was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_FONTFAMILY);
             }
             else{
                 //System.out.println("Error updating PARAGRAPHFONTFAMILY in database");
@@ -1636,18 +1952,34 @@ public class OptionsFrame extends javax.swing.JFrame {
             //System.out.println("selected index: "+selecIdx);
             switch(selecIdx)
             {
-                case 0: paragraphLineSpacing = 100; break;
-                case 1: paragraphLineSpacing = 150; break;
-                case 2: paragraphLineSpacing = 200; break;    
+                case 0: USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT = 100; break;
+                case 1: USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT = 150; break;
+                case 2: USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT = 200; break;    
             }
             // do something with object
             
-            styles.addRule("div.results p.book { line-height: "+paragraphLineSpacing+"%; }");
-            styles.addRule("div.results p.verses { line-height: "+paragraphLineSpacing+"%; }");
+            styles.addRule("div.results p.book { line-height: "+USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT+"%; }");
+            styles.addRule("div.results p.verses { line-height: "+USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT+"%; }");
+            /*
+            styleSheetRules.replace("paragraphLineSpacing1", "div.results p.book { line-height: "+USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT+"%; }");
+            styleSheetRules.replace("paragraphLineSpacing2", "div.results p.verses { line-height: "+USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT+"%; }");
+            String s = styleSheetRules.entrySet()
+                         .stream()
+                         .map(e -> e.getValue()) //e.getKey()+"="+
+                         .collect(joining(System.lineSeparator()));
+            System.out.println("styleSheetRules = ");
+            System.out.println(s);
+
+            String HTMLStrWithStyles = String.format(HTMLStr,s);
+            */
+            //browser.loadURL(DataUri.create("text/html",HTMLStrWithStyles));
+            Double lineHeight = Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT) / 100;
+            //"div.results .versesParagraph { line-height: " + String.format(Locale.ROOT, "%.1f", lineHeight) + "em; }"
+            browser.executeJavaScript("jQuery(\"div.results .versesParagraph\").css({\"line-height\":\"" + String.format(Locale.ROOT, "%.1f", lineHeight) + "em\"}) ", browser.getURL(),0);
             jTextPane1.setDocument(doc);
             jTextPane1.setText(HTMLStr);
-            if(biblegetDB.setIntOption("PARAGRAPHLINESPACING", paragraphLineSpacing)){
-                //System.out.println("PARAGRAPHLINESPACING was successfully updated in database to value "+paragraphLineSpacing);
+            if(biblegetDB.setIntOption("PARAGRAPHSTYLES_LINEHEIGHT", USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT)){
+                //System.out.println("PARAGRAPHLINESPACING was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT);
             }
             else{
                 //System.out.println("Error updating PARAGRAPHLINESPACING in database");
@@ -1664,19 +1996,23 @@ public class OptionsFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         if(evt.getStateChange()==ItemEvent.SELECTED) {
           // do something with object
-            noVersionFormatting = true;
+            USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING = true;
         }        
         else if(evt.getStateChange()==ItemEvent.DESELECTED) {
           // do something with object
-            noVersionFormatting = false;
+            USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING = false;
         }        
-        if(biblegetDB.setBooleanOption("NOVERSIONFORMATTING", noVersionFormatting)){
-            //System.out.println("NOVERSIONFORMATTING was successfully updated in database to value "+noVersionFormatting);
+        if(biblegetDB.setBooleanOption("PARAGRAPHSTYLES_NOVERSIONFORMATTING", USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING)){
+            //System.out.println("NOVERSIONFORMATTING was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING);
         }
         else{
             //System.out.println("Error updating NOVERSIONFORMATTING in database");
         }                
     }//GEN-LAST:event_jCheckBox1ItemStateChanged
+
+    private void jComboBox6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox6ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jComboBox6ActionPerformed
     
         
     
@@ -1765,92 +2101,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         //rootEntityComboBox.setSelectedItem(selectedItem.getDisplayName());     
     }
     
-    private void navigateTree(JsonValue tree, String key) {
-        if (key != null){
-            //System.out.print("Key " + key + ": ");
-        }
-        switch(tree.getValueType()) {
-            case OBJECT:
-                System.out.println("OBJECT");
-                JsonObject object = (JsonObject) tree;
-                for (String name : object.keySet())
-                   navigateTree(object.get(name), name);
-                break;
-            case ARRAY:
-                System.out.println("ARRAY");
-                JsonArray array = (JsonArray) tree;
-                for (JsonValue val : array)
-                   navigateTree(val, null);
-                break;
-            case STRING:
-                System.out.println("STRING");
-                JsonString st = (JsonString) tree;
-                System.out.println("key " + key + " | STRING " + st.getString());
-                getStringOption(key,st.getString());
-                break;
-            case NUMBER:
-                JsonNumber num = (JsonNumber) tree;
-                System.out.println("NUMBER " + num.toString());
-                getNumberOption(key,num.intValue());
-                break;
-            case TRUE:
-                getBooleanOption(key,true);
-                System.out.println("BOOLEAN " + tree.getValueType().toString());
-                break;
-            case FALSE:
-                getBooleanOption(key,false);
-                System.out.println("BOOLEAN " + tree.getValueType().toString());
-                break;
-            case NULL:
-                System.out.println("NULL " + tree.getValueType().toString());
-                break;
-        }
-    }
-    
-    private void getStringOption(String key,String value){
-        switch(key){
-            case "PARAGRAPHALIGNMENT": paragraphAlignment = value; break;
-            case "PARAGRAPHFONTFAMILY": paragraphFontFamily = value; break;
-            case "TEXTCOLORBOOKCHAPTER": System.out.println("textColorBookChapter="+value); textColorBookChapter = Color.decode(value); break; //decode string representation of hex value
-            case "BGCOLORBOOKCHAPTER": System.out.println("bgColorBookChapter="+value); bgColorBookChapter = Color.decode(value); break; //decode string representation of hex value
-            case "VALIGNBOOKCHAPTER": vAlignBookChapter = value; break;
-            case "TEXTCOLORVERSENUMBER": System.out.println("textColorVerseNumber="+value); textColorVerseNumber = Color.decode(value); break; //decode string representation of hex value
-            case "BGCOLORVERSENUMBER": System.out.println("bgColorVerseNumber="+value); bgColorVerseNumber = Color.decode(value); break; //decode string representation of hex value
-            case "VALIGNVERSENUMBER": vAlignVerseNumber = value; break;
-            case "TEXTCOLORVERSETEXT": System.out.println("textColorVerseText="+value); textColorVerseText = Color.decode(value); break; //decode string representation of hex value
-            case "BGCOLORVERSETEXT": System.out.println("bgColorVerseText="+value); bgColorVerseText = Color.decode(value); break; //decode string representation of hex value
-            case "VALIGNVERSETEXT": vAlignVerseText = value; break;
-        }
-    }
-    
-    private void getNumberOption(String key,int value){
-        switch(key){
-            case "PARAGRAPHLINESPACING": paragraphLineSpacing = value; break; //think of it as percent
-            case "PARAGRAPHLEFTINDENT": paragraphLeftIndent = value; break;
-            case "FONTSIZEBOOKCHAPTER": fontSizeBookChapter = value; break;       
-            case "FONTSIZEVERSENUMBER": fontSizeVerseNumber = value; break;
-            case "FONTSIZEVERSETEXT": fontSizeVerseText = value; break;
-        }    
-    }
-    private void getBooleanOption(String key,boolean value){
-        switch(key){
-            case "BOLDBOOKCHAPTER": boldBookChapter = value; break;
-            case "ITALICSBOOKCHAPTER": italicsBookChapter = value; break;
-            case "UNDERSCOREBOOKCHAPTER": underscoreBookChapter = value; break;
-            case "BOLDVERSENUMBER": boldVerseNumber = value; break;
-            case "ITALICSVERSENUMBER": italicsVerseNumber = value; break;
-            case "UNDERSCOREVERSENUMBER": underscoreVerseNumber = value; break;
-            case "BOLDVERSETEXT": boldVerseText = value; break;
-            case "ITALICSVERSETEXT": italicsVerseText = value; break;
-            case "UNDERSCOREVERSETEXT": underscoreVerseText = value; break;
-            case "NOVERSIONFORMATTING": noVersionFormatting = value; break;
-        }    
-    }
 
     private int getParaLineSpaceVal()
     {
         int retval;
-        switch(paragraphLineSpacing)
+        switch(USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT)
         {
             case 100: retval = 0; break;
             case 150: retval = 1; break;
@@ -1890,6 +2145,8 @@ public class OptionsFrame extends javax.swing.JFrame {
                 new OptionsFrame().setVisible(true);
             } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
                 Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
+                Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
     }
@@ -1917,6 +2174,7 @@ public class OptionsFrame extends javax.swing.JFrame {
     private javax.swing.JComboBox jComboBox3;
     private javax.swing.JComboBox jComboBox4;
     private javax.swing.JComboBox jComboBox6;
+    private javax.swing.JInternalFrame jInternalFrame1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;

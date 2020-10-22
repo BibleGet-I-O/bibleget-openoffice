@@ -38,18 +38,26 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" alignment="0" attributes="0">
+          <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jPanel2" min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="jPanel2" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                  </Group>
+                  <Component id="jInternalFrame1" alignment="0" max="32767" attributes="0"/>
+              </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" alignment="0" attributes="0">
+          <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jPanel2" max="32767" attributes="0"/>
+              <Component id="jPanel2" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="jInternalFrame1" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
@@ -213,7 +221,7 @@
                           <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/align_left.png"/>
                         </Property>
                         <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                          <Connection code="paragraphAlignment.equals(&quot;left&quot;)" type="code"/>
+                          <Connection code="USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.equals(BGET.ALIGN.LEFT)" type="code"/>
                         </Property>
                         <Property name="focusable" type="boolean" value="false"/>
                         <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -243,7 +251,7 @@
                           <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/align_center.png"/>
                         </Property>
                         <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                          <Connection code="paragraphAlignment.equals(&quot;center&quot;)" type="code"/>
+                          <Connection code="USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.equals(BGET.ALIGN.CENTER)" type="code"/>
                         </Property>
                         <Property name="focusable" type="boolean" value="false"/>
                         <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -270,7 +278,7 @@
                           <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/align_right.png"/>
                         </Property>
                         <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                          <Connection code="paragraphAlignment.equals(&quot;right&quot;)" type="code"/>
+                          <Connection code="USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.equals(BGET.ALIGN.RIGHT)" type="code"/>
                         </Property>
                         <Property name="focusable" type="boolean" value="false"/>
                         <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -297,7 +305,7 @@
                           <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/align_justify.png"/>
                         </Property>
                         <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                          <Connection code="paragraphAlignment.equals(&quot;justify&quot;)" type="code"/>
+                          <Connection code="USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.equals(BGET.ALIGN.JUSTIFY)" type="code"/>
                         </Property>
                         <Property name="focusable" type="boolean" value="false"/>
                         <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -450,6 +458,7 @@
                       </Properties>
                       <Events>
                         <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jComboBox6ItemStateChanged"/>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jComboBox6ActionPerformed"/>
                       </Events>
                     </Component>
                   </SubComponents>
@@ -500,14 +509,14 @@
                     <Component class="javax.swing.JComboBox" name="jComboBox1">
                       <Properties>
                         <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                          <Connection code="new java.awt.Font(paragraphFontFamily, java.awt.Font.PLAIN, 18)" type="code"/>
+                          <Connection code="new java.awt.Font(USERPREFS.PARAGRAPHSTYLES_FONTFAMILY, java.awt.Font.PLAIN, 18)" type="code"/>
                         </Property>
                         <Property name="maximumRowCount" type="int" value="6"/>
                         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                           <Connection code="fontFamilies" type="code"/>
                         </Property>
                         <Property name="selectedItem" type="java.lang.Object" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                          <Connection code="paragraphFontFamily" type="code"/>
+                          <Connection code="USERPREFS.PARAGRAPHSTYLES_FONTFAMILY" type="code"/>
                         </Property>
                         <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
                           <Dimension value="[300, 41]"/>
@@ -565,7 +574,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/bold.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="boldBookChapter" type="code"/>
+                      <Connection code="USERPREFS.BOOKCHAPTERSTYLES_BOLD" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -584,7 +593,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/italic.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="italicsBookChapter" type="code"/>
+                      <Connection code="USERPREFS.BOOKCHAPTERSTYLES_ITALIC" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -603,7 +612,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/underline.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="underscoreBookChapter" type="code"/>
+                      <Connection code="USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -688,7 +697,7 @@
                       </StringArray>
                     </Property>
                     <Property name="selectedItem" type="java.lang.Object" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="&quot;&quot;+fontSizeBookChapter+&quot;&quot;" type="code"/>
+                      <Connection code="&quot;&quot;+USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE+&quot;&quot;" type="code"/>
                     </Property>
                     <Property name="toolTipText" type="java.lang.String" value="Book / Chapter font size"/>
                     <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
@@ -705,10 +714,10 @@
                 <Component class="javax.swing.JToggleButton" name="jToggleButton8">
                   <Properties>
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                      <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/superscript.png"/>
+                      <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/subscript.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="vAlignBookChapter.equals(&quot;super&quot;)" type="code"/>
+                      <Connection code="USERPREFS.BOOKCHAPTERSTYLES_VALIGN.equals(BGET.VALIGN.SUPERSCRIPT)" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -724,10 +733,10 @@
                 <Component class="javax.swing.JToggleButton" name="jToggleButton9">
                   <Properties>
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                      <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/subscript.png"/>
+                      <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/superscript.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="vAlignBookChapter.equals(&quot;sub&quot;)" type="code"/>
+                      <Connection code="USERPREFS.BOOKCHAPTERSTYLES_VALIGN.equals(BGET.VALIGN.SUBSCRIPT)" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -786,7 +795,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/bold.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="boldVerseNumber" type="code"/>
+                      <Connection code="USERPREFS.VERSENUMBERSTYLES_BOLD" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -805,7 +814,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/italic.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="italicsVerseNumber" type="code"/>
+                      <Connection code="USERPREFS.VERSENUMBERSTYLES_ITALIC" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -824,7 +833,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/underline.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="underscoreVerseNumber" type="code"/>
+                      <Connection code="USERPREFS.VERSENUMBERSTYLES_UNDERLINE" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -909,7 +918,7 @@
                       </StringArray>
                     </Property>
                     <Property name="selectedItem" type="java.lang.Object" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="&quot;&quot;+fontSizeVerseNumber+&quot;&quot;" type="code"/>
+                      <Connection code="&quot;&quot;+USERPREFS.VERSENUMBERSTYLES_FONTSIZE+&quot;&quot;" type="code"/>
                     </Property>
                     <Property name="toolTipText" type="java.lang.String" value="Verse Number font size"/>
                     <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
@@ -926,10 +935,10 @@
                 <Component class="javax.swing.JToggleButton" name="jToggleButton13">
                   <Properties>
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                      <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/superscript.png"/>
+                      <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/subscript.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="vAlignVerseNumber.equals(&quot;super&quot;)" type="code"/>
+                      <Connection code="USERPREFS.VERSENUMBERSTYLES_VALIGN.equals(BGET.VALIGN.SUPERSCRIPT)" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -945,10 +954,10 @@
                 <Component class="javax.swing.JToggleButton" name="jToggleButton14">
                   <Properties>
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                      <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/subscript.png"/>
+                      <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/superscript.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="vAlignVerseNumber.equals(&quot;sub&quot;)" type="code"/>
+                      <Connection code="USERPREFS.VERSENUMBERSTYLES_VALIGN.equals(BGET.VALIGN.SUBSCRIPT)" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -1007,7 +1016,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/bold.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="boldVerseText" type="code"/>
+                      <Connection code="USERPREFS.VERSETEXTSTYLES_BOLD" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -1026,7 +1035,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/italic.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="italicsVerseText" type="code"/>
+                      <Connection code="USERPREFS.VERSETEXTSTYLES_ITALIC" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -1045,7 +1054,7 @@
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/underline.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="underscoreVerseText" type="code"/>
+                      <Connection code="USERPREFS.VERSETEXTSTYLES_UNDERLINE" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -1130,7 +1139,7 @@
                       </StringArray>
                     </Property>
                     <Property name="selectedItem" type="java.lang.Object" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="&quot;&quot;+fontSizeVerseText+&quot;&quot;" type="code"/>
+                      <Connection code="&quot;&quot;+USERPREFS.VERSETEXTSTYLES_FONTSIZE+&quot;&quot;" type="code"/>
                     </Property>
                     <Property name="toolTipText" type="java.lang.String" value="Verse Text font size"/>
                     <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
@@ -1147,10 +1156,10 @@
                 <Component class="javax.swing.JToggleButton" name="jToggleButton18">
                   <Properties>
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                      <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/superscript.png"/>
+                      <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/subscript.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="vAlignVerseText.equals(&quot;super&quot;)" type="code"/>
+                      <Connection code="USERPREFS.VERSETEXTSTYLES_VALIGN.equals(BGET.VALIGN.SUPERSCRIPT)" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -1166,10 +1175,10 @@
                 <Component class="javax.swing.JToggleButton" name="jToggleButton19">
                   <Properties>
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                      <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/subscript.png"/>
+                      <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/superscript.png"/>
                     </Property>
                     <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="vAlignVerseText.equals(&quot;sub&quot;)" type="code"/>
+                      <Connection code="USERPREFS.VERSETEXTSTYLES_VALIGN.equals(BGET.VALIGN.SUBSCRIPT)" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -1261,7 +1270,7 @@
         <Component class="javax.swing.JCheckBox" name="jCheckBox1">
           <Properties>
             <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="noVersionFormatting" type="code"/>
+              <Connection code="USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING" type="code"/>
             </Property>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
               <Connection code="__(&quot;Override Bible Version Formatting&quot;)" type="code"/>
@@ -1283,6 +1292,31 @@
         <Component class="javax.swing.JSeparator" name="jSeparator7">
         </Component>
       </SubComponents>
+    </Container>
+    <Container class="javax.swing.JInternalFrame" name="jInternalFrame1">
+      <Properties>
+        <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+          <Border info="null"/>
+        </Property>
+        <Property name="visible" type="boolean" value="true"/>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new JInternalFrame() {&#xd;&#xa;           @Override&#xd;&#xa;           public void setUI(InternalFrameUI ui) {&#xd;&#xa;               super.setUI(ui); // this gets called internally when updating the ui and makes the northPane reappear&#xd;&#xa;               BasicInternalFrameUI frameUI = (BasicInternalFrameUI) getUI(); // so...&#xd;&#xa;               if (frameUI != null) frameUI.setNorthPane(null); // lets get rid of it&#xd;&#xa;           }&#xd;&#xa;        }"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="//jInternalFrame1.setBorder(null);"/>
+      </AuxValues>
+
+      <Layout>
+        <DimensionLayout dim="0">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+          </Group>
+        </DimensionLayout>
+        <DimensionLayout dim="1">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <EmptySpace min="0" pref="232" max="32767" attributes="0"/>
+          </Group>
+        </DimensionLayout>
+      </Layout>
     </Container>
   </SubComponents>
 </Form>

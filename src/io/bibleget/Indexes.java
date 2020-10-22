@@ -27,7 +27,7 @@ public class Indexes {
     private static Set<String> versionsabbrev = null;
     private static HashMap<String,VersionIDX> VersionIndexes;
     
-    private Indexes() throws ClassNotFoundException, SQLException {
+    private Indexes() throws ClassNotFoundException, SQLException, Exception {
         bibleGetDB = BibleGetDB.getInstance();
         if(versionsabbrev==null) {
             String versions = bibleGetDB.getMetaData("VERSIONS");
@@ -42,7 +42,7 @@ public class Indexes {
         }
     }
     
-    public static Indexes getInstance() throws ClassNotFoundException, SQLException {
+    public static Indexes getInstance() throws ClassNotFoundException, SQLException, Exception {
         if(instance==null) {
             instance = new Indexes();
         }

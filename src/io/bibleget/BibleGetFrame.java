@@ -74,7 +74,7 @@ public final class BibleGetFrame extends javax.swing.JFrame {
      * Creates new form BibleGetFrame
      * @param xController
      */
-    private BibleGetFrame(XController xController) throws ClassNotFoundException, SQLException {
+    private BibleGetFrame(XController xController) throws ClassNotFoundException, SQLException, Exception {
         m_xController = xController;
         screenWidth = (int)java.awt.Toolkit.getDefaultToolkit().getScreenSize().getWidth();
         screenHeight = (int)java.awt.Toolkit.getDefaultToolkit().getScreenSize().getHeight();
@@ -91,7 +91,7 @@ public final class BibleGetFrame extends javax.swing.JFrame {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    public static BibleGetFrame getInstance(XController xController) throws ClassNotFoundException, SQLException
+    public static BibleGetFrame getInstance(XController xController) throws ClassNotFoundException, SQLException, Exception
     {
         if(instance == null)
         {
@@ -104,7 +104,7 @@ public final class BibleGetFrame extends javax.swing.JFrame {
      *
      * @throws ClassNotFoundException
      */
-    private void prepareDynamicInformation() throws ClassNotFoundException, SQLException{
+    private void prepareDynamicInformation() throws ClassNotFoundException, SQLException, Exception{
         biblegetDB = BibleGetDB.getInstance();
         String bibleVersionsStr = biblegetDB.getMetaData("VERSIONS");
         System.out.println(this.getClass().getSimpleName() + " -> prepareDynamicInformation -> bibleVersionsStr = " + bibleVersionsStr);
@@ -160,7 +160,7 @@ public final class BibleGetFrame extends javax.swing.JFrame {
     
     }
     
-    public void updateDynamicInformation() throws ClassNotFoundException, SQLException{
+    public void updateDynamicInformation() throws ClassNotFoundException, SQLException, Exception{
         prepareDynamicInformation();
         jList1.setModel(new DefaultEventListModel<>(versionsByLang));
         jList1.setCellRenderer(new VersionCellRenderer());
@@ -317,6 +317,8 @@ public final class BibleGetFrame extends javax.swing.JFrame {
             }
         } catch (HeadlessException | ClassNotFoundException | UnknownPropertyException | PropertyVetoException | IllegalArgumentException | WrappedTargetException | UnsupportedEncodingException | SQLException ex) {
             Logger.getLogger(BibleGetFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(BibleGetFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
             
     }//GEN-LAST:event_jButton1MouseClicked
@@ -414,10 +416,11 @@ public final class BibleGetFrame extends javax.swing.JFrame {
         @Override
         public void valueChanged(ListSelectionEvent e) {
             ListSelectionModel lsm = (ListSelectionModel)e.getSource();
+            /*
             int firstIndex = e.getFirstIndex();
             int lastIndex = e.getLastIndex();
             boolean isAdjusting = e.getValueIsAdjusting();
-            
+            */
             List<String> selectedVersions = new ArrayList<>();
             if (lsm.isSelectionEmpty()) {
             } else {
@@ -502,11 +505,8 @@ public final class BibleGetFrame extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new BibleGetFrame().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new BibleGetFrame().setVisible(true);
         });
     }
 

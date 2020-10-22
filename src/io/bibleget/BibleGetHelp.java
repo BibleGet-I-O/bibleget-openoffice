@@ -82,7 +82,7 @@ public class BibleGetHelp extends javax.swing.JFrame {
     /**
      * Creates new form BibleGetHelp
      */
-    private BibleGetHelp() throws ClassNotFoundException, UnsupportedEncodingException, SQLException {
+    private BibleGetHelp() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception {
         this.langsLocalized = new ArrayList<>();
         //jTextPane does not initialize correctly, it causes a Null Exception Pointer
         //Following line keeps this from crashing the program
@@ -319,7 +319,7 @@ public class BibleGetHelp extends javax.swing.JFrame {
         initComponents();
     }
 
-    public static BibleGetHelp getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException
+    public static BibleGetHelp getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
     {
         if(instance == null)
         {
@@ -565,14 +565,13 @@ public class BibleGetHelp extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    new BibleGetHelp().setVisible(true);
-                } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
-                    Logger.getLogger(BibleGetHelp.class.getName()).log(Level.SEVERE, null, ex);
-                }
+        java.awt.EventQueue.invokeLater(() -> {
+            try {
+                new BibleGetHelp().setVisible(true);
+            } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
+                Logger.getLogger(BibleGetHelp.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
+                Logger.getLogger(BibleGetHelp.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
     }
