@@ -16,6 +16,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -314,28 +315,63 @@ public class BibleGetDB {
         //not a huge loss, even though it's not the best user experience...
         //for less drastic changes maybe it will be easier to transition user preferences to a new table
         if(!instance.tableExists("SCHEMA_VERSIONS")){
+            System.out.println("SCHEMA_VERSIONS table does not exist, now creating...");
             if(instance.createTable("SCHEMA_VERSIONS") == BGET.TABLE.CREATED){
+                System.out.println("SCHEMA_VERSIONS table created, now initializing...");
                 if(instance.initializeTable("SCHEMA_VERSIONS") == BGET.TABLE.INITIALIZED){
+                    System.out.println("SCHEMA_VERSIONS table initialized, now checking schema versions of the other tables...");
                     //since creating the SCHEMA_VERSIONS table is equivalent to updating the schemas,
                     //we also have to empty and re-initialize any other existing tables
                     Set<String> keys = BibleGetDB.tableSchemas.keySet();            
                     for(String tableName : keys){
                         if(instance.tableExists(tableName)){
+                            System.out.println(tableName + " table exists, will now delete and recreate...");
                             instance.currentTable.close();
                             if(instance.deleteTable(tableName) == BGET.TABLE.DELETED){
+                                System.out.println(tableName + " table deleted, now recreating...");
                                 if(instance.createTable(tableName) == BGET.TABLE.CREATED){
-                                    instance.initializeTable(tableName);
+                                    System.out.println(tableName + " table recreated, now initializing...");
+                                    if(instance.initializeTable(tableName) == BGET.TABLE.INITIALIZED){
+                                        System.out.println(tableName + " table initialized.");
+                                        if("METADATA".equals(tableName)){
+                                            System.out.println("Now that the METADATA table has been initialized, retrieving data from BibleGet server...");
+                                            instance.getMetadataFromBibleGetServer();
+                                        }
+                                    } else {
+                                        System.out.println("There seems to have been an error while initializing the " + tableName + " table.");
+                                    }
+                                } else {
+                                    System.out.println("There seems to have been an error while trying to recreate the " + tableName + " table.");
                                 }
+                            } else {
+                                System.out.println("There seems to have been an error while trying to delete the " + tableName + " table.");
                             }
                         } else {
+                            System.out.println(tableName + " table does not exist, will now create...");
                             if(instance.createTable(tableName) == BGET.TABLE.CREATED){
-                                instance.initializeTable(tableName);
+                                System.out.println(tableName + " table created, now initializing...");
+                                if(instance.initializeTable(tableName) == BGET.TABLE.INITIALIZED){
+                                    System.out.println(tableName + " table initialized.");
+                                    if("METADATA".equals(tableName)){
+                                        System.out.println("Now that the METADATA table has been initialized, retrieving data from BibleGet server...");
+                                        instance.getMetadataFromBibleGetServer();
+                                    }
+                                } else {
+                                    System.out.println("There seems to have been an error while initializing the " + tableName + " table...");
+                                }
+                            } else {
+                                System.out.println("There seems to have been an error while creating the " + tableName + " table...");
                             }
                         }
                     }
+                } else {
+                    System.out.println("There seems to have been an error while initializing SCHEMA_VERSIONS table.");
                 }
+            } else {
+                System.out.println("There seems to have been an error while creating SCHEMA_VERSIONS table.");
             }
         } else {
+            System.out.println("SCHEMA_VERSIONS table already exists, no need to create.");
             instance.currentTable.close();
             //if instead the SCHEMA_VERSIONS table does exist, 
             //we need to check the schema versions stored in the SCHEMA_VERSIONS table
@@ -344,18 +380,50 @@ public class BibleGetDB {
                 while(rsOps.next()) {
                     String tableName = rsOps.getString("TABLENAME");
                     int storedSchemaVersion = rsOps.getInt("SCHEMAVERSION");
+                    System.out.println("Retrieved values from SCHEMA_VERSIONS: TABLENAME = " + tableName + ", SCHEMAVERSION = " + storedSchemaVersion);
                     Entry<Integer, Entry<String,String>> tableSchemaEntry = BibleGetDB.tableSchemas.get(tableName);
                     //if the schema version stored in the table is less than the version proposed in the current release,
                     //then we need to update the schemas
                     if(instance.tableExists(tableName)){
+                        System.out.println(tableName + " table already exists, now checking if the stored schema version is up to date...");
                         instance.currentTable.close();
+                        System.out.println("storedSchemaVersion = " + storedSchemaVersion + ", tableSchemaEntry.getKey() = " + tableSchemaEntry.getKey());
                         if (storedSchemaVersion < tableSchemaEntry.getKey()){
+                            System.out.println("Schema for table " + tableName + " needs to be updated");
                             if(instance.deleteTable(tableName) == BGET.TABLE.DELETED){
+                                System.out.println(tableName + " table was deleted, now recreating...");
                                 if(instance.createTable(tableName) == BGET.TABLE.CREATED){
-                                    instance.initializeTable(tableName);
+                                    System.out.println(tableName + " table was recreated, now initializing...");
+                                    if(instance.initializeTable(tableName) == BGET.TABLE.INITIALIZED){
+                                        System.out.println(tableName + " table was initialized.");
+                                        if("METADATA".equals(tableName)){
+                                            System.out.println("Now that the METADATA table has been initialized, retrieving data from BibleGet server...");
+                                            instance.getMetadataFromBibleGetServer();
+                                        }
+                                        //Now that the schema has been recreated, we need to update the SCHEMA_VERSIONS table with the new schema version number
+                                        System.out.println("Now that the schema has been recreated, we need to update the SCHEMA_VERSIONS table with the new schema version number");
+                                        try(Statement schemaUpdateStmt = instance.conn.createStatement()){
+                                            String schemaUpdateStmtStr = "UPDATE SCHEMA_VERSIONS SET SCHEMAVERSION = " + tableSchemaEntry.getKey() + " WHERE TABLENAME = " + tableName;
+                                            if(schemaUpdateStmt.execute(schemaUpdateStmtStr)==false && schemaUpdateStmt.getUpdateCount() != -1){
+                                                System.out.println("Update was successful");
+                                            }
+                                        } catch (SQLException ex){
+                                            Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                                        }
+                                    } else {
+                                        System.out.println("There seems to have been an error while initializing the " + tableName + " table...");
+                                    }
+                                } else {
+                                    System.out.println("There seems to have been an error while recreating the " + tableName + " table...");
                                 }
+                            } else {
+                                System.out.println("There seems to have been an error while deleting the " + tableName + " table...");
                             }
+                        } else {
+                            System.out.println("Schema for table " + tableName + " does not need to be updated");
                         }
+                    } else {
+                        System.out.println(tableName + " table already does not exist, will be created by the rest of the function code...");
                     }
                 }
             } catch (SQLException ex){
@@ -370,25 +438,37 @@ public class BibleGetDB {
         } else {
             System.out.println("Table OPTIONS does not yet exist, now attempting to create...");
             if(instance.createTable("OPTIONS") == BGET.TABLE.CREATED){
+                System.out.println("Table OPTIONS created, now attempting to initialize...");
                 if(instance.initializeTable("OPTIONS") == BGET.TABLE.INITIALIZED){
+                    System.out.println("Table OPTIONS initialized.");
                     dbMeta = instance.conn.getMetaData();
                     if(instance.tableExists("OPTIONS")){
                         listColNamesTypes(dbMeta,instance.currentTable);
                     }                
+                } else {
+                    System.out.println("There seems to have been an error while trying to initialize the OPTIONS table...");
                 }
+            } else {
+                System.out.println("There seems to have been an error while trying to create the OPTIONS table...");
             }
         }
         instance.currentTable.close();
         //System.out.println("Finished with first ResultSet resource, now going on to next...");
         
         if(instance.tableExists("METADATA")){
-            System.out.println("Table METADATA already exists !!");
+            System.out.println("Table " + instance.currentTable.getString("TABLE_NAME") + " already exists.");
             instance.currentTable.close();
         } else {
+            System.out.println("Table METADATA does not exists.");
             if(instance.createTable("METADATA") == BGET.TABLE.CREATED){
                 if(instance.initializeTable("METADATA") == BGET.TABLE.INITIALIZED){
+                    System.out.println("METADATA table initialized, now retrieving data from BibleGet server...");
                     instance.getMetadataFromBibleGetServer();
+                } else {
+                    System.out.println("There seems to have been an error while initializing the METADATA table.");
                 }
+            } else {
+                System.out.println("There seems to have been an error while creating the METADATA table.");
             }
         }
         
@@ -856,6 +936,7 @@ public class BibleGetDB {
     
     public BGET.TABLE createTable(String tableName) throws Exception{
         if(!"".equals(tableName)){
+            System.out.println("createTable function has detected that we are trying to create the " + tableName + " table");
             if("SCHEMA_VERSIONS".equals(tableName)){
                 try(Statement stmt = instance.conn.createStatement()) {
                     if(stmt.execute("CREATE TABLE SCHEMA_VERSIONS (TABLENAME VARCHAR(15),SCHEMAVERSION INT)")==false && stmt.getUpdateCount() != -1){
@@ -888,17 +969,20 @@ public class BibleGetDB {
     
     public BGET.TABLE initializeTable(String tableName) throws Exception{
         if(!"".equals(tableName)){
+            System.out.println("initializeTable function has detected that we are trying to initialize the " + tableName + " table");
             if("SCHEMA_VERSIONS".equals(tableName)){
                 Set<String> keys = BibleGetDB.tableSchemas.keySet();
                 String tableNames[] = keys.toArray(new String[keys.size()]);
+                System.out.println("tableNames = " + Arrays.toString(tableNames));
                 int idx = 0;
                 String insertValues[] = new String[keys.size()];
                 //String.join(",", tableNames)
                 for(String schemaName : tableNames) {
                     Entry<Integer, Entry<String,String>> tableSchemaEntry = BibleGetDB.tableSchemas.get(schemaName);
                     //System.out.println(pair.getKey() + " = " + pair.getValue());
-                    insertValues[idx++] = "(" + schemaName + "," + tableSchemaEntry.getKey() + ")";
+                    insertValues[idx++] = "('" + schemaName + "'," + tableSchemaEntry.getKey() + ")";
                 }
+                System.out.println("insertValues = " + Arrays.toString(insertValues));
                 try(Statement stmt = instance.conn.createStatement()){
                     String initializeSchemaVersions = "INSERT INTO SCHEMA_VERSIONS (TABLENAME,SCHEMAVERSION) VALUES " + String.join(",", insertValues) ;
                     if(stmt.execute(initializeSchemaVersions)==false && stmt.getUpdateCount() != -1){
