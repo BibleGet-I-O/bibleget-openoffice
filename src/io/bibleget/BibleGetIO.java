@@ -22,6 +22,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -185,6 +186,8 @@ public final class BibleGetIO extends WeakBase
                     }
                 } catch (ClassNotFoundException | SQLException ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.lang.Exception ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 return;
             }
@@ -200,6 +203,8 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.myFrame.setVisible(true);                
                     }
                 } catch (ClassNotFoundException | SQLException ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.lang.Exception ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 return;
@@ -217,6 +222,8 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.myOptionFrame.setVisible(true);
                     }
                 } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.lang.Exception ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 return;
@@ -236,6 +243,8 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.bibleGetAbout.setVisible(true);
                     }
                 } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.lang.Exception ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 return;
@@ -263,6 +272,8 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.myHelpFrame = BibleGetHelp.getInstance();
                         BibleGetIO.myHelpFrame.setVisible(true);
                     } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
+                        Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (java.lang.Exception ex) {
                         Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
@@ -482,6 +493,8 @@ public final class BibleGetIO extends WeakBase
                     }
                     //System.out.println("Assigning myFrame and myOptionFrame while we create instance");        
                 } catch (ClassNotFoundException | SQLException | UnsupportedEncodingException ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.lang.Exception ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
