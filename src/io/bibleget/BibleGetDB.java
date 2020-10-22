@@ -403,7 +403,7 @@ public class BibleGetDB {
                                         //Now that the schema has been recreated, we need to update the SCHEMA_VERSIONS table with the new schema version number
                                         System.out.println("Now that the schema has been recreated, we need to update the SCHEMA_VERSIONS table with the new schema version number");
                                         try(Statement schemaUpdateStmt = instance.conn.createStatement()){
-                                            String schemaUpdateStmtStr = "UPDATE SCHEMA_VERSIONS SET SCHEMAVERSION = " + tableSchemaEntry.getKey() + " WHERE TABLENAME = " + tableName;
+                                            String schemaUpdateStmtStr = "UPDATE SCHEMA_VERSIONS SET SCHEMAVERSION = " + tableSchemaEntry.getKey() + " WHERE TABLENAME = '" + tableName + "'";
                                             if(schemaUpdateStmt.execute(schemaUpdateStmtStr)==false && schemaUpdateStmt.getUpdateCount() != -1){
                                                 System.out.println("Update was successful");
                                             }
