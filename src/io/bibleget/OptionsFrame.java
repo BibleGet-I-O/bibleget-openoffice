@@ -386,6 +386,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         buttonGroupBibleVersionWrap = new javax.swing.ButtonGroup();
         buttonGroupBookChapterAlign = new javax.swing.ButtonGroup();
         buttonGroupBookChapterVAlign = new javax.swing.ButtonGroup();
+        buttonGroupBookChapterFormat = new javax.swing.ButtonGroup();
         jPanel2 = new javax.swing.JPanel();
         jPanelParagraph = new javax.swing.JPanel();
         jPanelParagraphAlignment = new javax.swing.JPanel();
@@ -423,13 +424,12 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToggleButtonBibleVersionAlignCenter = new javax.swing.JToggleButton();
         jToggleButtonBibleVersionAlignRight = new javax.swing.JToggleButton();
         jSeparator10 = new javax.swing.JToolBar.Separator();
-        jToggleButtonBibleVersionVAlignTop = new javax.swing.JToggleButton();
-        jToggleButtonBibleVersionVAlignBottom = new javax.swing.JToggleButton();
-        jToggleButtonBibleVersionVAlignBottominline = new javax.swing.JToggleButton();
-        jSeparator11 = new javax.swing.JToolBar.Separator();
         jToggleButtonBibleVersionWrapNone = new javax.swing.JToggleButton();
         jToggleButtonBibleVersionWrapParentheses = new javax.swing.JToggleButton();
         jToggleButtonBibleVersionWrapBrackets = new javax.swing.JToggleButton();
+        jSeparator11 = new javax.swing.JToolBar.Separator();
+        jToggleButtonBibleVersionVAlignTop = new javax.swing.JToggleButton();
+        jToggleButtonBibleVersionVAlignBottom = new javax.swing.JToggleButton();
         jPanelBookChapter = new javax.swing.JPanel();
         jToolBar2 = new javax.swing.JToolBar();
         jToggleButtonBookChapterBold = new javax.swing.JToggleButton();
@@ -444,14 +444,14 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterAlignLeft = new javax.swing.JToggleButton();
         jToggleButtonBookChapterAlignCenter = new javax.swing.JToggleButton();
         jToggleButtonBookChapterAlignRight = new javax.swing.JToggleButton();
-        jSeparator14 = new javax.swing.JToolBar.Separator();
-        jToggleButtonBookChapterVAlignTop = new javax.swing.JToggleButton();
-        jToggleButtonBookChapterVAlignBottom = new javax.swing.JToggleButton();
-        jToggleButtonBookChapterVAlignBottominline = new javax.swing.JToggleButton();
         jSeparator15 = new javax.swing.JToolBar.Separator();
         jToggleButtonBookChapterWrapNone = new javax.swing.JToggleButton();
         jToggleButtonBookChapterWrapParentheses = new javax.swing.JToggleButton();
         jToggleButtonBookChapterWrapBrackets = new javax.swing.JToggleButton();
+        jSeparator14 = new javax.swing.JToolBar.Separator();
+        jToggleButtonBookChapterVAlignTop = new javax.swing.JToggleButton();
+        jToggleButtonBookChapterVAlignBottom = new javax.swing.JToggleButton();
+        jToggleButtonBookChapterVAlignBottominline = new javax.swing.JToggleButton();
         jPanelVerseNumber = new javax.swing.JPanel();
         jToolBar3 = new javax.swing.JToolBar();
         jToggleButtonVerseNumberBold = new javax.swing.JToggleButton();
@@ -477,7 +477,14 @@ public class OptionsFrame extends javax.swing.JFrame {
         jSeparator7 = new javax.swing.JSeparator();
         jLabel2 = new javax.swing.JLabel();
         jCheckBoxUseVersionFormatting = new javax.swing.JCheckBox();
+        jToggleButtonBookChapterFullRef = new javax.swing.JToggleButton();
+        jToggleButtonVerseNumberVisibility = new javax.swing.JToggleButton();
+        jPanel1 = new javax.swing.JPanel();
         jToggleButtonBibleVersionVisibility = new javax.swing.JToggleButton();
+        jToggleButtonBookChapterBibleLang = new javax.swing.JToggleButton();
+        jToggleButtonBookChapterBibleLangAbbrev = new javax.swing.JToggleButton();
+        jToggleButtonBookChapterUserLang = new javax.swing.JToggleButton();
+        jToggleButtonBookChapterUserLangAbbrev = new javax.swing.JToggleButton();
         jInternalFrame1 = new JInternalFrame() {
             @Override
             public void setUI(InternalFrameUI ui) {
@@ -576,7 +583,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             .addComponent(jToolBarParagraphAlignment, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
-        jPanelParagraphIndentLeft.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1), __("Indent")));
+        jPanelParagraphIndentLeft.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1), __("Left Indent")));
 
         jToolBarParagraphIndentLeft.setFloatable(false);
         jToolBarParagraphIndentLeft.setRollover(true);
@@ -687,7 +694,7 @@ public class OptionsFrame extends javax.swing.JFrame {
                 .addComponent(jToolBarParagraphFontFamily, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        jPanelParagraphIndentRight.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1), __("Indent")));
+        jPanelParagraphIndentRight.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1), __("Right Indent")));
 
         jToolBarParagraphIndentRight.setFloatable(false);
         jToolBarParagraphIndentRight.setRollover(true);
@@ -747,16 +754,14 @@ public class OptionsFrame extends javax.swing.JFrame {
         jPanelParagraphLayout.setVerticalGroup(
             jPanelParagraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelParagraphLayout.createSequentialGroup()
-                .addGroup(jPanelParagraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jPanelParagraphAlignment, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanelParagraphLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(jPanelParagraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jPanelParagraphIndentLeft, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jPanelParagraphLineHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jPanelParagraphFontFamily, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jPanelParagraphIndentRight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addGap(0, 0, 0))
+                .addContainerGap()
+                .addGroup(jPanelParagraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanelParagraphAlignment, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanelParagraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jPanelParagraphIndentLeft, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jPanelParagraphLineHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jPanelParagraphFontFamily, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jPanelParagraphIndentRight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
         );
 
         jPanelBibleVersion.setBorder(javax.swing.BorderFactory.createTitledBorder(null, __("Bible Version"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 12))); // NOI18N
@@ -864,31 +869,6 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBar8.add(jToggleButtonBibleVersionAlignRight);
         jToolBar8.add(jSeparator10);
 
-        buttonGroupBibleVersionVAlign.add(jToggleButtonBibleVersionVAlignTop);
-        jToggleButtonBibleVersionVAlignTop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/position_above.png"))); // NOI18N
-        jToggleButtonBibleVersionVAlignTop.setFocusable(false);
-        jToggleButtonBibleVersionVAlignTop.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBibleVersionVAlignTop.setMaximumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBibleVersionVAlignTop.setMinimumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBibleVersionVAlignTop.setPreferredSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBibleVersionVAlignTop.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar8.add(jToggleButtonBibleVersionVAlignTop);
-
-        buttonGroupBibleVersionVAlign.add(jToggleButtonBibleVersionVAlignBottom);
-        jToggleButtonBibleVersionVAlignBottom.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/position_below.png"))); // NOI18N
-        jToggleButtonBibleVersionVAlignBottom.setFocusable(false);
-        jToggleButtonBibleVersionVAlignBottom.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBibleVersionVAlignBottom.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar8.add(jToggleButtonBibleVersionVAlignBottom);
-
-        buttonGroupBibleVersionVAlign.add(jToggleButtonBibleVersionVAlignBottominline);
-        jToggleButtonBibleVersionVAlignBottominline.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/position_inline.png"))); // NOI18N
-        jToggleButtonBibleVersionVAlignBottominline.setFocusable(false);
-        jToggleButtonBibleVersionVAlignBottominline.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBibleVersionVAlignBottominline.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar8.add(jToggleButtonBibleVersionVAlignBottominline);
-        jToolBar8.add(jSeparator11);
-
         buttonGroupBibleVersionWrap.add(jToggleButtonBibleVersionWrapNone);
         jToggleButtonBibleVersionWrapNone.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jToggleButtonBibleVersionWrapNone.setText("NONE");
@@ -909,6 +889,24 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToggleButtonBibleVersionWrapBrackets.setFocusable(false);
         jToggleButtonBibleVersionWrapBrackets.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToolBar8.add(jToggleButtonBibleVersionWrapBrackets);
+        jToolBar8.add(jSeparator11);
+
+        buttonGroupBibleVersionVAlign.add(jToggleButtonBibleVersionVAlignTop);
+        jToggleButtonBibleVersionVAlignTop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/position_above.png"))); // NOI18N
+        jToggleButtonBibleVersionVAlignTop.setFocusable(false);
+        jToggleButtonBibleVersionVAlignTop.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButtonBibleVersionVAlignTop.setMaximumSize(new java.awt.Dimension(31, 31));
+        jToggleButtonBibleVersionVAlignTop.setMinimumSize(new java.awt.Dimension(31, 31));
+        jToggleButtonBibleVersionVAlignTop.setPreferredSize(new java.awt.Dimension(31, 31));
+        jToggleButtonBibleVersionVAlignTop.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar8.add(jToggleButtonBibleVersionVAlignTop);
+
+        buttonGroupBibleVersionVAlign.add(jToggleButtonBibleVersionVAlignBottom);
+        jToggleButtonBibleVersionVAlignBottom.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/position_below.png"))); // NOI18N
+        jToggleButtonBibleVersionVAlignBottom.setFocusable(false);
+        jToggleButtonBibleVersionVAlignBottom.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButtonBibleVersionVAlignBottom.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar8.add(jToggleButtonBibleVersionVAlignBottom);
 
         javax.swing.GroupLayout jPanelBibleVersionLayout = new javax.swing.GroupLayout(jPanelBibleVersion);
         jPanelBibleVersion.setLayout(jPanelBibleVersionLayout);
@@ -1026,6 +1024,25 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterAlignRight.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButtonBookChapterAlignRight.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar2.add(jToggleButtonBookChapterAlignRight);
+        jToolBar2.add(jSeparator15);
+
+        jToggleButtonBookChapterWrapNone.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jToggleButtonBookChapterWrapNone.setText("NONE");
+        jToggleButtonBookChapterWrapNone.setFocusable(false);
+        jToggleButtonBookChapterWrapNone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToolBar2.add(jToggleButtonBookChapterWrapNone);
+
+        jToggleButtonBookChapterWrapParentheses.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jToggleButtonBookChapterWrapParentheses.setText("()");
+        jToggleButtonBookChapterWrapParentheses.setFocusable(false);
+        jToggleButtonBookChapterWrapParentheses.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToolBar2.add(jToggleButtonBookChapterWrapParentheses);
+
+        jToggleButtonBookChapterWrapBrackets.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jToggleButtonBookChapterWrapBrackets.setText("[]");
+        jToggleButtonBookChapterWrapBrackets.setFocusable(false);
+        jToggleButtonBookChapterWrapBrackets.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToolBar2.add(jToggleButtonBookChapterWrapBrackets);
         jToolBar2.add(jSeparator14);
 
         buttonGroupBookChapterVAlign.add(jToggleButtonBookChapterVAlignTop);
@@ -1048,25 +1065,6 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterVAlignBottominline.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButtonBookChapterVAlignBottominline.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar2.add(jToggleButtonBookChapterVAlignBottominline);
-        jToolBar2.add(jSeparator15);
-
-        jToggleButtonBookChapterWrapNone.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        jToggleButtonBookChapterWrapNone.setText("NONE");
-        jToggleButtonBookChapterWrapNone.setFocusable(false);
-        jToggleButtonBookChapterWrapNone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToolBar2.add(jToggleButtonBookChapterWrapNone);
-
-        jToggleButtonBookChapterWrapParentheses.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jToggleButtonBookChapterWrapParentheses.setText("()");
-        jToggleButtonBookChapterWrapParentheses.setFocusable(false);
-        jToggleButtonBookChapterWrapParentheses.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToolBar2.add(jToggleButtonBookChapterWrapParentheses);
-
-        jToggleButtonBookChapterWrapBrackets.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jToggleButtonBookChapterWrapBrackets.setText("[]");
-        jToggleButtonBookChapterWrapBrackets.setFocusable(false);
-        jToggleButtonBookChapterWrapBrackets.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToolBar2.add(jToggleButtonBookChapterWrapBrackets);
 
         javax.swing.GroupLayout jPanelBookChapterLayout = new javax.swing.GroupLayout(jPanelBookChapter);
         jPanelBookChapter.setLayout(jPanelBookChapterLayout);
@@ -1313,9 +1311,60 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         });
 
+        jToggleButtonBookChapterFullRef.setIcon(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY?buttonStateOn:buttonStateOff);
+        jToggleButtonBookChapterFullRef.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY);
+        jToggleButtonBookChapterFullRef.setBorderPainted(false);
+        jToggleButtonBookChapterFullRef.setContentAreaFilled(false);
+        jToggleButtonBookChapterFullRef.setFocusable(false);
+        jToggleButtonBookChapterFullRef.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButtonBookChapterFullRef.setLabel("Full Ref");
+        jToggleButtonBookChapterFullRef.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToggleButtonBookChapterFullRef.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jToggleButtonBookChapterFullRefItemStateChanged(evt);
+            }
+        });
+        jToggleButtonBookChapterFullRef.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jToggleButtonBookChapterFullRefMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jToggleButtonBookChapterFullRefMouseExited(evt);
+            }
+        });
+        jToggleButtonBookChapterFullRef.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButtonBookChapterFullRefActionPerformed(evt);
+            }
+        });
+
+        jToggleButtonVerseNumberVisibility.setIcon(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW?buttonStateOn:buttonStateOff);
+        jToggleButtonVerseNumberVisibility.setSelected(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW);
+        jToggleButtonVerseNumberVisibility.setText(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW?"SHOW":"HIDE");
+        jToggleButtonVerseNumberVisibility.setBorderPainted(false);
+        jToggleButtonVerseNumberVisibility.setContentAreaFilled(false);
+        jToggleButtonVerseNumberVisibility.setFocusable(false);
+        jToggleButtonVerseNumberVisibility.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButtonVerseNumberVisibility.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToggleButtonVerseNumberVisibility.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jToggleButtonVerseNumberVisibilityItemStateChanged(evt);
+            }
+        });
+        jToggleButtonVerseNumberVisibility.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jToggleButtonVerseNumberVisibilityMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jToggleButtonVerseNumberVisibilityMouseExited(evt);
+            }
+        });
+
+        jPanel1.setLayout(new java.awt.GridLayout(4, 1));
+
         jToggleButtonBibleVersionVisibility.setIcon(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW?buttonStateOn:buttonStateOff);
         jToggleButtonBibleVersionVisibility.setSelected(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW);
-        jToggleButtonBibleVersionVisibility.setText("HIDE");
+        jToggleButtonBibleVersionVisibility.setText(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW?"SHOW":"HIDE");
         jToggleButtonBibleVersionVisibility.setBorderPainted(false);
         jToggleButtonBibleVersionVisibility.setContentAreaFilled(false);
         jToggleButtonBibleVersionVisibility.setFocusable(false);
@@ -1340,6 +1389,22 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         });
 
+        buttonGroupBookChapterFormat.add(jToggleButtonBookChapterBibleLang);
+        jToggleButtonBookChapterBibleLang.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.BIBLELANG);
+        jToggleButtonBookChapterBibleLang.setText("Bible Lang");
+
+        buttonGroupBookChapterFormat.add(jToggleButtonBookChapterBibleLangAbbrev);
+        jToggleButtonBookChapterBibleLangAbbrev.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.BIBLELANGABBREV);
+        jToggleButtonBookChapterBibleLangAbbrev.setText("Bible Lang Abbrev");
+
+        buttonGroupBookChapterFormat.add(jToggleButtonBookChapterUserLang);
+        jToggleButtonBookChapterUserLang.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.USERLANG);
+        jToggleButtonBookChapterUserLang.setText("User Lang");
+
+        buttonGroupBookChapterFormat.add(jToggleButtonBookChapterUserLangAbbrev);
+        jToggleButtonBookChapterUserLangAbbrev.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.USERLANGABBREV);
+        jToggleButtonBookChapterUserLangAbbrev.setText("User Lang Abbrev");
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -1352,32 +1417,64 @@ public class OptionsFrame extends javax.swing.JFrame {
                     .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jSeparator7)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jPanelVerseNumber, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jPanelVerseText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jPanelBookChapter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addComponent(jPanelBibleVersion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jToggleButtonBibleVersionVisibility)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                                .addComponent(jToggleButtonBibleVersionVisibility))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(jPanelVerseNumber, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jToggleButtonVerseNumberVisibility))
+                            .addComponent(jPanelVerseText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(jPanelBookChapter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jToggleButtonBookChapterFullRef)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jToggleButtonBookChapterBibleLang, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jToggleButtonBookChapterBibleLangAbbrev)
+                            .addComponent(jToggleButtonBookChapterUserLang, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jToggleButtonBookChapterUserLangAbbrev, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 26, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(18, 18, 18)
                 .addComponent(jPanelParagraph, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanelBibleVersion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jToggleButtonBibleVersionVisibility))
+                    .addComponent(jToggleButtonBibleVersionVisibility, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanelBookChapter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanelVerseNumber, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanelVerseText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jPanelBookChapter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jToggleButtonBookChapterFullRef, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jPanelVerseNumber, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jToggleButtonVerseNumberVisibility, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanelVerseText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jToggleButtonBookChapterBibleLang)
+                        .addGap(0, 0, 0)
+                        .addComponent(jToggleButtonBookChapterBibleLangAbbrev)
+                        .addGap(0, 0, 0)
+                        .addComponent(jToggleButtonBookChapterUserLang)
+                        .addGap(0, 0, 0)
+                        .addComponent(jToggleButtonBookChapterUserLangAbbrev)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator7, javax.swing.GroupLayout.PREFERRED_SIZE, 9, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1388,6 +1485,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         );
 
         jInternalFrame1.setBorder(null);
+        jInternalFrame1.setMinimumSize(new java.awt.Dimension(22, 260));
         jInternalFrame1.setVisible(true);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -1398,7 +1496,7 @@ public class OptionsFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jInternalFrame1))
+                    .addComponent(jInternalFrame1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -1407,123 +1505,128 @@ public class OptionsFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jInternalFrame1, javax.swing.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
+                .addComponent(jInternalFrame1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jColorChooserClean(JColorChooser jColorChooser){
-        AbstractColorChooserPanel panels[] = jColorChooser.getChooserPanels();
-        jColorChooser.removeChooserPanel(panels[4]);
-        jColorChooser.removeChooserPanel(panels[3]);
-        jColorChooser.removeChooserPanel(panels[2]);
-    }
+    private void jToggleButtonVerseNumberVisibilityMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jToggleButtonVerseNumberVisibilityMouseExited
+        if(jToggleButtonVerseNumberVisibility.isSelected()){
+            jToggleButtonVerseNumberVisibility.setIcon(buttonStateOn);
+        } else {
+            jToggleButtonVerseNumberVisibility.setIcon(buttonStateOff);
+        }
+    }//GEN-LAST:event_jToggleButtonVerseNumberVisibilityMouseExited
 
-    private void jButtonBookChapterTextColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonBookChapterTextColorMouseClicked
-        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);
-        jColorChooserClean(jColorChooser);
-        ActionListener okActionListener = (ActionEvent actionEvent) -> {
-            USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR = jColorChooser.getColor();
-            String rgb = ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);
-            if(biblegetDB.setStringOption("BOOKCHAPTERSTYLES_TEXTCOLOR", rgb)){
-                //System.out.println("BOOKCHAPTERSTYLES_TEXTCOLOR was successfully updated in database to value "+rgb);
-            }
-            else{
-                //System.out.println("Error updating BOOKCHAPTERSTYLES_TEXTCOLOR in database");
-            }
-        };
-        ActionListener cancelActionListener = (ActionEvent actionEvent) -> {        
-        };
-        final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Book / Chapter Font Color"), true, jColorChooser, okActionListener, cancelActionListener);
-        jDialog.setIconImages(setIconImagesTextColor());
-        jDialog.setVisible(true);
-    }//GEN-LAST:event_jButtonBookChapterTextColorMouseClicked
-    
-    private void jButtonBookChapterHighlightColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonBookChapterHighlightColorMouseClicked
-        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR);
-        jColorChooserClean(jColorChooser);
-        ActionListener okActionListener = (ActionEvent actionEvent) -> {
-            USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR = jColorChooser.getColor();
-            String rgb = ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR);
-            if(biblegetDB.setStringOption("BOOKCHAPTERSTYLES_BGCOLOR", rgb)){
-                //System.out.println("BOOKCHAPTERSTYLES_BGCOLOR was successfully updated in database to value "+rgb);
-            }
-            else{
-                //System.out.println("Error updating BOOKCHAPTERSTYLES_BGCOLOR in database");
-            }
-        };
-        ActionListener cancelActionListener;
-        cancelActionListener = (ActionEvent actionEvent) -> {        
-        };
-        final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Book / Chapter Background Color"), true, jColorChooser, okActionListener, cancelActionListener);
-        jDialog.setIconImages(setIconImagesBGColor());
-        jDialog.setVisible(true);
-    }//GEN-LAST:event_jButtonBookChapterHighlightColorMouseClicked
+    private void jToggleButtonVerseNumberVisibilityMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jToggleButtonVerseNumberVisibilityMouseEntered
+        if(jToggleButtonVerseNumberVisibility.isSelected()){
+            jToggleButtonVerseNumberVisibility.setIcon(buttonStateOnHover);
+        } else {
+            jToggleButtonVerseNumberVisibility.setIcon(buttonStateOffHover);
+        }
+    }//GEN-LAST:event_jToggleButtonVerseNumberVisibilityMouseEntered
 
-    private void jButtonVerseNumberTextColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonVerseNumberTextColorMouseClicked
-        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR);
-        jColorChooserClean(jColorChooser);
-        ActionListener okActionListener = (ActionEvent actionEvent) -> {
-            USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR = jColorChooser.getColor();
-            String rgb = ColorToHexString(USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR);
-            if(biblegetDB.setStringOption("VERSENUMBERSTYLES_TEXTCOLOR", rgb)){
-                //System.out.println("TEXTCOLORVERSENUMBER was successfully updated in database to value "+rgb);
-            }
-            else{
-                //System.out.println("Error updating TEXTCOLORVERSENUMBER in database");
-            }
-        };
-        ActionListener cancelActionListener;
-        cancelActionListener = (ActionEvent actionEvent) -> {
-        };
-        final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Verse Number Font Color"), true, jColorChooser, okActionListener, cancelActionListener);
-        jDialog.setIconImages(setIconImagesTextColor());
-        jDialog.setVisible(true);
-    }//GEN-LAST:event_jButtonVerseNumberTextColorMouseClicked
+    private void jToggleButtonVerseNumberVisibilityItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseNumberVisibilityItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED) {
+            // do something with object
+            USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW = BGET.VISIBILITY.SHOW;
+            jToggleButtonVerseNumberVisibility.setIcon(buttonStateOn);
+            jToggleButtonVerseNumberVisibility.setText("SHOW");
+        }
+        else if(evt.getStateChange()==ItemEvent.DESELECTED) {
+            // do something with object
+            USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW = BGET.VISIBILITY.HIDE;
+            jToggleButtonVerseNumberVisibility.setIcon(buttonStateOff);
+            jToggleButtonVerseNumberVisibility.setText("HIDE");
+        }
+        if(biblegetDB.setIntOption("LAYOUTPREFS_BIBLEVERSION_SHOW", USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW.getValue())){
+            //System.out.println("NOVERSIONFORMATTING was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING);
+        }
+        else{
+            //System.out.println("Error updating NOVERSIONFORMATTING in database");
+        }
+    }//GEN-LAST:event_jToggleButtonVerseNumberVisibilityItemStateChanged
 
-    private void jButtonVerseNumberHighlightColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonVerseNumberHighlightColorMouseClicked
-        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.VERSENUMBERSTYLES_BGCOLOR);
-        jColorChooserClean(jColorChooser);
-        ActionListener okActionListener = (ActionEvent actionEvent) -> {
-            USERPREFS.VERSENUMBERSTYLES_BGCOLOR = jColorChooser.getColor();
-            String rgb = ColorToHexString(USERPREFS.VERSENUMBERSTYLES_BGCOLOR);
-            if(biblegetDB.setStringOption("VERSENUMBERSTYLES_BGCOLOR", rgb)){
-                //System.out.println("BGCOLORVERSENUMBER was successfully updated in database to value "+rgb);
-            }
-            else{
-                //System.out.println("Error updating BGCOLORVERSENUMBER in database");
-            }
-        };
-        ActionListener cancelActionListener;
-        cancelActionListener = (ActionEvent actionEvent) -> {        
-        };
-        final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Verse Number Background Color"), true, jColorChooser, okActionListener, cancelActionListener);
-        jDialog.setIconImages(setIconImagesBGColor());
-        jDialog.setVisible(true);
-    }//GEN-LAST:event_jButtonVerseNumberHighlightColorMouseClicked
+    private void jToggleButtonBookChapterFullRefActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterFullRefActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jToggleButtonBookChapterFullRefActionPerformed
 
-    private void jButtonVerseTextTextColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonVerseTextTextColorMouseClicked
-        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.VERSETEXTSTYLES_TEXTCOLOR);
-        jColorChooserClean(jColorChooser);
-        ActionListener okActionListener = (ActionEvent actionEvent) -> {
-            USERPREFS.VERSETEXTSTYLES_TEXTCOLOR = jColorChooser.getColor();
-            String rgb = ColorToHexString(USERPREFS.VERSETEXTSTYLES_TEXTCOLOR);
-            if(biblegetDB.setStringOption("VERSETEXTSTYLES_TEXTCOLOR", rgb)){
-                //System.out.println("TEXTCOLORVERSETEXT was successfully updated in database to value "+rgb);
+    private void jToggleButtonBookChapterFullRefMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterFullRefMouseExited
+        if(jToggleButtonBookChapterFullRef.isSelected()){
+            jToggleButtonBookChapterFullRef.setIcon(buttonStateOn);
+        } else {
+            jToggleButtonBookChapterFullRef.setIcon(buttonStateOff);
+        }
+    }//GEN-LAST:event_jToggleButtonBookChapterFullRefMouseExited
+
+    private void jToggleButtonBookChapterFullRefMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterFullRefMouseEntered
+        if(jToggleButtonBookChapterFullRef.isSelected()){
+            jToggleButtonBookChapterFullRef.setIcon(buttonStateOnHover);
+        } else {
+            jToggleButtonBookChapterFullRef.setIcon(buttonStateOffHover);
+        }
+    }//GEN-LAST:event_jToggleButtonBookChapterFullRefMouseEntered
+
+    private void jToggleButtonBookChapterFullRefItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterFullRefItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED) {
+            // do something with object
+            USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY = true;
+            jToggleButtonBookChapterFullRef.setIcon(buttonStateOn);
+            //jToggleButtonBookChapterFullRef.setText("SHOW");
+        }
+        else if(evt.getStateChange()==ItemEvent.DESELECTED) {
+            // do something with object
+            USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY = false;
+            jToggleButtonBookChapterFullRef.setIcon(buttonStateOff);
+            //jToggleButtonBookChapterFullRef.setText("HIDE");
+        }
+        if(biblegetDB.setIntOption("LAYOUTPREFS_BIBLEVERSION_SHOW", USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW.getValue())){
+            //System.out.println("NOVERSIONFORMATTING was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING);
+        }
+        else{
+            //System.out.println("Error updating NOVERSIONFORMATTING in database");
+        }
+    }//GEN-LAST:event_jToggleButtonBookChapterFullRefItemStateChanged
+
+    private void jCheckBoxUseVersionFormattingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseVersionFormattingActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jCheckBoxUseVersionFormattingActionPerformed
+
+    private void jCheckBoxUseVersionFormattingItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jCheckBoxUseVersionFormattingItemStateChanged
+        // TODO add your handling code here:
+        if(evt.getStateChange()==ItemEvent.SELECTED) {
+            // do something with object
+            USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING = true;
+        }
+        else if(evt.getStateChange()==ItemEvent.DESELECTED) {
+            // do something with object
+            USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING = false;
+        }
+        if(biblegetDB.setBooleanOption("PARAGRAPHSTYLES_NOVERSIONFORMATTING", USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING)){
+            //System.out.println("NOVERSIONFORMATTING was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING);
+        }
+        else{
+            //System.out.println("Error updating NOVERSIONFORMATTING in database");
+        }
+    }//GEN-LAST:event_jCheckBoxUseVersionFormattingItemStateChanged
+
+    private void jComboBoxVerseTextFontSizeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxVerseTextFontSizeItemStateChanged
+        // TODO add your handling code here:
+        if(evt.getStateChange()==ItemEvent.SELECTED) {
+            Object item = evt.getItem();
+            // do something with object
+            String fontsize = item.toString();
+            USERPREFS.VERSETEXTSTYLES_FONTSIZE = Integer.parseInt(fontsize);
+            if(biblegetDB.setIntOption("VERSETEXTSTYLES_FONTSIZE", USERPREFS.VERSETEXTSTYLES_FONTSIZE)){
+                //System.out.println("FONTSIZEVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_FONTSIZE);
             }
             else{
-                //System.out.println("Error updating TEXTCOLORVERSETEXT in database");
+                //System.out.println("Error updating FONTSIZEVERSETEXT in database");
             }
-        };
-        ActionListener cancelActionListener;
-        cancelActionListener = (ActionEvent actionEvent) -> {
-        };
-        final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Verse Text Font Color"), true, jColorChooser, okActionListener, cancelActionListener);
-        jDialog.setIconImages(setIconImagesTextColor());
-        jDialog.setVisible(true);
-    }//GEN-LAST:event_jButtonVerseTextTextColorMouseClicked
+        }
+    }//GEN-LAST:event_jComboBoxVerseTextFontSizeItemStateChanged
 
     private void jButtonVerseTextHighlightColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonVerseTextHighlightColorMouseClicked
         final JColorChooser jColorChooser = new JColorChooser(USERPREFS.VERSETEXTSTYLES_BGCOLOR);
@@ -1546,133 +1649,26 @@ public class OptionsFrame extends javax.swing.JFrame {
         jDialog.setVisible(true);
     }//GEN-LAST:event_jButtonVerseTextHighlightColorMouseClicked
 
-    private void jToggleButtonBookChapterBoldItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterBoldItemStateChanged
-        if(evt.getStateChange()==ItemEvent.SELECTED){
-            USERPREFS.BOOKCHAPTERSTYLES_BOLD = true;
-        }
-        else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            USERPREFS.BOOKCHAPTERSTYLES_BOLD = false;
-        }
-        
-        if(biblegetDB.setBooleanOption("BOOKCHAPTERSTYLES_BOLD", USERPREFS.BOOKCHAPTERSTYLES_BOLD)){
-            //System.out.println("BOLDBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_BOLD);
-        }
-        else{
-            //System.out.println("Error updating BOLDBOOKCHAPTER in database");
-        }
-    }//GEN-LAST:event_jToggleButtonBookChapterBoldItemStateChanged
-
-    private void jToggleButtonBookChapterItalicItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterItalicItemStateChanged
-        if(evt.getStateChange()==ItemEvent.SELECTED){
-            USERPREFS.BOOKCHAPTERSTYLES_ITALIC = true;
-        }
-        else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            USERPREFS.BOOKCHAPTERSTYLES_ITALIC = false;
-        }
-        
-        if(biblegetDB.setBooleanOption("BOOKCHAPTERSTYLES_ITALIC", USERPREFS.BOOKCHAPTERSTYLES_ITALIC)){
-            //System.out.println("ITALICSBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_ITALIC);
-        }
-        else{
-            //System.out.println("Error updating ITALICSBOOKCHAPTER in database");
-        }
-    }//GEN-LAST:event_jToggleButtonBookChapterItalicItemStateChanged
-
-    private void jToggleButtonBookChapterUnderlineItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterUnderlineItemStateChanged
-        if(evt.getStateChange()==ItemEvent.SELECTED){
-            USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE = true;
-        }
-        else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE = false;
-        }
-        
-        if(biblegetDB.setBooleanOption("BOOKCHAPTERSTYLES_UNDERLINE", USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE)){
-            //System.out.println("UNDERSCOREBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE);
-        }
-        else{
-            //System.out.println("Error updating UNDERSCOREBOOKCHAPTER in database");
-        }
-    }//GEN-LAST:event_jToggleButtonBookChapterUnderlineItemStateChanged
-
-    private void jToggleButtonVerseNumberBoldItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseNumberBoldItemStateChanged
-        if(evt.getStateChange()==ItemEvent.SELECTED){
-            USERPREFS.VERSENUMBERSTYLES_BOLD = true;
-        }
-        else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            USERPREFS.VERSENUMBERSTYLES_BOLD = false;
-        }
-        
-        if(biblegetDB.setBooleanOption("VERSENUMBERSTYLES_BOLD", USERPREFS.VERSENUMBERSTYLES_BOLD)){
-            //System.out.println("BOLDVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_BOLD);
-        }
-        else{
-            //System.out.println("Error updating BOLDVERSENUMBER in database");
-        }
-    }//GEN-LAST:event_jToggleButtonVerseNumberBoldItemStateChanged
-
-    private void jToggleButtonVerseNumberItalicItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseNumberItalicItemStateChanged
-        if(evt.getStateChange()==ItemEvent.SELECTED){
-            USERPREFS.VERSENUMBERSTYLES_ITALIC = true;
-        }
-        else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            USERPREFS.VERSENUMBERSTYLES_ITALIC = false;
-        }
-        
-        if(biblegetDB.setBooleanOption("VERSENUMBERSTYLES_ITALIC", USERPREFS.VERSENUMBERSTYLES_ITALIC)){
-            //System.out.println("ITALICSVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_ITALIC);
-        }
-        else{
-            //System.out.println("Error updating ITALICSVERSENUMBER in database");
-        }
-    }//GEN-LAST:event_jToggleButtonVerseNumberItalicItemStateChanged
-
-    private void jToggleButtonVerseNumberUnderlineItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseNumberUnderlineItemStateChanged
-        if(evt.getStateChange()==ItemEvent.SELECTED){
-            USERPREFS.VERSENUMBERSTYLES_UNDERLINE = true;
-        }
-        else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            USERPREFS.VERSENUMBERSTYLES_UNDERLINE = false;
-        }
-        
-        if(biblegetDB.setBooleanOption("VERSENUMBERSRTYLES_UNDERLINE", USERPREFS.VERSENUMBERSTYLES_UNDERLINE)){
-            //System.out.println("UNDERSCOREVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_UNDERLINE);
-        }
-        else{
-            //System.out.println("Error updating UNDERSCOREVERSENUMBER in database");
-        }
-    }//GEN-LAST:event_jToggleButtonVerseNumberUnderlineItemStateChanged
-
-    private void jToggleButtonVerseTextBoldItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseTextBoldItemStateChanged
-        if(evt.getStateChange()==ItemEvent.SELECTED){
-            USERPREFS.VERSETEXTSTYLES_BOLD = true;
-        }
-        else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            USERPREFS.VERSETEXTSTYLES_BOLD = false;
-        }
-        
-        if(biblegetDB.setBooleanOption("VERSETEXTSTYLES_BOLD", USERPREFS.VERSETEXTSTYLES_BOLD)){
-            //System.out.println("BOLDVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_BOLD);
-        }
-        else{
-            //System.out.println("Error updating BOLDVERSETEXT in database");
-        }
-    }//GEN-LAST:event_jToggleButtonVerseTextBoldItemStateChanged
-
-    private void jToggleButtonVerseTextItalicItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseTextItalicItemStateChanged
-        if(evt.getStateChange()==ItemEvent.SELECTED){
-            USERPREFS.VERSETEXTSTYLES_ITALIC = true;
-        }
-        else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            USERPREFS.VERSETEXTSTYLES_ITALIC = false;
-        }
-        
-        if(biblegetDB.setBooleanOption("VERSETEXTSTYLES_ITALIC", USERPREFS.VERSETEXTSTYLES_ITALIC)){
-            //System.out.println("ITALICSVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_ITALIC);
-        }
-        else{
-            //System.out.println("Error updating ITALICSVERSETEXT in database");
-        }
-    }//GEN-LAST:event_jToggleButtonVerseTextItalicItemStateChanged
+    private void jButtonVerseTextTextColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonVerseTextTextColorMouseClicked
+        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.VERSETEXTSTYLES_TEXTCOLOR);
+        jColorChooserClean(jColorChooser);
+        ActionListener okActionListener = (ActionEvent actionEvent) -> {
+            USERPREFS.VERSETEXTSTYLES_TEXTCOLOR = jColorChooser.getColor();
+            String rgb = ColorToHexString(USERPREFS.VERSETEXTSTYLES_TEXTCOLOR);
+            if(biblegetDB.setStringOption("VERSETEXTSTYLES_TEXTCOLOR", rgb)){
+                //System.out.println("TEXTCOLORVERSETEXT was successfully updated in database to value "+rgb);
+            }
+            else{
+                //System.out.println("Error updating TEXTCOLORVERSETEXT in database");
+            }
+        };
+        ActionListener cancelActionListener;
+        cancelActionListener = (ActionEvent actionEvent) -> {
+        };
+        final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Verse Text Font Color"), true, jColorChooser, okActionListener, cancelActionListener);
+        jDialog.setIconImages(setIconImagesTextColor());
+        jDialog.setVisible(true);
+    }//GEN-LAST:event_jButtonVerseTextTextColorMouseClicked
 
     private void jToggleButtonVerseTextUnderlineItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseTextUnderlineItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
@@ -1681,7 +1677,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
             USERPREFS.VERSETEXTSTYLES_UNDERLINE = false;
         }
-        
+
         if(biblegetDB.setBooleanOption("VERSETEXTSTYLES_UNDERLINE", USERPREFS.VERSETEXTSTYLES_UNDERLINE)){
             //System.out.println("UNDERSCOREVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_UNDERLINE);
         }
@@ -1690,99 +1686,37 @@ public class OptionsFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jToggleButtonVerseTextUnderlineItemStateChanged
 
-    private void jToggleButtonParagraphLeftItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonParagraphLeftItemStateChanged
+    private void jToggleButtonVerseTextItalicItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseTextItalicItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
-            USERPREFS.PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.LEFT;
-        
-            if(biblegetDB.setIntOption("PARAGRAPHSTYLES_ALIGNMENT", USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getValue())){
-                //System.out.println("PARAGRAPHSTYLES_ALIGNMENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT);
-            }
-            else{
-                //System.out.println("Error updating PARAGRAPHSTYLES_ALIGNMENT in database");
-            }
-        }
-    }//GEN-LAST:event_jToggleButtonParagraphLeftItemStateChanged
-
-    private void jToggleButtonParagraphCenterItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonParagraphCenterItemStateChanged
-        if(evt.getStateChange()==ItemEvent.SELECTED){
-            USERPREFS.PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.CENTER;
-        
-            if(biblegetDB.setIntOption("PARAGRAPHSTYLES_ALIGNMENT", USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getValue())){
-                //System.out.println("PARAGRAPHSTYLES_ALIGNMENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT);
-            }
-            else{
-                //System.out.println("Error updating PARAGRAPHSTYLES_ALIGNMENT in database");
-            }
-        }
-    }//GEN-LAST:event_jToggleButtonParagraphCenterItemStateChanged
-
-    private void jToggleButtonParagraphRightItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonParagraphRightItemStateChanged
-        if(evt.getStateChange()==ItemEvent.SELECTED){
-            USERPREFS.PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.RIGHT;
-        
-            if(biblegetDB.setIntOption("PARAGRAPHSTYLES_ALIGNMENT", USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getValue())){
-                //System.out.println("PARAGRAPHSTYLES_ALIGNMENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT);
-            }
-            else{
-                //System.out.println("Error updating PARAGRAPHSTYLES_ALIGNMENT in database");
-            }
-        }
-    }//GEN-LAST:event_jToggleButtonParagraphRightItemStateChanged
-
-    private void jToggleButtonParagraphJustifyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonParagraphJustifyItemStateChanged
-        if(evt.getStateChange()==ItemEvent.SELECTED){
-            USERPREFS.PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.JUSTIFY;
-        
-            if(biblegetDB.setIntOption("PARAGRAPHSTYLES_ALIGNMENT", USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getValue())){
-                //System.out.println("PARAGRAPHSTYLES_ALIGNMENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT);
-            }
-            else{
-                //System.out.println("Error updating PARAGRAPHSTYLES_ALIGNMENT in database");
-            }
-        }
-    }//GEN-LAST:event_jToggleButtonParagraphJustifyItemStateChanged
-
-    private void jButtonLeftIndentMoreMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonLeftIndentMoreMouseClicked
-        USERPREFS.PARAGRAPHSTYLES_LEFTINDENT += 5;
-        
-        if(biblegetDB.setIntOption("PARAGRAPHSTYLES_LEFTINDENT", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)){
-            //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
-        }
-        else{
-            //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
-        }
-    }//GEN-LAST:event_jButtonLeftIndentMoreMouseClicked
-
-    private void jButtonLeftIndentLessMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonLeftIndentLessMouseClicked
-        if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT>=5){USERPREFS.PARAGRAPHSTYLES_LEFTINDENT -= 5;}
-        
-        if(biblegetDB.setIntOption("PARAGRAPHSTYLES_LEFTINDENT", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)){
-            //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
-        }
-        else{
-            //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
-        }
-    }//GEN-LAST:event_jButtonLeftIndentLessMouseClicked
-
-    private void jToggleButtonVerseNumberSuperscriptItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseNumberSuperscriptItemStateChanged
-        // TODO add your handling code here:
-        if(evt.getStateChange()==ItemEvent.SELECTED){
-            jToggleButtonVerseNumberSubscript.setSelected(false);
-            USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.SUPERSCRIPT;
-            //System.out.println("setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            USERPREFS.VERSETEXTSTYLES_ITALIC = true;
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
-            USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.NORMAL;
-            //System.out.println("btn13 :: setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
-        }                
-        
-        if(biblegetDB.setIntOption("VERSENUMBERSTYLES_VALIGN", USERPREFS.VERSENUMBERSTYLES_VALIGN.getValue())){
-            //System.out.println("VERSENUMBERSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            USERPREFS.VERSETEXTSTYLES_ITALIC = false;
+        }
+
+        if(biblegetDB.setBooleanOption("VERSETEXTSTYLES_ITALIC", USERPREFS.VERSETEXTSTYLES_ITALIC)){
+            //System.out.println("ITALICSVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_ITALIC);
         }
         else{
-            //System.out.println("Error updating VERSENUMBERSTYLES_VALIGN in database");
+            //System.out.println("Error updating ITALICSVERSETEXT in database");
         }
-    }//GEN-LAST:event_jToggleButtonVerseNumberSuperscriptItemStateChanged
+    }//GEN-LAST:event_jToggleButtonVerseTextItalicItemStateChanged
+
+    private void jToggleButtonVerseTextBoldItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseTextBoldItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.VERSETEXTSTYLES_BOLD = true;
+        }
+        else if(evt.getStateChange()==ItemEvent.DESELECTED){
+            USERPREFS.VERSETEXTSTYLES_BOLD = false;
+        }
+
+        if(biblegetDB.setBooleanOption("VERSETEXTSTYLES_BOLD", USERPREFS.VERSETEXTSTYLES_BOLD)){
+            //System.out.println("BOLDVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_BOLD);
+        }
+        else{
+            //System.out.println("Error updating BOLDVERSETEXT in database");
+        }
+    }//GEN-LAST:event_jToggleButtonVerseTextBoldItemStateChanged
 
     private void jToggleButtonVerseNumberSubscriptItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseNumberSubscriptItemStateChanged
         // TODO add your handling code here:
@@ -1794,8 +1728,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
             USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.NORMAL;
             //System.out.println("btn14 :: setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
-        }        
-        
+        }
+
         if(biblegetDB.setIntOption("VERSENUMBERSTYLES_VALIGN", USERPREFS.VERSENUMBERSTYLES_VALIGN.getValue())){
             //System.out.println("VERSENUMBERSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
         }
@@ -1804,21 +1738,25 @@ public class OptionsFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jToggleButtonVerseNumberSubscriptItemStateChanged
 
-    private void jComboBoxBookChapterFontSizeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxBookChapterFontSizeItemStateChanged
+    private void jToggleButtonVerseNumberSuperscriptItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseNumberSuperscriptItemStateChanged
         // TODO add your handling code here:
-        if(evt.getStateChange()==ItemEvent.SELECTED) {
-            Object item = evt.getItem();
-            // do something with object
-            String fontsize = item.toString();
-            USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE = Integer.parseInt(fontsize);
-            if(biblegetDB.setIntOption("BOOKCHAPTERSTYLES_FONTSIZE", USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE)){
-                //System.out.println("FONTSIZEBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE);
-            }
-            else{
-                //System.out.println("Error updating FONTSIZEBOOKCHAPTER in database");
-            }                
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            jToggleButtonVerseNumberSubscript.setSelected(false);
+            USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.SUPERSCRIPT;
+            //System.out.println("setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
         }
-    }//GEN-LAST:event_jComboBoxBookChapterFontSizeItemStateChanged
+        else if(evt.getStateChange()==ItemEvent.DESELECTED){
+            USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.NORMAL;
+            //System.out.println("btn13 :: setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+        }
+
+        if(biblegetDB.setIntOption("VERSENUMBERSTYLES_VALIGN", USERPREFS.VERSENUMBERSTYLES_VALIGN.getValue())){
+            //System.out.println("VERSENUMBERSTYLES_VALIGN was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+        }
+        else{
+            //System.out.println("Error updating VERSENUMBERSTYLES_VALIGN in database");
+        }
+    }//GEN-LAST:event_jToggleButtonVerseNumberSuperscriptItemStateChanged
 
     private void jComboBoxVerseNumberFontSizeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxVerseNumberFontSizeItemStateChanged
         // TODO add your handling code here:
@@ -1832,40 +1770,269 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
             else{
                 //System.out.println("Error updating VERSENUMBERSTYLES_FONTSIZE in database");
-            }                
+            }
         }
     }//GEN-LAST:event_jComboBoxVerseNumberFontSizeItemStateChanged
 
-    private void jComboBoxVerseTextFontSizeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxVerseTextFontSizeItemStateChanged
-        // TODO add your handling code here:
-        if(evt.getStateChange()==ItemEvent.SELECTED) {
-          Object item = evt.getItem();
-          // do something with object
-            String fontsize = item.toString();
-            USERPREFS.VERSETEXTSTYLES_FONTSIZE = Integer.parseInt(fontsize);
-            if(biblegetDB.setIntOption("VERSETEXTSTYLES_FONTSIZE", USERPREFS.VERSETEXTSTYLES_FONTSIZE)){
-                //System.out.println("FONTSIZEVERSETEXT was successfully updated in database to value "+USERPREFS.VERSETEXTSTYLES_FONTSIZE);
+    private void jButtonVerseNumberHighlightColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonVerseNumberHighlightColorMouseClicked
+        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.VERSENUMBERSTYLES_BGCOLOR);
+        jColorChooserClean(jColorChooser);
+        ActionListener okActionListener = (ActionEvent actionEvent) -> {
+            USERPREFS.VERSENUMBERSTYLES_BGCOLOR = jColorChooser.getColor();
+            String rgb = ColorToHexString(USERPREFS.VERSENUMBERSTYLES_BGCOLOR);
+            if(biblegetDB.setStringOption("VERSENUMBERSTYLES_BGCOLOR", rgb)){
+                //System.out.println("BGCOLORVERSENUMBER was successfully updated in database to value "+rgb);
             }
             else{
-                //System.out.println("Error updating FONTSIZEVERSETEXT in database");
-            }                
+                //System.out.println("Error updating BGCOLORVERSENUMBER in database");
+            }
+        };
+        ActionListener cancelActionListener;
+        cancelActionListener = (ActionEvent actionEvent) -> {
+        };
+        final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Verse Number Background Color"), true, jColorChooser, okActionListener, cancelActionListener);
+        jDialog.setIconImages(setIconImagesBGColor());
+        jDialog.setVisible(true);
+    }//GEN-LAST:event_jButtonVerseNumberHighlightColorMouseClicked
+
+    private void jButtonVerseNumberTextColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonVerseNumberTextColorMouseClicked
+        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR);
+        jColorChooserClean(jColorChooser);
+        ActionListener okActionListener = (ActionEvent actionEvent) -> {
+            USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR = jColorChooser.getColor();
+            String rgb = ColorToHexString(USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR);
+            if(biblegetDB.setStringOption("VERSENUMBERSTYLES_TEXTCOLOR", rgb)){
+                //System.out.println("TEXTCOLORVERSENUMBER was successfully updated in database to value "+rgb);
+            }
+            else{
+                //System.out.println("Error updating TEXTCOLORVERSENUMBER in database");
+            }
+        };
+        ActionListener cancelActionListener;
+        cancelActionListener = (ActionEvent actionEvent) -> {
+        };
+        final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Verse Number Font Color"), true, jColorChooser, okActionListener, cancelActionListener);
+        jDialog.setIconImages(setIconImagesTextColor());
+        jDialog.setVisible(true);
+    }//GEN-LAST:event_jButtonVerseNumberTextColorMouseClicked
+
+    private void jToggleButtonVerseNumberUnderlineItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseNumberUnderlineItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.VERSENUMBERSTYLES_UNDERLINE = true;
         }
-    }//GEN-LAST:event_jComboBoxVerseTextFontSizeItemStateChanged
+        else if(evt.getStateChange()==ItemEvent.DESELECTED){
+            USERPREFS.VERSENUMBERSTYLES_UNDERLINE = false;
+        }
+
+        if(biblegetDB.setBooleanOption("VERSENUMBERSRTYLES_UNDERLINE", USERPREFS.VERSENUMBERSTYLES_UNDERLINE)){
+            //System.out.println("UNDERSCOREVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_UNDERLINE);
+        }
+        else{
+            //System.out.println("Error updating UNDERSCOREVERSENUMBER in database");
+        }
+    }//GEN-LAST:event_jToggleButtonVerseNumberUnderlineItemStateChanged
+
+    private void jToggleButtonVerseNumberItalicItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseNumberItalicItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.VERSENUMBERSTYLES_ITALIC = true;
+        }
+        else if(evt.getStateChange()==ItemEvent.DESELECTED){
+            USERPREFS.VERSENUMBERSTYLES_ITALIC = false;
+        }
+
+        if(biblegetDB.setBooleanOption("VERSENUMBERSTYLES_ITALIC", USERPREFS.VERSENUMBERSTYLES_ITALIC)){
+            //System.out.println("ITALICSVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_ITALIC);
+        }
+        else{
+            //System.out.println("Error updating ITALICSVERSENUMBER in database");
+        }
+    }//GEN-LAST:event_jToggleButtonVerseNumberItalicItemStateChanged
+
+    private void jToggleButtonVerseNumberBoldItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonVerseNumberBoldItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.VERSENUMBERSTYLES_BOLD = true;
+        }
+        else if(evt.getStateChange()==ItemEvent.DESELECTED){
+            USERPREFS.VERSENUMBERSTYLES_BOLD = false;
+        }
+
+        if(biblegetDB.setBooleanOption("VERSENUMBERSTYLES_BOLD", USERPREFS.VERSENUMBERSTYLES_BOLD)){
+            //System.out.println("BOLDVERSENUMBER was successfully updated in database to value "+USERPREFS.VERSENUMBERSTYLES_BOLD);
+        }
+        else{
+            //System.out.println("Error updating BOLDVERSENUMBER in database");
+        }
+    }//GEN-LAST:event_jToggleButtonVerseNumberBoldItemStateChanged
+
+    private void jComboBoxBookChapterFontSizeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxBookChapterFontSizeItemStateChanged
+        // TODO add your handling code here:
+        if(evt.getStateChange()==ItemEvent.SELECTED) {
+            Object item = evt.getItem();
+            // do something with object
+            String fontsize = item.toString();
+            USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE = Integer.parseInt(fontsize);
+            if(biblegetDB.setIntOption("BOOKCHAPTERSTYLES_FONTSIZE", USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE)){
+                //System.out.println("FONTSIZEBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE);
+            }
+            else{
+                //System.out.println("Error updating FONTSIZEBOOKCHAPTER in database");
+            }
+        }
+    }//GEN-LAST:event_jComboBoxBookChapterFontSizeItemStateChanged
+
+    private void jButtonBookChapterHighlightColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonBookChapterHighlightColorMouseClicked
+        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR);
+        jColorChooserClean(jColorChooser);
+        ActionListener okActionListener = (ActionEvent actionEvent) -> {
+            USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR = jColorChooser.getColor();
+            String rgb = ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR);
+            if(biblegetDB.setStringOption("BOOKCHAPTERSTYLES_BGCOLOR", rgb)){
+                //System.out.println("BOOKCHAPTERSTYLES_BGCOLOR was successfully updated in database to value "+rgb);
+            }
+            else{
+                //System.out.println("Error updating BOOKCHAPTERSTYLES_BGCOLOR in database");
+            }
+        };
+        ActionListener cancelActionListener;
+        cancelActionListener = (ActionEvent actionEvent) -> {
+        };
+        final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Book / Chapter Background Color"), true, jColorChooser, okActionListener, cancelActionListener);
+        jDialog.setIconImages(setIconImagesBGColor());
+        jDialog.setVisible(true);
+    }//GEN-LAST:event_jButtonBookChapterHighlightColorMouseClicked
+
+    private void jButtonBookChapterTextColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonBookChapterTextColorMouseClicked
+        final JColorChooser jColorChooser = new JColorChooser(USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);
+        jColorChooserClean(jColorChooser);
+        ActionListener okActionListener = (ActionEvent actionEvent) -> {
+            USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR = jColorChooser.getColor();
+            String rgb = ColorToHexString(USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);
+            if(biblegetDB.setStringOption("BOOKCHAPTERSTYLES_TEXTCOLOR", rgb)){
+                //System.out.println("BOOKCHAPTERSTYLES_TEXTCOLOR was successfully updated in database to value "+rgb);
+            }
+            else{
+                //System.out.println("Error updating BOOKCHAPTERSTYLES_TEXTCOLOR in database");
+            }
+        };
+        ActionListener cancelActionListener = (ActionEvent actionEvent) -> {
+        };
+        final JDialog jDialog = JColorChooser.createDialog(null,  __("Choose Book / Chapter Font Color"), true, jColorChooser, okActionListener, cancelActionListener);
+        jDialog.setIconImages(setIconImagesTextColor());
+        jDialog.setVisible(true);
+    }//GEN-LAST:event_jButtonBookChapterTextColorMouseClicked
+
+    private void jToggleButtonBookChapterUnderlineItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterUnderlineItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE = true;
+        }
+        else if(evt.getStateChange()==ItemEvent.DESELECTED){
+            USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE = false;
+        }
+
+        if(biblegetDB.setBooleanOption("BOOKCHAPTERSTYLES_UNDERLINE", USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE)){
+            //System.out.println("UNDERSCOREBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE);
+        }
+        else{
+            //System.out.println("Error updating UNDERSCOREBOOKCHAPTER in database");
+        }
+    }//GEN-LAST:event_jToggleButtonBookChapterUnderlineItemStateChanged
+
+    private void jToggleButtonBookChapterItalicItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterItalicItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.BOOKCHAPTERSTYLES_ITALIC = true;
+        }
+        else if(evt.getStateChange()==ItemEvent.DESELECTED){
+            USERPREFS.BOOKCHAPTERSTYLES_ITALIC = false;
+        }
+
+        if(biblegetDB.setBooleanOption("BOOKCHAPTERSTYLES_ITALIC", USERPREFS.BOOKCHAPTERSTYLES_ITALIC)){
+            //System.out.println("ITALICSBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_ITALIC);
+        }
+        else{
+            //System.out.println("Error updating ITALICSBOOKCHAPTER in database");
+        }
+    }//GEN-LAST:event_jToggleButtonBookChapterItalicItemStateChanged
+
+    private void jToggleButtonBookChapterBoldItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterBoldItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.BOOKCHAPTERSTYLES_BOLD = true;
+        }
+        else if(evt.getStateChange()==ItemEvent.DESELECTED){
+            USERPREFS.BOOKCHAPTERSTYLES_BOLD = false;
+        }
+
+        if(biblegetDB.setBooleanOption("BOOKCHAPTERSTYLES_BOLD", USERPREFS.BOOKCHAPTERSTYLES_BOLD)){
+            //System.out.println("BOLDBOOKCHAPTER was successfully updated in database to value "+USERPREFS.BOOKCHAPTERSTYLES_BOLD);
+        }
+        else{
+            //System.out.println("Error updating BOLDBOOKCHAPTER in database");
+        }
+    }//GEN-LAST:event_jToggleButtonBookChapterBoldItemStateChanged
+
+    private void jComboBoxBibleVersionFontSizeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxBibleVersionFontSizeItemStateChanged
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jComboBoxBibleVersionFontSizeItemStateChanged
+
+    private void jButtonBibleVersionHighlightColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonBibleVersionHighlightColorMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButtonBibleVersionHighlightColorMouseClicked
+
+    private void jButtonBibleVersionTextColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonBibleVersionTextColorMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButtonBibleVersionTextColorMouseClicked
+
+    private void jToggleButtonBibleVersionUnderlineItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionUnderlineItemStateChanged
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jToggleButtonBibleVersionUnderlineItemStateChanged
+
+    private void jToggleButtonBibleVersionItalicItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionItalicItemStateChanged
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jToggleButtonBibleVersionItalicItemStateChanged
+
+    private void jToggleButtonBibleVersionBoldItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionBoldItemStateChanged
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jToggleButtonBibleVersionBoldItemStateChanged
+
+    private void jButtonRightIndentLessMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonRightIndentLessMouseClicked
+        if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT>=5){USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT -= 5;}
+
+        if(biblegetDB.setIntOption("PARAGRAPHSTYLES_RIGHTINDENT", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)){
+            //System.out.println("PARAGRAPHSTYLES_RIGHTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT);
+        }
+        else{
+            //System.out.println("Error updating PARAGRAPHSTYLES_RIGHTINDENT in database");
+        }
+    }//GEN-LAST:event_jButtonRightIndentLessMouseClicked
+
+    private void jButtonRightIndentMoreMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonRightIndentMoreMouseClicked
+        if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT<50){USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT += 5;}
+
+        if(biblegetDB.setIntOption("PARAGRAPHSTYLES_RIGHTINDENT", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)){
+            //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
+        }
+        else{
+            //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
+        }
+    }//GEN-LAST:event_jButtonRightIndentMoreMouseClicked
 
     private void jComboBoxParagraphFontFamilyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxParagraphFontFamilyItemStateChanged
         // TODO add your handling code here:
         if(evt.getStateChange()==ItemEvent.SELECTED) {
-          Object item = evt.getItem();
-          // do something with object
+            Object item = evt.getItem();
+            // do something with object
             USERPREFS.PARAGRAPHSTYLES_FONTFAMILY = item.toString();
             if(biblegetDB.setStringOption("PARAGRAPHSTYLES_FONTFAMILY", USERPREFS.PARAGRAPHSTYLES_FONTFAMILY)){
                 //System.out.println("PARAGRAPHFONTFAMILY was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_FONTFAMILY);
             }
             else{
                 //System.out.println("Error updating PARAGRAPHFONTFAMILY in database");
-            }                
+            }
         }
     }//GEN-LAST:event_jComboBoxParagraphFontFamilyItemStateChanged
+
+    private void jComboBoxParagraphLineHeightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxParagraphLineHeightActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jComboBoxParagraphLineHeightActionPerformed
 
     private void jComboBoxParagraphLineHeightItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxParagraphLineHeightItemStateChanged
         // TODO add your handling code here:
@@ -1877,10 +2044,10 @@ public class OptionsFrame extends javax.swing.JFrame {
             {
                 case 0: USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT = 100; break;
                 case 1: USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT = 150; break;
-                case 2: USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT = 200; break;    
+                case 2: USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT = 200; break;
             }
             // do something with object
-            
+
             Double lineHeight = Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT) / 100;
             //"div.results .versesParagraph { line-height: " + String.format(Locale.ROOT, "%.1f", lineHeight) + "em; }"
             browser.executeJavaScript("jQuery(\"div.results .versesParagraph\").css({\"line-height\":\"" + String.format(Locale.ROOT, "%.1f", lineHeight) + "em\"}) ", browser.getURL(),0);
@@ -1889,80 +2056,96 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
             else{
                 //System.out.println("Error updating PARAGRAPHLINESPACING in database");
-            }                
+            }
         }
-        
+
     }//GEN-LAST:event_jComboBoxParagraphLineHeightItemStateChanged
 
-    private void jCheckBoxUseVersionFormattingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseVersionFormattingActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jCheckBoxUseVersionFormattingActionPerformed
+    private void jButtonLeftIndentLessMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonLeftIndentLessMouseClicked
+        if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT>=5){USERPREFS.PARAGRAPHSTYLES_LEFTINDENT -= 5;}
 
-    private void jCheckBoxUseVersionFormattingItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jCheckBoxUseVersionFormattingItemStateChanged
-        // TODO add your handling code here:
-        if(evt.getStateChange()==ItemEvent.SELECTED) {
-          // do something with object
-            USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING = true;
-        }        
-        else if(evt.getStateChange()==ItemEvent.DESELECTED) {
-          // do something with object
-            USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING = false;
-        }        
-        if(biblegetDB.setBooleanOption("PARAGRAPHSTYLES_NOVERSIONFORMATTING", USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING)){
-            //System.out.println("NOVERSIONFORMATTING was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING);
+        if(biblegetDB.setIntOption("PARAGRAPHSTYLES_LEFTINDENT", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)){
+            //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
         }
         else{
-            //System.out.println("Error updating NOVERSIONFORMATTING in database");
-        }                
-    }//GEN-LAST:event_jCheckBoxUseVersionFormattingItemStateChanged
+            //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
+        }
+    }//GEN-LAST:event_jButtonLeftIndentLessMouseClicked
 
-    private void jComboBoxParagraphLineHeightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxParagraphLineHeightActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jComboBoxParagraphLineHeightActionPerformed
+    private void jButtonLeftIndentMoreMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonLeftIndentMoreMouseClicked
+        if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT<50){USERPREFS.PARAGRAPHSTYLES_LEFTINDENT += 5;}
 
-    private void jToggleButtonBibleVersionBoldItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionBoldItemStateChanged
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jToggleButtonBibleVersionBoldItemStateChanged
+        if(biblegetDB.setIntOption("PARAGRAPHSTYLES_LEFTINDENT", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)){
+            //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
+        }
+        else{
+            //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
+        }
+    }//GEN-LAST:event_jButtonLeftIndentMoreMouseClicked
 
-    private void jToggleButtonBibleVersionItalicItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionItalicItemStateChanged
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jToggleButtonBibleVersionItalicItemStateChanged
+    private void jToggleButtonParagraphJustifyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonParagraphJustifyItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.JUSTIFY;
+            browser.executeJavaScript("jQuery(\"div.results .versesParagraph\").css({\"text-align\":\"" + USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getCSSValue() + "\"}) ", browser.getURL(),0);
+            if(biblegetDB.setIntOption("PARAGRAPHSTYLES_ALIGNMENT", USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getValue())){
+                //System.out.println("PARAGRAPHSTYLES_ALIGNMENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT);
+            }
+            else{
+                //System.out.println("Error updating PARAGRAPHSTYLES_ALIGNMENT in database");
+            }
+        }
+    }//GEN-LAST:event_jToggleButtonParagraphJustifyItemStateChanged
 
-    private void jToggleButtonBibleVersionUnderlineItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionUnderlineItemStateChanged
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jToggleButtonBibleVersionUnderlineItemStateChanged
+    private void jToggleButtonParagraphRightItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonParagraphRightItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.RIGHT;
+            browser.executeJavaScript("jQuery(\"div.results .versesParagraph\").css({\"text-align\":\"" + USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getCSSValue() + "\"}) ", browser.getURL(),0);
+            if(biblegetDB.setIntOption("PARAGRAPHSTYLES_ALIGNMENT", USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getValue())){
+                //System.out.println("PARAGRAPHSTYLES_ALIGNMENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT);
+            }
+            else{
+                //System.out.println("Error updating PARAGRAPHSTYLES_ALIGNMENT in database");
+            }
+        }
+    }//GEN-LAST:event_jToggleButtonParagraphRightItemStateChanged
 
-    private void jButtonBibleVersionTextColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonBibleVersionTextColorMouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButtonBibleVersionTextColorMouseClicked
+    private void jToggleButtonParagraphCenterItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonParagraphCenterItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.CENTER;
+            browser.executeJavaScript("jQuery(\"div.results .versesParagraph\").css({\"text-align\":\"" + USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getCSSValue() + "\"}) ", browser.getURL(),0);
+            if(biblegetDB.setIntOption("PARAGRAPHSTYLES_ALIGNMENT", USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getValue())){
+                //System.out.println("PARAGRAPHSTYLES_ALIGNMENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT);
+            }
+            else{
+                //System.out.println("Error updating PARAGRAPHSTYLES_ALIGNMENT in database");
+            }
+        }
+    }//GEN-LAST:event_jToggleButtonParagraphCenterItemStateChanged
 
-    private void jButtonBibleVersionHighlightColorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonBibleVersionHighlightColorMouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButtonBibleVersionHighlightColorMouseClicked
-
-    private void jComboBoxBibleVersionFontSizeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxBibleVersionFontSizeItemStateChanged
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jComboBoxBibleVersionFontSizeItemStateChanged
+    private void jToggleButtonParagraphLeftItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonParagraphLeftItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.LEFT;
+            browser.executeJavaScript("jQuery(\"div.results .versesParagraph\").css({\"text-align\":\"" + USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getCSSValue() + "\"}) ", browser.getURL(),0);
+            if(biblegetDB.setIntOption("PARAGRAPHSTYLES_ALIGNMENT", USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getValue())){
+                //System.out.println("PARAGRAPHSTYLES_ALIGNMENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_ALIGNMENT);
+            }
+            else{
+                //System.out.println("Error updating PARAGRAPHSTYLES_ALIGNMENT in database");
+            }
+        }
+    }//GEN-LAST:event_jToggleButtonParagraphLeftItemStateChanged
 
     private void jToggleButtonBibleVersionVisibilityItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionVisibilityItemStateChanged
-        if(evt.getStateChange()==ItemEvent.SELECTED) {
-          // do something with object
+        if(evt.getStateChange()==ItemEvent.SELECTED){
             USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW = BGET.VISIBILITY.SHOW;
             jToggleButtonBibleVersionVisibility.setIcon(buttonStateOn);
             jToggleButtonBibleVersionVisibility.setText("SHOW");
-        }        
-        else if(evt.getStateChange()==ItemEvent.DESELECTED) {
-          // do something with object
+        }
+        else {
             USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW = BGET.VISIBILITY.HIDE;
             jToggleButtonBibleVersionVisibility.setIcon(buttonStateOff);
             jToggleButtonBibleVersionVisibility.setText("HIDE");
-        }        
-        if(biblegetDB.setIntOption("LAYOUTPREFS_BIBLEVERSION_SHOW", USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW.getValue())){
-            //System.out.println("NOVERSIONFORMATTING was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING);
         }
-        else{
-            //System.out.println("Error updating NOVERSIONFORMATTING in database");
-        }                
     }//GEN-LAST:event_jToggleButtonBibleVersionVisibilityItemStateChanged
 
     private void jToggleButtonBibleVersionVisibilityMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionVisibilityMouseEntered
@@ -1985,14 +2168,13 @@ public class OptionsFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jToggleButtonBibleVersionVisibilityActionPerformed
 
-    private void jButtonRightIndentMoreMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonRightIndentMoreMouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButtonRightIndentMoreMouseClicked
-
-    private void jButtonRightIndentLessMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonRightIndentLessMouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButtonRightIndentLessMouseClicked
-    
+    private void jColorChooserClean(JColorChooser jColorChooser){
+        AbstractColorChooserPanel panels[] = jColorChooser.getChooserPanels();
+        jColorChooser.removeChooserPanel(panels[4]);
+        jColorChooser.removeChooserPanel(panels[3]);
+        jColorChooser.removeChooserPanel(panels[2]);
+    }
+        
         
     
     private List<Image> setIconImages()
@@ -2142,6 +2324,7 @@ public class OptionsFrame extends javax.swing.JFrame {
     private javax.swing.ButtonGroup buttonGroupBibleVersionVAlign;
     private javax.swing.ButtonGroup buttonGroupBibleVersionWrap;
     private javax.swing.ButtonGroup buttonGroupBookChapterAlign;
+    private javax.swing.ButtonGroup buttonGroupBookChapterFormat;
     private javax.swing.ButtonGroup buttonGroupBookChapterVAlign;
     private javax.swing.ButtonGroup buttonGroupParagraphAlign;
     private javax.swing.JButton jButtonBibleVersionHighlightColor;
@@ -2165,6 +2348,7 @@ public class OptionsFrame extends javax.swing.JFrame {
     private javax.swing.JComboBox jComboBoxVerseTextFontSize;
     private javax.swing.JInternalFrame jInternalFrame1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanelBibleVersion;
     private javax.swing.JPanel jPanelBookChapter;
@@ -2198,7 +2382,6 @@ public class OptionsFrame extends javax.swing.JFrame {
     private javax.swing.JToggleButton jToggleButtonBibleVersionItalic;
     private javax.swing.JToggleButton jToggleButtonBibleVersionUnderline;
     private javax.swing.JToggleButton jToggleButtonBibleVersionVAlignBottom;
-    private javax.swing.JToggleButton jToggleButtonBibleVersionVAlignBottominline;
     private javax.swing.JToggleButton jToggleButtonBibleVersionVAlignTop;
     private javax.swing.JToggleButton jToggleButtonBibleVersionVisibility;
     private javax.swing.JToggleButton jToggleButtonBibleVersionWrapBrackets;
@@ -2207,9 +2390,14 @@ public class OptionsFrame extends javax.swing.JFrame {
     private javax.swing.JToggleButton jToggleButtonBookChapterAlignCenter;
     private javax.swing.JToggleButton jToggleButtonBookChapterAlignLeft;
     private javax.swing.JToggleButton jToggleButtonBookChapterAlignRight;
+    private javax.swing.JToggleButton jToggleButtonBookChapterBibleLang;
+    private javax.swing.JToggleButton jToggleButtonBookChapterBibleLangAbbrev;
     private javax.swing.JToggleButton jToggleButtonBookChapterBold;
+    private javax.swing.JToggleButton jToggleButtonBookChapterFullRef;
     private javax.swing.JToggleButton jToggleButtonBookChapterItalic;
     private javax.swing.JToggleButton jToggleButtonBookChapterUnderline;
+    private javax.swing.JToggleButton jToggleButtonBookChapterUserLang;
+    private javax.swing.JToggleButton jToggleButtonBookChapterUserLangAbbrev;
     private javax.swing.JToggleButton jToggleButtonBookChapterVAlignBottom;
     private javax.swing.JToggleButton jToggleButtonBookChapterVAlignBottominline;
     private javax.swing.JToggleButton jToggleButtonBookChapterVAlignTop;
@@ -2225,6 +2413,7 @@ public class OptionsFrame extends javax.swing.JFrame {
     private javax.swing.JToggleButton jToggleButtonVerseNumberSubscript;
     private javax.swing.JToggleButton jToggleButtonVerseNumberSuperscript;
     private javax.swing.JToggleButton jToggleButtonVerseNumberUnderline;
+    private javax.swing.JToggleButton jToggleButtonVerseNumberVisibility;
     private javax.swing.JToggleButton jToggleButtonVerseTextBold;
     private javax.swing.JToggleButton jToggleButtonVerseTextItalic;
     private javax.swing.JToggleButton jToggleButtonVerseTextUnderline;
