@@ -247,5 +247,34 @@ public class BGET {
             return value;
         }
     }
+    
+    public enum MEASUREUNIT {
+        MM(1),
+        CM(2),
+        POINT(6),
+        PICA(7),
+        INCH(8);
+        
+        private int value;
+        private static final HashMap<Integer,MEASUREUNIT> map = new HashMap<>();
+        
+        private MEASUREUNIT(int value) {
+            this.value = value;
+        }
+        
+        static {
+            for (MEASUREUNIT mUnit : MEASUREUNIT.values()) {
+                map.put(mUnit.value, mUnit);
+            }
+        }
+        
+        public static MEASUREUNIT valueOf(int mUnit){
+            return (MEASUREUNIT) map.get(mUnit);
+        }
+        
+        public int getValue(){
+            return value;
+        }
+    }
    
 }

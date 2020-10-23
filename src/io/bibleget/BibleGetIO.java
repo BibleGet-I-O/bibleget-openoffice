@@ -22,7 +22,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,6 +59,7 @@ public final class BibleGetIO extends WeakBase
     private static String myLocale;
     private static Locale uiLocale;
     //public ResourceBundle myMessages;
+    public static BGET.MEASUREUNIT measureUnit;
     
     private static BibleGetIO instance;
 
@@ -449,12 +450,32 @@ public final class BibleGetIO extends WeakBase
                     lArgs[0] = new PropertyValue(); 
                     lArgs[0].Name  = "nodepath"; 
                     lArgs[0].Value = "/org.openoffice.Office.Linguistic/General"; 
-
                     Object configAccess =  xConfigurationServiceFactory.createInstanceWithArguments( 
                        "com.sun.star.configuration.ConfigurationAccess",lArgs); 
-
-                    XNameAccess xNameAccess = (XNameAccess)UnoRuntime.queryInterface(XNameAccess.class, configAccess); 
-
+                    XNameAccess xNameAccess = (XNameAccess)UnoRuntime.queryInterface(XNameAccess.class, configAccess);
+                    
+                    PropertyValue[] lArgs1    = new PropertyValue[1]; 
+                    lArgs1[0] = new PropertyValue();
+                    lArgs1[0].Name = "nodepath";
+                    lArgs1[0].Value = "/org.openoffice.Office.Writer/Layout/Other";
+                    Object configAccess1 =  xConfigurationServiceFactory.createInstanceWithArguments( 
+                       "com.sun.star.configuration.ConfigurationAccess",lArgs1); 
+                    XNameAccess xNameAccess1 = (XNameAccess)UnoRuntime.queryInterface(XNameAccess.class, configAccess1);
+                    
+                    String[] elNames = xNameAccess1.getElementNames();
+                    //xNameAccess1.getElementType();
+                    System.out.println("elNames = " + Arrays.toString(elNames));
+                    System.out.println(xNameAccess1.getByName("MeasureUnit"));
+                    /*
+                        MM = 1
+                        CM = 2
+                        INCHES = 8
+                        PICA = 7
+                        POINT = 6
+                    */
+                    int mUnit = (int)xNameAccess1.getByName("MeasureUnit");
+                    BibleGetIO.measureUnit = BGET.MEASUREUNIT.valueOf(mUnit);
+                    
                     String mylcl;
                     mylcl = xNameAccess.getByName("UILocale").toString();
                     if(mylcl.isEmpty()){
