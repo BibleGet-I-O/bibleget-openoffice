@@ -465,7 +465,8 @@ public final class BibleGetIO extends WeakBase
                     String[] elNames = xNameAccess1.getElementNames();
                     //xNameAccess1.getElementType();
                     System.out.println("elNames = " + Arrays.toString(elNames));
-                    System.out.println(xNameAccess1.getByName("MeasureUnit"));
+                    System.out.println(xNameAccess1.getByName("MeasureUnit").toString());
+                    System.out.println(xNameAccess1.getElementType().getTypeName());
                     /*
                         MM = 1
                         CM = 2
@@ -473,7 +474,7 @@ public final class BibleGetIO extends WeakBase
                         PICA = 7
                         POINT = 6
                     */
-                    int mUnit = (int)xNameAccess1.getByName("MeasureUnit");
+                    int mUnit = Integer.parseInt(xNameAccess1.getByName("MeasureUnit").toString());
                     BibleGetIO.measureUnit = BGET.MEASUREUNIT.valueOf(mUnit);
                     
                     String mylcl;
