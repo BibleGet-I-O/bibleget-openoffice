@@ -16,6 +16,8 @@
     </Component>
     <Component class="javax.swing.ButtonGroup" name="buttonGroupBookChapterFormat">
     </Component>
+    <Component class="javax.swing.ButtonGroup" name="buttonGroupBookChapterWrap">
+    </Component>
   </NonVisualComponents>
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="2"/>
@@ -33,7 +35,7 @@
     </Property>
     <Property name="name" type="java.lang.String" value="myoptions" noResource="true"/>
     <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-      <Dimension value="[1300, 900]"/>
+      <Dimension value="[1300, 850]"/>
     </Property>
     <Property name="resizable" type="boolean" value="false"/>
     <Property name="size" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
@@ -54,7 +56,7 @@
     <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
     <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
-    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,2,-18,0,0,4,76"/>
+    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,2,-68,0,0,4,76"/>
   </AuxValues>
 
   <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
@@ -70,6 +72,9 @@
           </Border>
         </Property>
         <Property name="name" type="java.lang.String" value="Paragraph" noResource="true"/>
+        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+          <Dimension value="[774, 90]"/>
+        </Property>
       </Properties>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription">
@@ -79,6 +84,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
         <Property name="alignment" type="int" value="0"/>
+        <Property name="verticalGap" type="int" value="0"/>
       </Layout>
       <SubComponents>
         <Container class="javax.swing.JPanel" name="jPanelParagraphAlignment">
@@ -763,10 +769,16 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/align_left.png"/>
                     </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BIBLEVERSION_ALIGNMENT==BGET.ALIGN.LEFT" type="code"/>
+                    </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
                     <Property name="verticalTextPosition" type="int" value="3"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBibleVersionAlignLeftItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBibleVersionAlignCenter">
                   <Properties>
@@ -776,10 +788,16 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/align_center.png"/>
                     </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BIBLEVERSION_ALIGNMENT==BGET.ALIGN.CENTER" type="code"/>
+                    </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
                     <Property name="verticalTextPosition" type="int" value="3"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBibleVersionAlignCenterItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBibleVersionAlignRight">
                   <Properties>
@@ -789,10 +807,16 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/align_right.png"/>
                     </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BIBLEVERSION_ALIGNMENT==BGET.ALIGN.RIGHT" type="code"/>
+                    </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
                     <Property name="verticalTextPosition" type="int" value="3"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBibleVersionAlignRightItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToolBar$Separator" name="jSeparator10">
                 </Component>
@@ -804,10 +828,25 @@
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Tahoma" size="14" style="0"/>
                     </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BIBLEVERSION_WRAP==BGET.WRAP.NONE" type="code"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="NONE"/>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[55, 31]"/>
+                    </Property>
+                    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[55, 31]"/>
+                    </Property>
+                    <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[55, 31]"/>
+                    </Property>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBibleVersionWrapNoneItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBibleVersionWrapParentheses">
                   <Properties>
@@ -817,10 +856,25 @@
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Tahoma" size="18" style="0"/>
                     </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BIBLEVERSION_WRAP==BGET.WRAP.PARENTHESES" type="code"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="()"/>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
+                    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
+                    <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBibleVersionWrapParenthesesItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBibleVersionWrapBrackets">
                   <Properties>
@@ -830,10 +884,25 @@
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Tahoma" size="18" style="0"/>
                     </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BIBLEVERSION_WRAP==BGET.WRAP.BRACKETS" type="code"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="[]"/>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
+                    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
+                    <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBibleVersionWrapBracketsItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToolBar$Separator" name="jSeparator11">
                 </Component>
@@ -844,6 +913,9 @@
                     </Property>
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/io/bibleget/images/position_above.png"/>
+                    </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION==BGET.POS.TOP" type="code"/>
                     </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -867,8 +939,17 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/io/bibleget/images/position_below.png"/>
                     </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION==BGET.POS.BOTTOM" type="code"/>
+                    </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
+                    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
                     <Property name="verticalTextPosition" type="int" value="3"/>
                   </Properties>
                 </Component>
@@ -1132,10 +1213,16 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/align_left.png"/>
                     </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT==BGET.ALIGN.LEFT" type="code"/>
+                    </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
                     <Property name="verticalTextPosition" type="int" value="3"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterAlignLeftItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBookChapterAlignCenter">
                   <Properties>
@@ -1145,10 +1232,16 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/align_center.png"/>
                     </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT==BGET.ALIGN.CENTER" type="code"/>
+                    </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
                     <Property name="verticalTextPosition" type="int" value="3"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterAlignCenterItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBookChapterAlignRight">
                   <Properties>
@@ -1158,42 +1251,102 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/io/bibleget/images/wysiwyg/24x24/align_right.png"/>
                     </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT==BGET.ALIGN.RIGHT" type="code"/>
+                    </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
                     <Property name="verticalTextPosition" type="int" value="3"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterAlignRightItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToolBar$Separator" name="jSeparator15">
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBookChapterWrapNone">
                   <Properties>
+                    <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                      <ComponentRef name="buttonGroupBookChapterWrap"/>
+                    </Property>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Tahoma" size="14" style="0"/>
+                    </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP==BGET.WRAP.NONE" type="code"/>
                     </Property>
                     <Property name="text" type="java.lang.String" value="NONE"/>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[55, 31]"/>
+                    </Property>
+                    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[55, 31]"/>
+                    </Property>
+                    <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[55, 31]"/>
+                    </Property>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterWrapNoneItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBookChapterWrapParentheses">
                   <Properties>
+                    <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                      <ComponentRef name="buttonGroupBookChapterWrap"/>
+                    </Property>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Tahoma" size="18" style="0"/>
+                    </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP==BGET.WRAP.PARENTHESES" type="code"/>
                     </Property>
                     <Property name="text" type="java.lang.String" value="()"/>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
+                    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
+                    <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterWrapParenthesesItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBookChapterWrapBrackets">
                   <Properties>
+                    <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                      <ComponentRef name="buttonGroupBookChapterWrap"/>
+                    </Property>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Tahoma" size="18" style="0"/>
+                    </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP==BGET.WRAP.BRACKETS" type="code"/>
                     </Property>
                     <Property name="text" type="java.lang.String" value="[]"/>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
+                    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
+                    <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterWrapBracketsItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToolBar$Separator" name="jSeparator14">
                 </Component>
@@ -1205,10 +1358,22 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/io/bibleget/images/position_above.png"/>
                     </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.TOP" type="code"/>
+                    </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
+                    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
                     <Property name="verticalTextPosition" type="int" value="3"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterVAlignTopItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBookChapterVAlignBottom">
                   <Properties>
@@ -1218,10 +1383,22 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/io/bibleget/images/position_below.png"/>
                     </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOM" type="code"/>
+                    </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
+                    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
                     <Property name="verticalTextPosition" type="int" value="3"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterVAlignBottomItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBookChapterVAlignBottominline">
                   <Properties>
@@ -1231,10 +1408,22 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/io/bibleget/images/position_inline.png"/>
                     </Property>
+                    <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOMINLINE" type="code"/>
+                    </Property>
                     <Property name="focusable" type="boolean" value="false"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
+                    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[31, 31]"/>
+                    </Property>
                     <Property name="verticalTextPosition" type="int" value="3"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterVAlignBottominlineItemStateChanged"/>
+                  </Events>
                 </Component>
               </SubComponents>
             </Container>
