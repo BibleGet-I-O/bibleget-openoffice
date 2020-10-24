@@ -9,21 +9,19 @@ import static io.bibleget.BibleGetI18N.__;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.accessibility.Accessible;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JColorChooser;
@@ -31,6 +29,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
+import javax.swing.JList;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
 import javax.swing.plaf.InternalFrameUI;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
@@ -46,30 +45,12 @@ import org.cef.browser.CefBrowser;
  */
 public class OptionsFrame extends javax.swing.JFrame {
 
-    private final int screenWidth;
-    private final int screenHeight;
-    private final int frameWidth;
-    private final int frameHeight;
-    private final int frameLeft;
-    private final int frameTop;
-            
     private final BibleGetDB biblegetDB;
     private final Preferences USERPREFS;
     private final LocalizedBibleBooks L10NBibleBooks;
         
     private final FontFamilyListCellRenderer FFLCRenderer;
     private final DefaultComboBoxModel fontFamilies;
-    //protected int mouseOver;
-    /*
-    static Color listBackground;
-    static Color listSelectionBackground;
-    static {
-        UIDefaults uid = UIManager.getLookAndFeel().getDefaults();
-        listBackground = uid.getColor("List.background");
-        listSelectionBackground = uid.getColor("List.selectionBackground");
-    }
-    */
-    //private final ResourceBundle myMessages;
     private final CefApp cefApp;
     private final CefClient client;
     private final CefBrowser browser;
@@ -82,7 +63,6 @@ public class OptionsFrame extends javax.swing.JFrame {
     private final ImageIcon buttonStateOn = new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/toggle button state on.png"));
     private final ImageIcon buttonStateOffHover = new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/toggle button state off hover.png"));
     private final ImageIcon buttonStateOnHover = new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/toggle button state on hover.png"));
-    
     private static OptionsFrame instance;
         
     /**
@@ -103,9 +83,9 @@ public class OptionsFrame extends javax.swing.JFrame {
         USERPREFS = Preferences.getInstance();
         if(USERPREFS != null){
             System.out.println("USERPREFS is not null at least.");
-            System.out.println("USERPREFS.toString = " + USERPREFS.toString());
-            Field[] fields = Preferences.class.getFields();
-            System.out.println(Arrays.toString(fields));
+            //System.out.println("USERPREFS.toString = " + USERPREFS.toString());
+            //Field[] fields = Preferences.class.getFields();
+            //System.out.println(Arrays.toString(fields));
         }
         //System.out.println("getting JsonObject of biblegetDB options");
         this.fontFamilies = BibleGetIO.getFontFamilies();
@@ -168,11 +148,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         bookChapter = bookChapterWrapBefore + bookChapter + bookChapterWrapAfter;
         Double lineHeight = Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT) / 100;
         previewDocStylesheet = "<style type=\"text/css\">"
-            + "html,body { padding: 0px; margin: 0px; background-color: #FFFFFF; }"
+            + "html,body { padding: 0px; margin: 0px; background-color: #FFFFFF; width: 100%; }"
             + "p { padding: 0px; margin: 0px; }"
-            + ".previewRuler { margin: 0px auto; }"
-            + "div.results { box-sizing: border-box; margin: 0px auto; padding-left: 35px; padding-right:35px; }"
-            + "div.results .bibleVersion { font-family: '" + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "'; }"
+            + ".previewRuler { margin: 3px auto; }"
+            + "div.results { box-sizing: border-box; margin: 0px auto; padding-left: 35px; padding-right:35px; font-family: " + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "; }"
+            //+ "div.results .bibleVersion { font-family: '" + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "'; }"
             + "div.results .bibleVersion { font-size: " + USERPREFS.BIBLEVERSIONSTYLES_FONTSIZE + "pt; }"
             + "div.results .bibleVersion { font-weight: " + (USERPREFS.BIBLEVERSIONSTYLES_BOLD ? "bold" : "normal") + "; }"
             + "div.results .bibleVersion { font-style: " + (USERPREFS.BIBLEVERSIONSTYLES_ITALIC ? "italic" : "normal") + "; }"
@@ -180,7 +160,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "div.results .bibleVersion { color: " + ColorToHexString(USERPREFS.BIBLEVERSIONSTYLES_TEXTCOLOR) + "; }"
             + "div.results .bibleVersion { background-color: " + ColorToHexString(USERPREFS.BIBLEVERSIONSTYLES_BGCOLOR) + "; }"
             + "div.results .bibleVersion { text-align: " + USERPREFS.LAYOUTPREFS_BIBLEVERSION_ALIGNMENT.getCSSValue() + "; }"
-            + "div.results .bookChapter { font-family: " + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "; }"
+            //+ "div.results .bookChapter { font-family: " + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "; }"
             + "div.results .bookChapter { font-size: " + USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE + "pt; }"
             + "div.results .bookChapter { font-weight: " + (USERPREFS.BOOKCHAPTERSTYLES_BOLD ? "bold" : "normal") + "; }"
             + "div.results .bookChapter { font-style: " + (USERPREFS.BOOKCHAPTERSTYLES_ITALIC ? "italic" : "normal") + "; }"
@@ -191,7 +171,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "div.results span.bookChapter { display: inline-block; margin-left: 6px; }"
             + "div.results .versesParagraph { text-align: " + USERPREFS.PARAGRAPHSTYLES_ALIGNMENT.getCSSValue() + "; }"
             + "div.results .versesParagraph { line-height: " + String.format(Locale.ROOT, "%.1f", lineHeight) + "em; }"
-            + "div.results .versesParagraph .verseNum { font-family: " + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "; }"
+            //+ "div.results .versesParagraph .verseNum { font-family: " + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "; }"
             + "div.results .versesParagraph .verseNum { font-size: " + USERPREFS.VERSENUMBERSTYLES_FONTSIZE + "pt; }"
             + "div.results .versesParagraph .verseNum { font-weight: " + (USERPREFS.VERSENUMBERSTYLES_BOLD ? "bold" : "normal") + "; }"
             + "div.results .versesParagraph .verseNum { font-style: " + (USERPREFS.VERSENUMBERSTYLES_ITALIC ? "italic" : "normal") + "; }"
@@ -201,7 +181,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "div.results .versesParagraph .verseNum { vertical-align: baseline; " + vnPosition + vnTop + " }"
             + "div.results .versesParagraph .verseNum { padding-left: 3px; }"
             + "div.results .versesParagraph .verseNum:first-child { padding-left: 0px; }"
-            + "div.results .versesParagraph .verseText { font-family: " + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "; }"
+            //+ "div.results .versesParagraph .verseText { font-family: " + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "; }"
             + "div.results .versesParagraph .verseText { font-size: " + USERPREFS.VERSETEXTSTYLES_FONTSIZE + "pt; }"
             + "div.results .versesParagraph .verseText { font-weight: " + (USERPREFS.VERSETEXTSTYLES_BOLD ? "bold" : "normal") + "; }"
             + "div.results .versesParagraph .verseText { font-style: " + (USERPREFS.VERSETEXTSTYLES_ITALIC ? "italic" : "normal") + "; }"
@@ -337,15 +317,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "</div>"
             + "</body>";
 
-        
-        Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        screenWidth = (int)screenSize.getWidth();
-        screenHeight = (int)screenSize.getHeight();
-        frameWidth = 732;
-        frameHeight = 790;
-        frameLeft = (screenWidth / 2) - (frameWidth / 2);
-        frameTop = (screenHeight / 2) - (frameHeight / 2);
-                
+                        
         //this.myMessages = BibleGetI18N.getMessages();
         CefSettings settings = new CefSettings();
         settings.windowless_rendering_enabled = OS.isLinux();
@@ -354,12 +326,9 @@ public class OptionsFrame extends javax.swing.JFrame {
         //String HTMLStrWithStyles = String.format(HTMLStr,s);
         browser = client.createBrowser( DataUri.create("text/html",previewDocument), OS.isLinux(), false);
         browserUI = browser.getUIComponent();
-        
+                
         initComponents();
-        //jInternalFrame1.setLayout(new BorderLayout());
         jInternalFrame1.getContentPane().add(browserUI, BorderLayout.CENTER);
-        //jInternalFrame1.setSize(400, 300);
-        //jInternalFrame1.setVisible(true);
     }
 
     public static OptionsFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
@@ -387,7 +356,6 @@ public class OptionsFrame extends javax.swing.JFrame {
         buttonGroupBookChapterAlign = new javax.swing.ButtonGroup();
         buttonGroupBookChapterVAlign = new javax.swing.ButtonGroup();
         buttonGroupBookChapterFormat = new javax.swing.ButtonGroup();
-        jPanel2 = new javax.swing.JPanel();
         jPanelParagraph = new javax.swing.JPanel();
         jPanelParagraphAlignment = new javax.swing.JPanel();
         jToolBarParagraphAlignment = new javax.swing.JToolBar();
@@ -399,16 +367,24 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBarParagraphIndentLeft = new javax.swing.JToolBar();
         jButtonLeftIndentMore = new javax.swing.JButton();
         jButtonLeftIndentLess = new javax.swing.JButton();
+        jPanelParagraphIndentRight = new javax.swing.JPanel();
+        jToolBarParagraphIndentRight = new javax.swing.JToolBar();
+        jButtonRightIndentMore = new javax.swing.JButton();
+        jButtonRightIndentLess = new javax.swing.JButton();
         jPanelParagraphLineHeight = new javax.swing.JPanel();
         jToolBarParagraphLineHeight = new javax.swing.JToolBar();
         jComboBoxParagraphLineHeight = new javax.swing.JComboBox();
         jPanelParagraphFontFamily = new javax.swing.JPanel();
         jToolBarParagraphFontFamily = new javax.swing.JToolBar();
         jComboBoxParagraphFontFamily = new javax.swing.JComboBox();
-        jPanelParagraphIndentRight = new javax.swing.JPanel();
-        jToolBarParagraphIndentRight = new javax.swing.JToolBar();
-        jButtonRightIndentMore = new javax.swing.JButton();
-        jButtonRightIndentLess = new javax.swing.JButton();
+        Accessible a = jComboBoxParagraphFontFamily.getUI().getAccessibleChild(jComboBoxParagraphFontFamily, 0);
+        if (a instanceof javax.swing.plaf.basic.ComboPopup) {
+            JList popupList = ((javax.swing.plaf.basic.ComboPopup) a).getList();
+            // route the comboBox' prototype to the list
+            // should happen in BasicComboxBoxUI
+            popupList.setPrototypeCellValue(jComboBoxParagraphFontFamily.getPrototypeDisplayValue());
+        }
+        jPanel3 = new javax.swing.JPanel();
         jPanelBibleVersion = new javax.swing.JPanel();
         jToolBar8 = new javax.swing.JToolBar();
         jToggleButtonBibleVersionBold = new javax.swing.JToggleButton();
@@ -417,8 +393,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         jSeparator8 = new javax.swing.JToolBar.Separator();
         jButtonBibleVersionTextColor = new javax.swing.JButton();
         jButtonBibleVersionHighlightColor = new javax.swing.JButton();
+        filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         jSeparator9 = new javax.swing.JToolBar.Separator();
+        filler12 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         jComboBoxBibleVersionFontSize = new javax.swing.JComboBox();
+        filler7 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         jSeparator12 = new javax.swing.JToolBar.Separator();
         jToggleButtonBibleVersionAlignLeft = new javax.swing.JToggleButton();
         jToggleButtonBibleVersionAlignCenter = new javax.swing.JToggleButton();
@@ -430,6 +409,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         jSeparator11 = new javax.swing.JToolBar.Separator();
         jToggleButtonBibleVersionVAlignTop = new javax.swing.JToggleButton();
         jToggleButtonBibleVersionVAlignBottom = new javax.swing.JToggleButton();
+        jToggleButtonBibleVersionVisibility = new javax.swing.JToggleButton();
         jPanelBookChapter = new javax.swing.JPanel();
         jToolBar2 = new javax.swing.JToolBar();
         jToggleButtonBookChapterBold = new javax.swing.JToggleButton();
@@ -438,8 +418,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JToolBar.Separator();
         jButtonBookChapterTextColor = new javax.swing.JButton();
         jButtonBookChapterHighlightColor = new javax.swing.JButton();
+        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         jSeparator4 = new javax.swing.JToolBar.Separator();
+        filler11 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         jComboBoxBookChapterFontSize = new javax.swing.JComboBox();
+        filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         jSeparator13 = new javax.swing.JToolBar.Separator();
         jToggleButtonBookChapterAlignLeft = new javax.swing.JToggleButton();
         jToggleButtonBookChapterAlignCenter = new javax.swing.JToggleButton();
@@ -452,6 +435,12 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterVAlignTop = new javax.swing.JToggleButton();
         jToggleButtonBookChapterVAlignBottom = new javax.swing.JToggleButton();
         jToggleButtonBookChapterVAlignBottominline = new javax.swing.JToggleButton();
+        jToggleButtonBookChapterFullRef = new javax.swing.JToggleButton();
+        jPanel1 = new javax.swing.JPanel();
+        jToggleButtonBookChapterBibleLang = new javax.swing.JToggleButton();
+        jToggleButtonBookChapterBibleLangAbbrev = new javax.swing.JToggleButton();
+        jToggleButtonBookChapterUserLang = new javax.swing.JToggleButton();
+        jToggleButtonBookChapterUserLangAbbrev = new javax.swing.JToggleButton();
         jPanelVerseNumber = new javax.swing.JPanel();
         jToolBar3 = new javax.swing.JToolBar();
         jToggleButtonVerseNumberBold = new javax.swing.JToggleButton();
@@ -460,10 +449,15 @@ public class OptionsFrame extends javax.swing.JFrame {
         jSeparator2 = new javax.swing.JToolBar.Separator();
         jButtonVerseNumberTextColor = new javax.swing.JButton();
         jButtonVerseNumberHighlightColor = new javax.swing.JButton();
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         jSeparator5 = new javax.swing.JToolBar.Separator();
+        filler10 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         jComboBoxVerseNumberFontSize = new javax.swing.JComboBox();
+        filler6 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
+        jSeparator16 = new javax.swing.JToolBar.Separator();
         jToggleButtonVerseNumberSuperscript = new javax.swing.JToggleButton();
         jToggleButtonVerseNumberSubscript = new javax.swing.JToggleButton();
+        jToggleButtonVerseNumberVisibility = new javax.swing.JToggleButton();
         jPanelVerseText = new javax.swing.JPanel();
         jToolBar4 = new javax.swing.JToolBar();
         jToggleButtonVerseTextBold = new javax.swing.JToggleButton();
@@ -472,19 +466,15 @@ public class OptionsFrame extends javax.swing.JFrame {
         jSeparator3 = new javax.swing.JToolBar.Separator();
         jButtonVerseTextTextColor = new javax.swing.JButton();
         jButtonVerseTextHighlightColor = new javax.swing.JButton();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         jSeparator6 = new javax.swing.JToolBar.Separator();
+        filler9 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         jComboBoxVerseTextFontSize = new javax.swing.JComboBox();
-        jSeparator7 = new javax.swing.JSeparator();
-        jLabel2 = new javax.swing.JLabel();
+        filler8 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
+        jSeparator17 = new javax.swing.JToolBar.Separator();
         jCheckBoxUseVersionFormatting = new javax.swing.JCheckBox();
-        jToggleButtonBookChapterFullRef = new javax.swing.JToggleButton();
-        jToggleButtonVerseNumberVisibility = new javax.swing.JToggleButton();
-        jPanel1 = new javax.swing.JPanel();
-        jToggleButtonBibleVersionVisibility = new javax.swing.JToggleButton();
-        jToggleButtonBookChapterBibleLang = new javax.swing.JToggleButton();
-        jToggleButtonBookChapterBibleLangAbbrev = new javax.swing.JToggleButton();
-        jToggleButtonBookChapterUserLang = new javax.swing.JToggleButton();
-        jToggleButtonBookChapterUserLangAbbrev = new javax.swing.JToggleButton();
+        jSeparator7 = new javax.swing.JToolBar.Separator();
+        jLabel2 = new javax.swing.JLabel();
         jInternalFrame1 = new JInternalFrame() {
             @Override
             public void setUI(InternalFrameUI ui) {
@@ -493,19 +483,20 @@ public class OptionsFrame extends javax.swing.JFrame {
                 if (frameUI != null) frameUI.setNorthPane(null); // lets get rid of it
             }
         };
-        //jInternalFrame1.setBorder(null);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(__("User Preferences"));
-        setBounds(frameLeft,frameTop,frameWidth,frameHeight);
+        setBounds(new java.awt.Rectangle(650, 500, 1300, 1000));
         setIconImages(setIconImages());
+        setMinimumSize(new java.awt.Dimension(900, 700));
         setName("myoptions"); // NOI18N
+        setPreferredSize(new java.awt.Dimension(1300, 900));
         setResizable(false);
-
-        jPanel2.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+        setSize(new java.awt.Dimension(1300, 1000));
 
         jPanelParagraph.setBorder(javax.swing.BorderFactory.createTitledBorder(null, __("Paragraph"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 12))); // NOI18N
         jPanelParagraph.setName("Paragraph"); // NOI18N
+        jPanelParagraph.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         jPanelParagraphAlignment.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1), __("Alignment")));
 
@@ -583,6 +574,8 @@ public class OptionsFrame extends javax.swing.JFrame {
             .addComponent(jToolBarParagraphAlignment, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
+        jPanelParagraph.add(jPanelParagraphAlignment);
+
         jPanelParagraphIndentLeft.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1), __("Left Indent")));
 
         jToolBarParagraphIndentLeft.setFloatable(false);
@@ -626,6 +619,50 @@ public class OptionsFrame extends javax.swing.JFrame {
                 .addGap(0, 0, 0))
         );
 
+        jPanelParagraph.add(jPanelParagraphIndentLeft);
+
+        jPanelParagraphIndentRight.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1), __("Right Indent")));
+
+        jToolBarParagraphIndentRight.setFloatable(false);
+        jToolBarParagraphIndentRight.setRollover(true);
+
+        jButtonRightIndentMore.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/increase_indent_right.png"))); // NOI18N
+        jButtonRightIndentMore.setFocusable(false);
+        jButtonRightIndentMore.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButtonRightIndentMore.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jButtonRightIndentMore.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonRightIndentMore.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButtonRightIndentMoreMouseClicked(evt);
+            }
+        });
+        jToolBarParagraphIndentRight.add(jButtonRightIndentMore);
+
+        jButtonRightIndentLess.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/decrease_indent_right.png"))); // NOI18N
+        jButtonRightIndentLess.setFocusable(false);
+        jButtonRightIndentLess.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButtonRightIndentLess.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jButtonRightIndentLess.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonRightIndentLess.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButtonRightIndentLessMouseClicked(evt);
+            }
+        });
+        jToolBarParagraphIndentRight.add(jButtonRightIndentLess);
+
+        javax.swing.GroupLayout jPanelParagraphIndentRightLayout = new javax.swing.GroupLayout(jPanelParagraphIndentRight);
+        jPanelParagraphIndentRight.setLayout(jPanelParagraphIndentRightLayout);
+        jPanelParagraphIndentRightLayout.setHorizontalGroup(
+            jPanelParagraphIndentRightLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jToolBarParagraphIndentRight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
+        jPanelParagraphIndentRightLayout.setVerticalGroup(
+            jPanelParagraphIndentRightLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jToolBarParagraphIndentRight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
+
+        jPanelParagraph.add(jPanelParagraphIndentRight);
+
         jPanelParagraphLineHeight.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1), __("Line-spacing")));
 
         jToolBarParagraphLineHeight.setFloatable(false);
@@ -653,7 +690,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             .addGroup(jPanelParagraphLineHeightLayout.createSequentialGroup()
                 .addGap(0, 0, 0)
                 .addComponent(jToolBarParagraphLineHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanelParagraphLineHeightLayout.setVerticalGroup(
             jPanelParagraphLineHeightLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -661,6 +698,8 @@ public class OptionsFrame extends javax.swing.JFrame {
                 .addComponent(jToolBarParagraphLineHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0))
         );
+
+        jPanelParagraph.add(jPanelParagraphLineHeight);
 
         jPanelParagraphFontFamily.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1), __("Font")));
 
@@ -672,6 +711,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         jComboBoxParagraphFontFamily.setModel(fontFamilies);
         jComboBoxParagraphFontFamily.setSelectedItem(USERPREFS.PARAGRAPHSTYLES_FONTFAMILY);
         jComboBoxParagraphFontFamily.setPreferredSize(new java.awt.Dimension(300, 41));
+        jComboBoxParagraphFontFamily.setPrototypeDisplayValue(fontFamilies);
+        jComboBoxParagraphFontFamily.setRenderer(FFLCRenderer);
         jComboBoxParagraphFontFamily.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 jComboBoxParagraphFontFamilyItemStateChanged(evt);
@@ -694,77 +735,16 @@ public class OptionsFrame extends javax.swing.JFrame {
                 .addComponent(jToolBarParagraphFontFamily, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        jPanelParagraphIndentRight.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1), __("Right Indent")));
+        jPanelParagraph.add(jPanelParagraphFontFamily);
 
-        jToolBarParagraphIndentRight.setFloatable(false);
-        jToolBarParagraphIndentRight.setRollover(true);
+        getContentPane().add(jPanelParagraph, java.awt.BorderLayout.NORTH);
 
-        jButtonRightIndentMore.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/increase_indent.png"))); // NOI18N
-        jButtonRightIndentMore.setFocusable(false);
-        jButtonRightIndentMore.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButtonRightIndentMore.setMargin(new java.awt.Insets(4, 4, 4, 4));
-        jButtonRightIndentMore.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jButtonRightIndentMore.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButtonRightIndentMoreMouseClicked(evt);
-            }
-        });
-        jToolBarParagraphIndentRight.add(jButtonRightIndentMore);
-
-        jButtonRightIndentLess.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/decrease_indent.png"))); // NOI18N
-        jButtonRightIndentLess.setFocusable(false);
-        jButtonRightIndentLess.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButtonRightIndentLess.setMargin(new java.awt.Insets(4, 4, 4, 4));
-        jButtonRightIndentLess.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jButtonRightIndentLess.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButtonRightIndentLessMouseClicked(evt);
-            }
-        });
-        jToolBarParagraphIndentRight.add(jButtonRightIndentLess);
-
-        javax.swing.GroupLayout jPanelParagraphIndentRightLayout = new javax.swing.GroupLayout(jPanelParagraphIndentRight);
-        jPanelParagraphIndentRight.setLayout(jPanelParagraphIndentRightLayout);
-        jPanelParagraphIndentRightLayout.setHorizontalGroup(
-            jPanelParagraphIndentRightLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBarParagraphIndentRight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
-        jPanelParagraphIndentRightLayout.setVerticalGroup(
-            jPanelParagraphIndentRightLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBarParagraphIndentRight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
-
-        javax.swing.GroupLayout jPanelParagraphLayout = new javax.swing.GroupLayout(jPanelParagraph);
-        jPanelParagraph.setLayout(jPanelParagraphLayout);
-        jPanelParagraphLayout.setHorizontalGroup(
-            jPanelParagraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelParagraphLayout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addComponent(jPanelParagraphAlignment, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanelParagraphIndentLeft, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanelParagraphIndentRight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanelParagraphLineHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
-                .addComponent(jPanelParagraphFontFamily, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0))
-        );
-        jPanelParagraphLayout.setVerticalGroup(
-            jPanelParagraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelParagraphLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelParagraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanelParagraphAlignment, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanelParagraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jPanelParagraphIndentLeft, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jPanelParagraphLineHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jPanelParagraphFontFamily, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jPanelParagraphIndentRight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-        );
+        jPanel3.setLayout(new javax.swing.BoxLayout(jPanel3, javax.swing.BoxLayout.Y_AXIS));
 
         jPanelBibleVersion.setBorder(javax.swing.BorderFactory.createTitledBorder(null, __("Bible Version"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 12))); // NOI18N
+        jPanelBibleVersion.setMinimumSize(new java.awt.Dimension(625, 35));
+        jPanelBibleVersion.setPreferredSize(new java.awt.Dimension(910, 35));
+        jPanelBibleVersion.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 0));
 
         jToolBar8.setFloatable(false);
         jToolBar8.setRollover(true);
@@ -832,7 +812,9 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         });
         jToolBar8.add(jButtonBibleVersionHighlightColor);
+        jToolBar8.add(filler4);
         jToolBar8.add(jSeparator9);
+        jToolBar8.add(filler12);
 
         jComboBoxBibleVersionFontSize.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "18", "20", "22", "24", "26", "28", "32", "36", "40", "44", "48", "54", "60", "66", "72", "80", "88", "96" }));
         jComboBoxBibleVersionFontSize.setSelectedItem(""+USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE+"");
@@ -845,6 +827,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         });
         jToolBar8.add(jComboBoxBibleVersionFontSize);
+        jToolBar8.add(filler7);
         jToolBar8.add(jSeparator12);
 
         buttonGroupBibleVersionAlign.add(jToggleButtonBibleVersionAlignLeft);
@@ -908,20 +891,42 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToggleButtonBibleVersionVAlignBottom.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar8.add(jToggleButtonBibleVersionVAlignBottom);
 
-        javax.swing.GroupLayout jPanelBibleVersionLayout = new javax.swing.GroupLayout(jPanelBibleVersion);
-        jPanelBibleVersion.setLayout(jPanelBibleVersionLayout);
-        jPanelBibleVersionLayout.setHorizontalGroup(
-            jPanelBibleVersionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelBibleVersionLayout.createSequentialGroup()
-                .addComponent(jToolBar8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelBibleVersionLayout.setVerticalGroup(
-            jPanelBibleVersionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBar8, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
+        jPanelBibleVersion.add(jToolBar8);
+
+        jToggleButtonBibleVersionVisibility.setIcon(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW?buttonStateOn:buttonStateOff);
+        jToggleButtonBibleVersionVisibility.setSelected(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW);
+        jToggleButtonBibleVersionVisibility.setText(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW?"SHOW":"HIDE");
+        jToggleButtonBibleVersionVisibility.setBorderPainted(false);
+        jToggleButtonBibleVersionVisibility.setContentAreaFilled(false);
+        jToggleButtonBibleVersionVisibility.setFocusable(false);
+        jToggleButtonBibleVersionVisibility.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButtonBibleVersionVisibility.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToggleButtonBibleVersionVisibility.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jToggleButtonBibleVersionVisibilityItemStateChanged(evt);
+            }
+        });
+        jToggleButtonBibleVersionVisibility.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jToggleButtonBibleVersionVisibilityMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jToggleButtonBibleVersionVisibilityMouseExited(evt);
+            }
+        });
+        jToggleButtonBibleVersionVisibility.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButtonBibleVersionVisibilityActionPerformed(evt);
+            }
+        });
+        jPanelBibleVersion.add(jToggleButtonBibleVersionVisibility);
+
+        jPanel3.add(jPanelBibleVersion);
 
         jPanelBookChapter.setBorder(javax.swing.BorderFactory.createTitledBorder(null, __("Book / Chapter"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 12))); // NOI18N
+        jPanelBookChapter.setMinimumSize(new java.awt.Dimension(764, 69));
+        jPanelBookChapter.setPreferredSize(new java.awt.Dimension(910, 85));
+        jPanelBookChapter.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 0));
 
         jToolBar2.setFloatable(false);
         jToolBar2.setRollover(true);
@@ -989,7 +994,9 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         });
         jToolBar2.add(jButtonBookChapterHighlightColor);
+        jToolBar2.add(filler3);
         jToolBar2.add(jSeparator4);
+        jToolBar2.add(filler11);
 
         jComboBoxBookChapterFontSize.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "18", "20", "22", "24", "26", "28", "32", "36", "40", "44", "48", "54", "60", "66", "72", "80", "88", "96" }));
         jComboBoxBookChapterFontSize.setSelectedItem(""+USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE+"");
@@ -1002,6 +1009,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         });
         jToolBar2.add(jComboBoxBookChapterFontSize);
+        jToolBar2.add(filler5);
         jToolBar2.add(jSeparator13);
 
         buttonGroupBookChapterAlign.add(jToggleButtonBookChapterAlignLeft);
@@ -1066,20 +1074,66 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterVAlignBottominline.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar2.add(jToggleButtonBookChapterVAlignBottominline);
 
-        javax.swing.GroupLayout jPanelBookChapterLayout = new javax.swing.GroupLayout(jPanelBookChapter);
-        jPanelBookChapter.setLayout(jPanelBookChapterLayout);
-        jPanelBookChapterLayout.setHorizontalGroup(
-            jPanelBookChapterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelBookChapterLayout.createSequentialGroup()
-                .addComponent(jToolBar2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelBookChapterLayout.setVerticalGroup(
-            jPanelBookChapterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBar2, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
+        jPanelBookChapter.add(jToolBar2);
+
+        jToggleButtonBookChapterFullRef.setIcon(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY?buttonStateOn:buttonStateOff);
+        jToggleButtonBookChapterFullRef.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY);
+        jToggleButtonBookChapterFullRef.setBorderPainted(false);
+        jToggleButtonBookChapterFullRef.setContentAreaFilled(false);
+        jToggleButtonBookChapterFullRef.setFocusable(false);
+        jToggleButtonBookChapterFullRef.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButtonBookChapterFullRef.setLabel("Full Ref");
+        jToggleButtonBookChapterFullRef.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToggleButtonBookChapterFullRef.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jToggleButtonBookChapterFullRefItemStateChanged(evt);
+            }
+        });
+        jToggleButtonBookChapterFullRef.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jToggleButtonBookChapterFullRefMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jToggleButtonBookChapterFullRefMouseExited(evt);
+            }
+        });
+        jToggleButtonBookChapterFullRef.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButtonBookChapterFullRefActionPerformed(evt);
+            }
+        });
+        jPanelBookChapter.add(jToggleButtonBookChapterFullRef);
+
+        jPanel1.setLayout(new java.awt.GridLayout(4, 1));
+
+        buttonGroupBookChapterFormat.add(jToggleButtonBookChapterBibleLang);
+        jToggleButtonBookChapterBibleLang.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.BIBLELANG);
+        jToggleButtonBookChapterBibleLang.setText("Bible Lang");
+        jPanel1.add(jToggleButtonBookChapterBibleLang);
+
+        buttonGroupBookChapterFormat.add(jToggleButtonBookChapterBibleLangAbbrev);
+        jToggleButtonBookChapterBibleLangAbbrev.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.BIBLELANGABBREV);
+        jToggleButtonBookChapterBibleLangAbbrev.setText("Bible Lang Abbrev");
+        jPanel1.add(jToggleButtonBookChapterBibleLangAbbrev);
+
+        buttonGroupBookChapterFormat.add(jToggleButtonBookChapterUserLang);
+        jToggleButtonBookChapterUserLang.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.USERLANG);
+        jToggleButtonBookChapterUserLang.setText("User Lang");
+        jPanel1.add(jToggleButtonBookChapterUserLang);
+
+        buttonGroupBookChapterFormat.add(jToggleButtonBookChapterUserLangAbbrev);
+        jToggleButtonBookChapterUserLangAbbrev.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.USERLANGABBREV);
+        jToggleButtonBookChapterUserLangAbbrev.setText("User Lang Abbrev");
+        jPanel1.add(jToggleButtonBookChapterUserLangAbbrev);
+
+        jPanelBookChapter.add(jPanel1);
+
+        jPanel3.add(jPanelBookChapter);
 
         jPanelVerseNumber.setBorder(javax.swing.BorderFactory.createTitledBorder(null, __("Verse Number"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 12))); // NOI18N
+        jPanelVerseNumber.setMinimumSize(new java.awt.Dimension(449, 35));
+        jPanelVerseNumber.setPreferredSize(new java.awt.Dimension(910, 35));
+        jPanelVerseNumber.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 0));
 
         jToolBar3.setFloatable(false);
         jToolBar3.setRollover(true);
@@ -1147,7 +1201,9 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         });
         jToolBar3.add(jButtonVerseNumberHighlightColor);
+        jToolBar3.add(filler2);
         jToolBar3.add(jSeparator5);
+        jToolBar3.add(filler10);
 
         jComboBoxVerseNumberFontSize.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "18", "20", "22", "24", "26", "28", "32", "36", "40", "44", "48", "54", "60", "66", "72", "80", "88", "96" }));
         jComboBoxVerseNumberFontSize.setSelectedItem(""+USERPREFS.VERSENUMBERSTYLES_FONTSIZE+"");
@@ -1160,6 +1216,8 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         });
         jToolBar3.add(jComboBoxVerseNumberFontSize);
+        jToolBar3.add(filler6);
+        jToolBar3.add(jSeparator16);
 
         jToggleButtonVerseNumberSuperscript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/subscript.png"))); // NOI18N
         jToggleButtonVerseNumberSuperscript.setSelected(USERPREFS.VERSENUMBERSTYLES_VALIGN.equals(BGET.VALIGN.SUPERSCRIPT));
@@ -1187,20 +1245,37 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBar3.add(jToggleButtonVerseNumberSubscript);
 
-        javax.swing.GroupLayout jPanelVerseNumberLayout = new javax.swing.GroupLayout(jPanelVerseNumber);
-        jPanelVerseNumber.setLayout(jPanelVerseNumberLayout);
-        jPanelVerseNumberLayout.setHorizontalGroup(
-            jPanelVerseNumberLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelVerseNumberLayout.createSequentialGroup()
-                .addComponent(jToolBar3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelVerseNumberLayout.setVerticalGroup(
-            jPanelVerseNumberLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBar3, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
+        jPanelVerseNumber.add(jToolBar3);
+
+        jToggleButtonVerseNumberVisibility.setIcon(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW?buttonStateOn:buttonStateOff);
+        jToggleButtonVerseNumberVisibility.setSelected(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW);
+        jToggleButtonVerseNumberVisibility.setText(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW?"SHOW":"HIDE");
+        jToggleButtonVerseNumberVisibility.setBorderPainted(false);
+        jToggleButtonVerseNumberVisibility.setContentAreaFilled(false);
+        jToggleButtonVerseNumberVisibility.setFocusable(false);
+        jToggleButtonVerseNumberVisibility.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButtonVerseNumberVisibility.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToggleButtonVerseNumberVisibility.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jToggleButtonVerseNumberVisibilityItemStateChanged(evt);
+            }
+        });
+        jToggleButtonVerseNumberVisibility.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jToggleButtonVerseNumberVisibilityMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jToggleButtonVerseNumberVisibilityMouseExited(evt);
+            }
+        });
+        jPanelVerseNumber.add(jToggleButtonVerseNumberVisibility);
+
+        jPanel3.add(jPanelVerseNumber);
 
         jPanelVerseText.setBorder(javax.swing.BorderFactory.createTitledBorder(null, __("Verse Text"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 12))); // NOI18N
+        jPanelVerseText.setMinimumSize(new java.awt.Dimension(412, 35));
+        jPanelVerseText.setPreferredSize(new java.awt.Dimension(910, 35));
+        jPanelVerseText.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 0));
 
         jToolBar4.setFloatable(false);
         jToolBar4.setRollover(true);
@@ -1268,7 +1343,9 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         });
         jToolBar4.add(jButtonVerseTextHighlightColor);
+        jToolBar4.add(filler1);
         jToolBar4.add(jSeparator6);
+        jToolBar4.add(filler9);
 
         jComboBoxVerseTextFontSize.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "18", "20", "22", "24", "26", "28", "32", "36", "40", "44", "48", "54", "60", "66", "72", "80", "88", "96" }));
         jComboBoxVerseTextFontSize.setSelectedItem(""+USERPREFS.VERSETEXTSTYLES_FONTSIZE+"");
@@ -1281,25 +1358,16 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         });
         jToolBar4.add(jComboBoxVerseTextFontSize);
-
-        javax.swing.GroupLayout jPanelVerseTextLayout = new javax.swing.GroupLayout(jPanelVerseText);
-        jPanelVerseText.setLayout(jPanelVerseTextLayout);
-        jPanelVerseTextLayout.setHorizontalGroup(
-            jPanelVerseTextLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelVerseTextLayout.createSequentialGroup()
-                .addComponent(jToolBar4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelVerseTextLayout.setVerticalGroup(
-            jPanelVerseTextLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBar4, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
-
-        jLabel2.setText("<html><head><style>body#versionformatting{border:none;background-color:rgb(214,217,223);}</style></head><body id=\"versionformatting\">"+__("Some Bible versions have their own formatting. This is left by default to keep the text as close as possible to the original.<br> If however you need to have consistent formatting in your document, you may override the Bible version's own formatting.")+"</body></html>");
-        jLabel2.setOpaque(true);
+        jToolBar4.add(filler8);
+        jToolBar4.add(jSeparator17);
 
         jCheckBoxUseVersionFormatting.setSelected(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING);
         jCheckBoxUseVersionFormatting.setText(__("Override Bible Version Formatting"));
+        jCheckBoxUseVersionFormatting.setFocusable(false);
+        jCheckBoxUseVersionFormatting.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jCheckBoxUseVersionFormatting.setMaximumSize(new java.awt.Dimension(200, 64));
+        jCheckBoxUseVersionFormatting.setPreferredSize(new java.awt.Dimension(180, 36));
+        jCheckBoxUseVersionFormatting.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jCheckBoxUseVersionFormatting.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 jCheckBoxUseVersionFormattingItemStateChanged(evt);
@@ -1310,207 +1378,63 @@ public class OptionsFrame extends javax.swing.JFrame {
                 jCheckBoxUseVersionFormattingActionPerformed(evt);
             }
         });
+        jToolBar4.add(jCheckBoxUseVersionFormatting);
+        jToolBar4.add(jSeparator7);
 
-        jToggleButtonBookChapterFullRef.setIcon(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY?buttonStateOn:buttonStateOff);
-        jToggleButtonBookChapterFullRef.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY);
-        jToggleButtonBookChapterFullRef.setBorderPainted(false);
-        jToggleButtonBookChapterFullRef.setContentAreaFilled(false);
-        jToggleButtonBookChapterFullRef.setFocusable(false);
-        jToggleButtonBookChapterFullRef.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBookChapterFullRef.setLabel("Full Ref");
-        jToggleButtonBookChapterFullRef.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToggleButtonBookChapterFullRef.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                jToggleButtonBookChapterFullRefItemStateChanged(evt);
-            }
-        });
-        jToggleButtonBookChapterFullRef.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                jToggleButtonBookChapterFullRefMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                jToggleButtonBookChapterFullRefMouseExited(evt);
-            }
-        });
-        jToggleButtonBookChapterFullRef.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jToggleButtonBookChapterFullRefActionPerformed(evt);
-            }
-        });
+        jLabel2.setText("<html><head><style>body#versionformatting{border:none;background-color:rgb(214,217,223);}</style></head><body id=\"versionformatting\">"+__("Some Bible versions have their own formatting. This is left by default to keep the text as close as possible to the original. If however you need to have consistent formatting in your document, you may override the Bible version's own formatting.")+"</body></html>");
+        jLabel2.setMaximumSize(new java.awt.Dimension(900, 50));
+        jLabel2.setOpaque(true);
+        jLabel2.setPreferredSize(new java.awt.Dimension(580, 45));
+        jToolBar4.add(jLabel2);
 
-        jToggleButtonVerseNumberVisibility.setIcon(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW?buttonStateOn:buttonStateOff);
-        jToggleButtonVerseNumberVisibility.setSelected(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW);
-        jToggleButtonVerseNumberVisibility.setText(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW==BGET.VISIBILITY.SHOW?"SHOW":"HIDE");
-        jToggleButtonVerseNumberVisibility.setBorderPainted(false);
-        jToggleButtonVerseNumberVisibility.setContentAreaFilled(false);
-        jToggleButtonVerseNumberVisibility.setFocusable(false);
-        jToggleButtonVerseNumberVisibility.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonVerseNumberVisibility.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToggleButtonVerseNumberVisibility.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                jToggleButtonVerseNumberVisibilityItemStateChanged(evt);
-            }
-        });
-        jToggleButtonVerseNumberVisibility.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                jToggleButtonVerseNumberVisibilityMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                jToggleButtonVerseNumberVisibilityMouseExited(evt);
-            }
-        });
+        jPanelVerseText.add(jToolBar4);
 
-        jPanel1.setLayout(new java.awt.GridLayout(4, 1));
+        jPanel3.add(jPanelVerseText);
 
-        jToggleButtonBibleVersionVisibility.setIcon(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW?buttonStateOn:buttonStateOff);
-        jToggleButtonBibleVersionVisibility.setSelected(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW);
-        jToggleButtonBibleVersionVisibility.setText(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW==BGET.VISIBILITY.SHOW?"SHOW":"HIDE");
-        jToggleButtonBibleVersionVisibility.setBorderPainted(false);
-        jToggleButtonBibleVersionVisibility.setContentAreaFilled(false);
-        jToggleButtonBibleVersionVisibility.setFocusable(false);
-        jToggleButtonBibleVersionVisibility.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBibleVersionVisibility.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToggleButtonBibleVersionVisibility.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                jToggleButtonBibleVersionVisibilityItemStateChanged(evt);
-            }
-        });
-        jToggleButtonBibleVersionVisibility.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                jToggleButtonBibleVersionVisibilityMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                jToggleButtonBibleVersionVisibilityMouseExited(evt);
-            }
-        });
-        jToggleButtonBibleVersionVisibility.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jToggleButtonBibleVersionVisibilityActionPerformed(evt);
-            }
-        });
-
-        buttonGroupBookChapterFormat.add(jToggleButtonBookChapterBibleLang);
-        jToggleButtonBookChapterBibleLang.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.BIBLELANG);
-        jToggleButtonBookChapterBibleLang.setText("Bible Lang");
-
-        buttonGroupBookChapterFormat.add(jToggleButtonBookChapterBibleLangAbbrev);
-        jToggleButtonBookChapterBibleLangAbbrev.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.BIBLELANGABBREV);
-        jToggleButtonBookChapterBibleLangAbbrev.setText("Bible Lang Abbrev");
-
-        buttonGroupBookChapterFormat.add(jToggleButtonBookChapterUserLang);
-        jToggleButtonBookChapterUserLang.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.USERLANG);
-        jToggleButtonBookChapterUserLang.setText("User Lang");
-
-        buttonGroupBookChapterFormat.add(jToggleButtonBookChapterUserLangAbbrev);
-        jToggleButtonBookChapterUserLangAbbrev.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.USERLANGABBREV);
-        jToggleButtonBookChapterUserLangAbbrev.setText("User Lang Abbrev");
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanelParagraph, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jCheckBoxUseVersionFormatting, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jSeparator7)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addComponent(jPanelBibleVersion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jToggleButtonBibleVersionVisibility))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addComponent(jPanelVerseNumber, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jToggleButtonVerseNumberVisibility))
-                            .addComponent(jPanelVerseText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addComponent(jPanelBookChapter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jToggleButtonBookChapterFullRef)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jToggleButtonBookChapterBibleLang, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jToggleButtonBookChapterBibleLangAbbrev)
-                            .addComponent(jToggleButtonBookChapterUserLang, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jToggleButtonBookChapterUserLangAbbrev, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 26, Short.MAX_VALUE)))
-                .addContainerGap())
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(18, 18, 18)
-                .addComponent(jPanelParagraph, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanelBibleVersion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jToggleButtonBibleVersionVisibility, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jPanelBookChapter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jToggleButtonBookChapterFullRef, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jPanelVerseNumber, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jToggleButtonVerseNumberVisibility, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanelVerseText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jToggleButtonBookChapterBibleLang)
-                        .addGap(0, 0, 0)
-                        .addComponent(jToggleButtonBookChapterBibleLangAbbrev)
-                        .addGap(0, 0, 0)
-                        .addComponent(jToggleButtonBookChapterUserLang)
-                        .addGap(0, 0, 0)
-                        .addComponent(jToggleButtonBookChapterUserLangAbbrev)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator7, javax.swing.GroupLayout.PREFERRED_SIZE, 9, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jCheckBoxUseVersionFormatting)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+        getContentPane().add(jPanel3, java.awt.BorderLayout.CENTER);
 
         jInternalFrame1.setBorder(null);
-        jInternalFrame1.setMinimumSize(new java.awt.Dimension(22, 260));
+        jInternalFrame1.setMinimumSize(new java.awt.Dimension(800, 260));
+        jInternalFrame1.setPreferredSize(new java.awt.Dimension(800, 260));
         jInternalFrame1.setVisible(true);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jInternalFrame1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jInternalFrame1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+        getContentPane().add(jInternalFrame1, java.awt.BorderLayout.SOUTH);
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jToggleButtonBibleVersionVisibilityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionVisibilityActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jToggleButtonBibleVersionVisibilityActionPerformed
+
+    private void jToggleButtonBibleVersionVisibilityMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionVisibilityMouseExited
+        if(jToggleButtonBibleVersionVisibility.isSelected()){
+            jToggleButtonBibleVersionVisibility.setIcon(buttonStateOn);
+        } else {
+            jToggleButtonBibleVersionVisibility.setIcon(buttonStateOff);
+        }
+    }//GEN-LAST:event_jToggleButtonBibleVersionVisibilityMouseExited
+
+    private void jToggleButtonBibleVersionVisibilityMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionVisibilityMouseEntered
+        if(jToggleButtonBibleVersionVisibility.isSelected()){
+            jToggleButtonBibleVersionVisibility.setIcon(buttonStateOnHover);
+        } else {
+            jToggleButtonBibleVersionVisibility.setIcon(buttonStateOffHover);
+        }
+    }//GEN-LAST:event_jToggleButtonBibleVersionVisibilityMouseEntered
+
+    private void jToggleButtonBibleVersionVisibilityItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionVisibilityItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW = BGET.VISIBILITY.SHOW;
+            jToggleButtonBibleVersionVisibility.setIcon(buttonStateOn);
+            jToggleButtonBibleVersionVisibility.setText("SHOW");
+        }
+        else {
+            USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW = BGET.VISIBILITY.HIDE;
+            jToggleButtonBibleVersionVisibility.setIcon(buttonStateOff);
+            jToggleButtonBibleVersionVisibility.setText("HIDE");
+        }
+    }//GEN-LAST:event_jToggleButtonBibleVersionVisibilityItemStateChanged
 
     private void jToggleButtonVerseNumberVisibilityMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jToggleButtonVerseNumberVisibilityMouseExited
         if(jToggleButtonVerseNumberVisibility.isSelected()){
@@ -1994,7 +1918,7 @@ public class OptionsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jToggleButtonBibleVersionBoldItemStateChanged
 
     private void jButtonRightIndentLessMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonRightIndentLessMouseClicked
-        if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT>=5){USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT -= 5;}
+        if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT>=1){USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT -= 1;}
 
         if(biblegetDB.setIntOption("PARAGRAPHSTYLES_RIGHTINDENT", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)){
             //System.out.println("PARAGRAPHSTYLES_RIGHTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT);
@@ -2002,10 +1926,18 @@ public class OptionsFrame extends javax.swing.JFrame {
         else{
             //System.out.println("Error updating PARAGRAPHSTYLES_RIGHTINDENT in database");
         }
+
+        String jScript = "pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
+        + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
+        + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
+        + "bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
+        + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
+        + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+        browser.executeJavaScript(jScript, browser.getURL(),0);
     }//GEN-LAST:event_jButtonRightIndentLessMouseClicked
 
     private void jButtonRightIndentMoreMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonRightIndentMoreMouseClicked
-        if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT<50){USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT += 5;}
+        if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT<5){USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT += 1;}
 
         if(biblegetDB.setIntOption("PARAGRAPHSTYLES_RIGHTINDENT", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)){
             //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
@@ -2013,6 +1945,14 @@ public class OptionsFrame extends javax.swing.JFrame {
         else{
             //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
         }
+
+        String jScript = "pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
+        + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
+        + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
+        + "bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
+        + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
+        + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+        browser.executeJavaScript(jScript, browser.getURL(),0);
     }//GEN-LAST:event_jButtonRightIndentMoreMouseClicked
 
     private void jComboBoxParagraphFontFamilyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxParagraphFontFamilyItemStateChanged
@@ -2028,6 +1968,7 @@ public class OptionsFrame extends javax.swing.JFrame {
                 //System.out.println("Error updating PARAGRAPHFONTFAMILY in database");
             }
         }
+        browser.executeJavaScript("jQuery(\"div.results\").css({\"font-family\":\"" + USERPREFS.PARAGRAPHSTYLES_FONTFAMILY + "\"}) ", browser.getURL(),0);
     }//GEN-LAST:event_jComboBoxParagraphFontFamilyItemStateChanged
 
     private void jComboBoxParagraphLineHeightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxParagraphLineHeightActionPerformed
@@ -2058,11 +1999,10 @@ public class OptionsFrame extends javax.swing.JFrame {
                 //System.out.println("Error updating PARAGRAPHLINESPACING in database");
             }
         }
-
     }//GEN-LAST:event_jComboBoxParagraphLineHeightItemStateChanged
 
     private void jButtonLeftIndentLessMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonLeftIndentLessMouseClicked
-        if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT>=5){USERPREFS.PARAGRAPHSTYLES_LEFTINDENT -= 5;}
+        if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT>=1){USERPREFS.PARAGRAPHSTYLES_LEFTINDENT -= 1;}
 
         if(biblegetDB.setIntOption("PARAGRAPHSTYLES_LEFTINDENT", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)){
             //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
@@ -2070,10 +2010,18 @@ public class OptionsFrame extends javax.swing.JFrame {
         else{
             //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
         }
+
+        String jScript = "pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
+        + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
+        + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
+        + "bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
+        + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
+        + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+        browser.executeJavaScript(jScript, browser.getURL(),0);
     }//GEN-LAST:event_jButtonLeftIndentLessMouseClicked
 
     private void jButtonLeftIndentMoreMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonLeftIndentMoreMouseClicked
-        if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT<50){USERPREFS.PARAGRAPHSTYLES_LEFTINDENT += 5;}
+        if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT<5){USERPREFS.PARAGRAPHSTYLES_LEFTINDENT += 1;}
 
         if(biblegetDB.setIntOption("PARAGRAPHSTYLES_LEFTINDENT", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)){
             //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
@@ -2081,6 +2029,15 @@ public class OptionsFrame extends javax.swing.JFrame {
         else{
             //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
         }
+
+        String jScript = "pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
+        + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
+        + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
+        + "bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
+        + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
+        + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+        browser.executeJavaScript(jScript, browser.getURL(),0);
+
     }//GEN-LAST:event_jButtonLeftIndentMoreMouseClicked
 
     private void jToggleButtonParagraphJustifyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonParagraphJustifyItemStateChanged
@@ -2134,39 +2091,6 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_jToggleButtonParagraphLeftItemStateChanged
-
-    private void jToggleButtonBibleVersionVisibilityItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionVisibilityItemStateChanged
-        if(evt.getStateChange()==ItemEvent.SELECTED){
-            USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW = BGET.VISIBILITY.SHOW;
-            jToggleButtonBibleVersionVisibility.setIcon(buttonStateOn);
-            jToggleButtonBibleVersionVisibility.setText("SHOW");
-        }
-        else {
-            USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW = BGET.VISIBILITY.HIDE;
-            jToggleButtonBibleVersionVisibility.setIcon(buttonStateOff);
-            jToggleButtonBibleVersionVisibility.setText("HIDE");
-        }
-    }//GEN-LAST:event_jToggleButtonBibleVersionVisibilityItemStateChanged
-
-    private void jToggleButtonBibleVersionVisibilityMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionVisibilityMouseEntered
-        if(jToggleButtonBibleVersionVisibility.isSelected()){
-            jToggleButtonBibleVersionVisibility.setIcon(buttonStateOnHover);
-        } else {
-            jToggleButtonBibleVersionVisibility.setIcon(buttonStateOffHover);
-        }
-    }//GEN-LAST:event_jToggleButtonBibleVersionVisibilityMouseEntered
-
-    private void jToggleButtonBibleVersionVisibilityMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionVisibilityMouseExited
-        if(jToggleButtonBibleVersionVisibility.isSelected()){
-            jToggleButtonBibleVersionVisibility.setIcon(buttonStateOn);
-        } else {
-            jToggleButtonBibleVersionVisibility.setIcon(buttonStateOff);
-        }
-    }//GEN-LAST:event_jToggleButtonBibleVersionVisibilityMouseExited
-
-    private void jToggleButtonBibleVersionVisibilityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionVisibilityActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jToggleButtonBibleVersionVisibilityActionPerformed
 
     private void jColorChooserClean(JColorChooser jColorChooser){
         AbstractColorChooserPanel panels[] = jColorChooser.getChooserPanels();
@@ -2327,6 +2251,18 @@ public class OptionsFrame extends javax.swing.JFrame {
     private javax.swing.ButtonGroup buttonGroupBookChapterFormat;
     private javax.swing.ButtonGroup buttonGroupBookChapterVAlign;
     private javax.swing.ButtonGroup buttonGroupParagraphAlign;
+    private javax.swing.Box.Filler filler1;
+    private javax.swing.Box.Filler filler10;
+    private javax.swing.Box.Filler filler11;
+    private javax.swing.Box.Filler filler12;
+    private javax.swing.Box.Filler filler2;
+    private javax.swing.Box.Filler filler3;
+    private javax.swing.Box.Filler filler4;
+    private javax.swing.Box.Filler filler5;
+    private javax.swing.Box.Filler filler6;
+    private javax.swing.Box.Filler filler7;
+    private javax.swing.Box.Filler filler8;
+    private javax.swing.Box.Filler filler9;
     private javax.swing.JButton jButtonBibleVersionHighlightColor;
     private javax.swing.JButton jButtonBibleVersionTextColor;
     private javax.swing.JButton jButtonBookChapterHighlightColor;
@@ -2349,7 +2285,7 @@ public class OptionsFrame extends javax.swing.JFrame {
     private javax.swing.JInternalFrame jInternalFrame1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanelBibleVersion;
     private javax.swing.JPanel jPanelBookChapter;
     private javax.swing.JPanel jPanelParagraph;
@@ -2367,12 +2303,14 @@ public class OptionsFrame extends javax.swing.JFrame {
     private javax.swing.JToolBar.Separator jSeparator13;
     private javax.swing.JToolBar.Separator jSeparator14;
     private javax.swing.JToolBar.Separator jSeparator15;
+    private javax.swing.JToolBar.Separator jSeparator16;
+    private javax.swing.JToolBar.Separator jSeparator17;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator5;
     private javax.swing.JToolBar.Separator jSeparator6;
-    private javax.swing.JSeparator jSeparator7;
+    private javax.swing.JToolBar.Separator jSeparator7;
     private javax.swing.JToolBar.Separator jSeparator8;
     private javax.swing.JToolBar.Separator jSeparator9;
     private javax.swing.JToggleButton jToggleButtonBibleVersionAlignCenter;

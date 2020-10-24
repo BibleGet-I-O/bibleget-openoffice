@@ -14,6 +14,7 @@ import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import java.awt.Desktop;
+import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -363,12 +364,12 @@ public final class BibleGetIO extends WeakBase
     private DefaultComboBoxModel getFonts(){
         //System.out.println("Getting system fonts...");
         GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        //Font[] fonts = e.getAllFonts(); // Get the fonts as Font objects
+        //Font[] fontfamilies = e.getAllFonts(); // Get the fonts as Font objects
         String[] fontfamilies = e.getAvailableFontFamilyNames();
 //        for(String font : fonts){
 //            System.out.println(font);
 //        }
-        return new DefaultComboBoxModel(fontfamilies);
+        return new DefaultComboBoxModel<>(fontfamilies);
     }
     
     public static void openWebpage(URI uri) throws IOException {
