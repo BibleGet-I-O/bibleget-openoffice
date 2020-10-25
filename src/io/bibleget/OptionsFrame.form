@@ -930,6 +930,9 @@
                     </Property>
                     <Property name="verticalTextPosition" type="int" value="3"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBibleVersionVAlignTopItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBibleVersionVAlignBottom">
                   <Properties>
@@ -952,6 +955,9 @@
                     </Property>
                     <Property name="verticalTextPosition" type="int" value="3"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBibleVersionVAlignBottomItemStateChanged"/>
+                  </Events>
                 </Component>
               </SubComponents>
             </Container>
@@ -1446,7 +1452,6 @@
                 <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterFullRefItemStateChanged"/>
                 <EventHandler event="mouseEntered" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="jToggleButtonBookChapterFullRefMouseEntered"/>
                 <EventHandler event="mouseExited" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="jToggleButtonBookChapterFullRefMouseExited"/>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jToggleButtonBookChapterFullRefActionPerformed"/>
               </Events>
             </Component>
             <Container class="javax.swing.JPanel" name="jPanel1">
@@ -1466,6 +1471,9 @@
                     </Property>
                     <Property name="text" type="java.lang.String" value="Bible Lang"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterBibleLangItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBookChapterBibleLangAbbrev">
                   <Properties>
@@ -1477,6 +1485,9 @@
                     </Property>
                     <Property name="text" type="java.lang.String" value="Bible Lang Abbrev"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterBibleLangAbbrevItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBookChapterUserLang">
                   <Properties>
@@ -1488,6 +1499,9 @@
                     </Property>
                     <Property name="text" type="java.lang.String" value="User Lang"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterUserLangItemStateChanged"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JToggleButton" name="jToggleButtonBookChapterUserLangAbbrev">
                   <Properties>
@@ -1499,6 +1513,9 @@
                     </Property>
                     <Property name="text" type="java.lang.String" value="User Lang Abbrev"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="jToggleButtonBookChapterUserLangAbbrevItemStateChanged"/>
+                  </Events>
                 </Component>
               </SubComponents>
             </Container>

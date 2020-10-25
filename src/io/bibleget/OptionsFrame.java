@@ -63,6 +63,8 @@ public class OptionsFrame extends javax.swing.JFrame {
     private String bookChapterWrapAfter = "";
     private String bibleVersionWrapBefore = "";
     private String bibleVersionWrapAfter = "";
+    private String fullQuery = "";
+    private LocalizedBibleBook localizedBookSamuel;
     
     private final ImageIcon buttonStateOff = new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/toggle button state off.png"));
     private final ImageIcon buttonStateOn = new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/toggle button state on.png"));
@@ -127,7 +129,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             bookChapterWrapAfter = "]";
         }
 
-        LocalizedBibleBook LocalizedBookSamuel = (L10NBibleBooks != null ? L10NBibleBooks.GetBookByIndex(8) : new LocalizedBibleBook("1Sam","1Samuel") );
+        localizedBookSamuel = (L10NBibleBooks != null ? L10NBibleBooks.GetBookByIndex(8) : new LocalizedBibleBook("1Sam","1Samuel") );
         switch(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT){
             case BIBLELANG:
                 bookChapter = "I Samuelis 1";
@@ -136,14 +138,14 @@ public class OptionsFrame extends javax.swing.JFrame {
                 bookChapter = "I Sam 1";
                 break;
             case USERLANG:
-                bookChapter = LocalizedBookSamuel.Fullname + " 1";
+                bookChapter = localizedBookSamuel.Fullname + " 1";
                 break;
             case USERLANGABBREV:
-                bookChapter = LocalizedBookSamuel.Abbrev + " 1";
+                bookChapter = localizedBookSamuel.Abbrev + " 1";
         }
         
         if(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY){
-            bookChapter += ",1-3";
+            fullQuery = ",1-3";
         }
         
         Double lineHeight = Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT) / 100;
@@ -302,7 +304,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "<div style=\"text-align: center;\"><canvas class=\"previewRuler\"></canvas></div>"
             + "<div class=\"results bibleQuote\">"
             + (USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION == BGET.POS.TOP && USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW == BGET.VISIBILITY.SHOW ? "<p class=\"bibleVersion\">" + bibleVersionWrapBefore + "NVBSE" + bibleVersionWrapAfter + "</p>" : "")
-            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.TOP ? "<p class=\"bookChapter\">" + bookChapterWrapBefore + bookChapter + bookChapterWrapAfter + "</p>" : "")
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.TOP ? "<p class=\"bookChapter\">" + bookChapterWrapBefore + bookChapter + fullQuery + bookChapterWrapAfter + "</p>" : "")
             + "<p class=\"versesParagraph\" style=\"margin-top:0px;\">"
             + (USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW == BGET.VISIBILITY.SHOW ? "<span class=\"verseNum\">1</span>" : "")
             + "<span class=\"verseText\">Fuit vir unus de Ramathaim Suphita de monte Ephraim, et nomen eius Elcana filius Ieroham filii Eliu filii Thohu filii Suph, Ephrathaeus.</span>"
@@ -310,9 +312,9 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "<span class=\"verseText\">Et habuit duas uxores: nomen uni Anna et nomen secundae Phenenna. Fueruntque Phenennae filii, Annae autem non erant liberi.</span>"
             + (USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW == BGET.VISIBILITY.SHOW ? "<span class=\"verseNum\">3</span>" : "")
             + "<span class=\"verseText\">Et ascendebat vir ille de civitate sua singulis annis, ut adoraret et sacrificaret Domino exercituum in Silo. Erant autem ibi duo filii Heli, Ophni et Phinees, sacerdotes Domini.</span>"
-            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.BOTTOMINLINE ? "<span class=\"bookChapter\">" + bookChapterWrapBefore + bookChapter + bookChapterWrapAfter + "</span>" : "")
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.BOTTOMINLINE ? "<span class=\"bookChapter\">" + bookChapterWrapBefore + bookChapter + fullQuery + bookChapterWrapAfter + "</span>" : "")
             + "</p>"
-            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.BOTTOM ? "<p class=\"bookChapter\">" + bookChapterWrapBefore + bookChapter + bookChapterWrapAfter + "</p>" : "")
+            + (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.BOTTOM ? "<p class=\"bookChapter\">" + bookChapterWrapBefore + bookChapter + fullQuery + bookChapterWrapAfter + "</p>" : "")
             + (USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION == BGET.POS.BOTTOM && USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW == BGET.VISIBILITY.SHOW ? "<p class=\"bibleVersion\">" + bibleVersionWrapBefore + "NVBSE" + bibleVersionWrapAfter + "</p>" : "")
             + "</div>"
             + "</body>";
@@ -930,6 +932,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToggleButtonBibleVersionVAlignTop.setMinimumSize(new java.awt.Dimension(31, 31));
         jToggleButtonBibleVersionVAlignTop.setPreferredSize(new java.awt.Dimension(31, 31));
         jToggleButtonBibleVersionVAlignTop.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToggleButtonBibleVersionVAlignTop.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jToggleButtonBibleVersionVAlignTopItemStateChanged(evt);
+            }
+        });
         jToolBar8.add(jToggleButtonBibleVersionVAlignTop);
 
         buttonGroupBibleVersionVAlign.add(jToggleButtonBibleVersionVAlignBottom);
@@ -940,6 +947,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToggleButtonBibleVersionVAlignBottom.setMaximumSize(new java.awt.Dimension(31, 31));
         jToggleButtonBibleVersionVAlignBottom.setMinimumSize(new java.awt.Dimension(31, 31));
         jToggleButtonBibleVersionVAlignBottom.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToggleButtonBibleVersionVAlignBottom.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jToggleButtonBibleVersionVAlignBottomItemStateChanged(evt);
+            }
+        });
         jToolBar8.add(jToggleButtonBibleVersionVAlignBottom);
 
         jPanelBibleVersion.add(jToolBar8);
@@ -1220,11 +1232,6 @@ public class OptionsFrame extends javax.swing.JFrame {
                 jToggleButtonBookChapterFullRefMouseExited(evt);
             }
         });
-        jToggleButtonBookChapterFullRef.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jToggleButtonBookChapterFullRefActionPerformed(evt);
-            }
-        });
         jPanelBookChapter.add(jToggleButtonBookChapterFullRef);
 
         jPanel1.setLayout(new java.awt.GridLayout(4, 1));
@@ -1232,21 +1239,41 @@ public class OptionsFrame extends javax.swing.JFrame {
         buttonGroupBookChapterFormat.add(jToggleButtonBookChapterBibleLang);
         jToggleButtonBookChapterBibleLang.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.BIBLELANG);
         jToggleButtonBookChapterBibleLang.setText("Bible Lang");
+        jToggleButtonBookChapterBibleLang.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jToggleButtonBookChapterBibleLangItemStateChanged(evt);
+            }
+        });
         jPanel1.add(jToggleButtonBookChapterBibleLang);
 
         buttonGroupBookChapterFormat.add(jToggleButtonBookChapterBibleLangAbbrev);
         jToggleButtonBookChapterBibleLangAbbrev.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.BIBLELANGABBREV);
         jToggleButtonBookChapterBibleLangAbbrev.setText("Bible Lang Abbrev");
+        jToggleButtonBookChapterBibleLangAbbrev.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jToggleButtonBookChapterBibleLangAbbrevItemStateChanged(evt);
+            }
+        });
         jPanel1.add(jToggleButtonBookChapterBibleLangAbbrev);
 
         buttonGroupBookChapterFormat.add(jToggleButtonBookChapterUserLang);
         jToggleButtonBookChapterUserLang.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.USERLANG);
         jToggleButtonBookChapterUserLang.setText("User Lang");
+        jToggleButtonBookChapterUserLang.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jToggleButtonBookChapterUserLangItemStateChanged(evt);
+            }
+        });
         jPanel1.add(jToggleButtonBookChapterUserLang);
 
         buttonGroupBookChapterFormat.add(jToggleButtonBookChapterUserLangAbbrev);
         jToggleButtonBookChapterUserLangAbbrev.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT==BGET.FORMAT.USERLANGABBREV);
         jToggleButtonBookChapterUserLangAbbrev.setText("User Lang Abbrev");
+        jToggleButtonBookChapterUserLangAbbrev.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jToggleButtonBookChapterUserLangAbbrevItemStateChanged(evt);
+            }
+        });
         jPanel1.add(jToggleButtonBookChapterUserLangAbbrev);
 
         jPanelBookChapter.add(jPanel1);
@@ -1551,11 +1578,13 @@ public class OptionsFrame extends javax.swing.JFrame {
             USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW = BGET.VISIBILITY.SHOW;
             jToggleButtonBibleVersionVisibility.setIcon(buttonStateOn);
             jToggleButtonBibleVersionVisibility.setText("SHOW");
+            browser.executeJavaScript("jQuery(\".bibleVersion\").css({\"visibility\":\"visible\"})", browser.getURL(),0);
         }
         else {
             USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW = BGET.VISIBILITY.HIDE;
             jToggleButtonBibleVersionVisibility.setIcon(buttonStateOff);
             jToggleButtonBibleVersionVisibility.setText("HIDE");
+            browser.executeJavaScript("jQuery(\".bibleVersion\").css({\"visibility\":\"hidden\"})", browser.getURL(),0);
         }
     }//GEN-LAST:event_jToggleButtonBibleVersionVisibilityItemStateChanged
 
@@ -1581,12 +1610,14 @@ public class OptionsFrame extends javax.swing.JFrame {
             USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW = BGET.VISIBILITY.SHOW;
             jToggleButtonVerseNumberVisibility.setIcon(buttonStateOn);
             jToggleButtonVerseNumberVisibility.setText("SHOW");
+            browser.executeJavaScript("jQuery(\".verseNum\").css({\"visibility\":\"visible\"})", browser.getURL(),0);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED) {
             // do something with object
             USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW = BGET.VISIBILITY.HIDE;
             jToggleButtonVerseNumberVisibility.setIcon(buttonStateOff);
             jToggleButtonVerseNumberVisibility.setText("HIDE");
+            browser.executeJavaScript("jQuery(\".verseNum\").css({\"visibility\":\"hidden\"})", browser.getURL(),0);
         }
         if(biblegetDB.setIntOption("LAYOUTPREFS_BIBLEVERSION_SHOW", USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW.getValue())){
             //System.out.println("NOVERSIONFORMATTING was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING);
@@ -1595,10 +1626,6 @@ public class OptionsFrame extends javax.swing.JFrame {
             //System.out.println("Error updating NOVERSIONFORMATTING in database");
         }
     }//GEN-LAST:event_jToggleButtonVerseNumberVisibilityItemStateChanged
-
-    private void jToggleButtonBookChapterFullRefActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterFullRefActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jToggleButtonBookChapterFullRefActionPerformed
 
     private void jToggleButtonBookChapterFullRefMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterFullRefMouseExited
         if(jToggleButtonBookChapterFullRef.isSelected()){
@@ -1620,16 +1647,17 @@ public class OptionsFrame extends javax.swing.JFrame {
         if(evt.getStateChange()==ItemEvent.SELECTED) {
             // do something with object
             USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY = true;
+            fullQuery = ",1-3";
             jToggleButtonBookChapterFullRef.setIcon(buttonStateOn);
-            //jToggleButtonBookChapterFullRef.setText("SHOW");
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED) {
             // do something with object
             USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY = false;
+            fullQuery = "";
             jToggleButtonBookChapterFullRef.setIcon(buttonStateOff);
-            //jToggleButtonBookChapterFullRef.setText("HIDE");
         }
-        if(biblegetDB.setIntOption("LAYOUTPREFS_BIBLEVERSION_SHOW", USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW.getValue())){
+        browser.executeJavaScript("jQuery(\".bookChapter\").text('" + bookChapterWrapBefore + bookChapter + fullQuery + bookChapterWrapAfter + "');", browser.getURL(),0);
+        if(biblegetDB.setBooleanOption("LAYOUTPREFS_BOOKCHAPTER_FULLQUERY", USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY)){
             //System.out.println("NOVERSIONFORMATTING was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING);
         }
         else{
@@ -1779,10 +1807,12 @@ public class OptionsFrame extends javax.swing.JFrame {
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButtonVerseNumberSuperscript.setSelected(false);
             USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.SUBSCRIPT;
+            browser.executeJavaScript("jQuery(\".verseNum\").css({\"position\":\"relative\",\"top\":\"0.6em\"})", browser.getURL(),0);
             //System.out.println("setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
             USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.NORMAL;
+            browser.executeJavaScript("jQuery(\".verseNum\").css({\"position\":\"static\"})", browser.getURL(),0);
             //System.out.println("btn14 :: setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
         }
 
@@ -1799,11 +1829,13 @@ public class OptionsFrame extends javax.swing.JFrame {
         if(evt.getStateChange()==ItemEvent.SELECTED){
             jToggleButtonVerseNumberSubscript.setSelected(false);
             USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.SUPERSCRIPT;
+            browser.executeJavaScript("jQuery(\".verseNum\").css({\"position\":\"relative\",\"top\":\"-0.6em\"})", browser.getURL(),0);
             //System.out.println("setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
         }
         else if(evt.getStateChange()==ItemEvent.DESELECTED){
             USERPREFS.VERSENUMBERSTYLES_VALIGN = BGET.VALIGN.NORMAL;
-            //System.out.println("btn13 :: setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
+            browser.executeJavaScript("jQuery(\".verseNum\").css({\"position\":\"static\"})", browser.getURL(),0);
+            //System.out.println("setting verse-number vertical-align to: "+USERPREFS.VERSENUMBERSTYLES_VALIGN);
         }
 
         if(biblegetDB.setIntOption("VERSENUMBERSTYLES_VALIGN", USERPREFS.VERSENUMBERSTYLES_VALIGN.getValue())){
@@ -2451,7 +2483,9 @@ public class OptionsFrame extends javax.swing.JFrame {
     private void jToggleButtonBookChapterWrapNoneItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterWrapNoneItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
             USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP = BGET.WRAP.NONE;
-            browser.executeJavaScript("jQuery(\".bookChapter\").text(\"" + bookChapter + "\")", browser.getURL(),0);
+            bookChapterWrapBefore = "";
+            bookChapterWrapAfter = "";
+            browser.executeJavaScript("jQuery(\".bookChapter\").text(\"" + bookChapter + fullQuery + "\")", browser.getURL(),0);
             if(biblegetDB.setIntOption("LAYOUTPREFS_BOOKCHAPTER_WRAP", USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP.getValue())){
                 //System.out.println("LAYOUTPREFS_BOOKCHAPTER_WRAP was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP);
             }
@@ -2464,7 +2498,9 @@ public class OptionsFrame extends javax.swing.JFrame {
     private void jToggleButtonBookChapterWrapParenthesesItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterWrapParenthesesItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
             USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP = BGET.WRAP.PARENTHESES;
-            browser.executeJavaScript("jQuery(\".bookChapter\").text(\"(" + bookChapter + ")\")", browser.getURL(),0);
+            bookChapterWrapBefore = "(";
+            bookChapterWrapAfter = ")";
+            browser.executeJavaScript("jQuery(\".bookChapter\").text(\"(" + bookChapter + fullQuery + ")\")", browser.getURL(),0);
             if(biblegetDB.setIntOption("LAYOUTPREFS_BOOKCHAPTER_WRAP", USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP.getValue())){
                 //System.out.println("LAYOUTPREFS_BOOKCHAPTER_WRAP was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP);
             }
@@ -2477,7 +2513,9 @@ public class OptionsFrame extends javax.swing.JFrame {
     private void jToggleButtonBookChapterWrapBracketsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterWrapBracketsItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
             USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP = BGET.WRAP.BRACKETS;
-            browser.executeJavaScript("jQuery(\".bookChapter\").text(\"[" + bookChapter + "]\")", browser.getURL(),0);
+            bookChapterWrapBefore = "[";
+            bookChapterWrapAfter = "]";
+            browser.executeJavaScript("jQuery(\".bookChapter\").text(\"[" + bookChapter + fullQuery + "]\")", browser.getURL(),0);
             if(biblegetDB.setIntOption("LAYOUTPREFS_BOOKCHAPTER_WRAP", USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP.getValue())){
                 //System.out.println("LAYOUTPREFS_BOOKCHAPTER_WRAP was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP);
             }
@@ -2490,7 +2528,7 @@ public class OptionsFrame extends javax.swing.JFrame {
     private void jToggleButtonBookChapterVAlignTopItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterVAlignTopItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
             USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION = BGET.POS.TOP;
-            browser.executeJavaScript("jQuery(\".bookChapter\").remove();jQuery(\"<div>\",{\"class\":\"bookChapter\",\"text\":\"" + bookChapterWrapBefore + bookChapter + bookChapterWrapAfter + "\"}).insertBefore(\"p.versesParagraph\")", browser.getURL(),0);
+            browser.executeJavaScript("jQuery(\".bookChapter\").remove();jQuery(\"<p>\",{\"class\":\"bookChapter\",\"text\":\"" + bookChapterWrapBefore + bookChapter + fullQuery + bookChapterWrapAfter + "\"}).insertBefore(\"p.versesParagraph\")", browser.getURL(),0);
             if(biblegetDB.setIntOption("LAYOUTPREFS_BOOKCHAPTER_POSITION", USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION.getValue())){
                 //System.out.println("LAYOUTPREFS_BOOKCHAPTER_POSITION was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION);
             }
@@ -2503,7 +2541,7 @@ public class OptionsFrame extends javax.swing.JFrame {
     private void jToggleButtonBookChapterVAlignBottomItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterVAlignBottomItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
             USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION = BGET.POS.BOTTOM;
-            browser.executeJavaScript("jQuery(\".bookChapter\").remove();jQuery(\"<div>\",{\"class\":\"bookChapter\",\"text\":\"" + bookChapterWrapBefore + bookChapter + bookChapterWrapAfter + "\"}).insertAfter(\"p.versesParagraph\")", browser.getURL(),0);
+            browser.executeJavaScript("jQuery(\".bookChapter\").remove();jQuery(\"<p>\",{\"class\":\"bookChapter\",\"text\":\"" + bookChapterWrapBefore + bookChapter + fullQuery + bookChapterWrapAfter + "\"}).insertAfter(\"p.versesParagraph\")", browser.getURL(),0);
             if(biblegetDB.setIntOption("LAYOUTPREFS_BOOKCHAPTER_POSITION", USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION.getValue())){
                 //System.out.println("LAYOUTPREFS_BOOKCHAPTER_POSITION was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION);
             }
@@ -2516,7 +2554,7 @@ public class OptionsFrame extends javax.swing.JFrame {
     private void jToggleButtonBookChapterVAlignBottominlineItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterVAlignBottominlineItemStateChanged
         if(evt.getStateChange()==ItemEvent.SELECTED){
             USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION = BGET.POS.BOTTOMINLINE;
-            browser.executeJavaScript("jQuery(\".bookChapter\").remove();jQuery(\"<span>\",{\"class\":\"bookChapter\",\"text\":\"" + bookChapterWrapBefore + bookChapter + bookChapterWrapAfter + "\"}).appendTo(\"p.versesParagraph\")", browser.getURL(),0);
+            browser.executeJavaScript("jQuery(\".bookChapter\").remove();jQuery(\"<span>\",{\"class\":\"bookChapter\",\"text\":\"" + bookChapterWrapBefore + bookChapter + fullQuery + bookChapterWrapAfter + "\"}).appendTo(\"p.versesParagraph\")", browser.getURL(),0);
             if(biblegetDB.setIntOption("LAYOUTPREFS_BOOKCHAPTER_POSITION", USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION.getValue())){
                 //System.out.println("LAYOUTPREFS_BOOKCHAPTER_POSITION was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION);
             }
@@ -2525,6 +2563,88 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_jToggleButtonBookChapterVAlignBottominlineItemStateChanged
+
+    private void jToggleButtonBibleVersionVAlignTopItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionVAlignTopItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION = BGET.POS.TOP;
+            browser.executeJavaScript("jQuery(\".bibleVersion\").prependTo(\".bibleQuote\")", browser.getURL(),0);
+            if(biblegetDB.setIntOption("LAYOUTPREFS_BIBLEVERSION_POSITION", USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION.getValue())){
+                //System.out.println("LAYOUTPREFS_BIBLEVERSION_POSITION was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION);
+            }
+            else{
+                //System.out.println("Error updating LAYOUTPREFS_BIBLEVERSION_POSITION in database");
+            }
+        }
+    }//GEN-LAST:event_jToggleButtonBibleVersionVAlignTopItemStateChanged
+
+    private void jToggleButtonBibleVersionVAlignBottomItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBibleVersionVAlignBottomItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION = BGET.POS.BOTTOM;
+            browser.executeJavaScript("jQuery(\".bibleVersion\").appendTo(\".bibleQuote\")", browser.getURL(),0);
+            if(biblegetDB.setIntOption("LAYOUTPREFS_BIBLEVERSION_POSITION", USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION.getValue())){
+                //System.out.println("LAYOUTPREFS_BIBLEVERSION_POSITION was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION);
+            }
+            else{
+                //System.out.println("Error updating LAYOUTPREFS_BIBLEVERSION_POSITION in database");
+            }
+        }
+    }//GEN-LAST:event_jToggleButtonBibleVersionVAlignBottomItemStateChanged
+
+    private void jToggleButtonBookChapterBibleLangItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterBibleLangItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT = BGET.FORMAT.BIBLELANG;
+            bookChapter = "I Samuelis 1";
+            browser.executeJavaScript("jQuery(\".bookChapter\").text(\"" + bookChapterWrapBefore + bookChapter + fullQuery + bookChapterWrapAfter + "\")", browser.getURL(),0);
+            if(biblegetDB.setIntOption("LAYOUTPREFS_BOOKCHAPTER_FORMAT", USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT.getValue())){
+                //System.out.println("LAYOUTPREFS_BOOKCHAPTER_FORMAT was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT);
+            }
+            else{
+                //System.out.println("Error updating LAYOUTPREFS_BOOKCHAPTER_FORMAT in database");
+            }
+        }
+    }//GEN-LAST:event_jToggleButtonBookChapterBibleLangItemStateChanged
+
+    private void jToggleButtonBookChapterBibleLangAbbrevItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterBibleLangAbbrevItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT = BGET.FORMAT.BIBLELANG;
+            bookChapter = "I Sam 1";
+            browser.executeJavaScript("jQuery(\".bookChapter\").text(\"" + bookChapterWrapBefore + bookChapter + fullQuery + bookChapterWrapAfter + "\")", browser.getURL(),0);
+            if(biblegetDB.setIntOption("LAYOUTPREFS_BOOKCHAPTER_FORMAT", USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT.getValue())){
+                //System.out.println("LAYOUTPREFS_BOOKCHAPTER_FORMAT was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT);
+            }
+            else{
+                //System.out.println("Error updating LAYOUTPREFS_BOOKCHAPTER_FORMAT in database");
+            }
+        }
+    }//GEN-LAST:event_jToggleButtonBookChapterBibleLangAbbrevItemStateChanged
+
+    private void jToggleButtonBookChapterUserLangItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterUserLangItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT = BGET.FORMAT.BIBLELANG;
+            bookChapter = localizedBookSamuel.Fullname + " 1";
+            browser.executeJavaScript("jQuery(\".bookChapter\").text(\"" + bookChapterWrapBefore + bookChapter + fullQuery + bookChapterWrapAfter + "\")", browser.getURL(),0);
+            if(biblegetDB.setIntOption("LAYOUTPREFS_BOOKCHAPTER_FORMAT", USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT.getValue())){
+                //System.out.println("LAYOUTPREFS_BOOKCHAPTER_FORMAT was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT);
+            }
+            else{
+                //System.out.println("Error updating LAYOUTPREFS_BOOKCHAPTER_FORMAT in database");
+            }
+        }
+    }//GEN-LAST:event_jToggleButtonBookChapterUserLangItemStateChanged
+
+    private void jToggleButtonBookChapterUserLangAbbrevItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonBookChapterUserLangAbbrevItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT = BGET.FORMAT.BIBLELANG;
+            bookChapter = localizedBookSamuel.Abbrev + " 1";
+            browser.executeJavaScript("jQuery(\".bookChapter\").text(\"" + bookChapterWrapBefore + bookChapter + fullQuery + bookChapterWrapAfter + "\")", browser.getURL(),0);
+            if(biblegetDB.setIntOption("LAYOUTPREFS_BOOKCHAPTER_FORMAT", USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT.getValue())){
+                //System.out.println("LAYOUTPREFS_BOOKCHAPTER_FORMAT was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT);
+            }
+            else{
+                //System.out.println("Error updating LAYOUTPREFS_BOOKCHAPTER_FORMAT in database");
+            }
+        }
+    }//GEN-LAST:event_jToggleButtonBookChapterUserLangAbbrevItemStateChanged
 
     private void jColorChooserClean(JColorChooser jColorChooser){
         AbstractColorChooserPanel panels[] = jColorChooser.getChooserPanels();
