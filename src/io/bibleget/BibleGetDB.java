@@ -177,7 +177,7 @@ public class BibleGetDB {
                 + "LAYOUTPREFS_VERSENUMBER_SHOW, "
                 + "PREFERREDVERSIONS"
                 + ") VALUES ("
-                + "150,0,0,'"+defaultFont+"'," + BGET.ALIGN.JUSTIFY.getValue() + ",false,false,"            //PARAGRAPH STYLES
+                + "150,0,0,'"+defaultFont+"'," + BGET.ALIGN.JUSTIFY.getValue() + ",false," + (BibleGetIO.measureUnit==BGET.MEASUREUNIT.CM?"true":"false") + ","            //PARAGRAPH STYLES
                 + "true,false,false,false,'#0000FF','#FFFFFF',14," + BGET.VALIGN.NORMAL.getValue() + ","    //BIBLE VERSION STYLES
                 + "true,false,false,false,'#AA0000','#FFFFFF',12," + BGET.VALIGN.NORMAL.getValue() + ","    //BOOK CHAPTER STYLES
                 + "false,false,false,false,'#AA0000','#FFFFFF',10," + BGET.VALIGN.SUPERSCRIPT.getValue() + ","    //VERSENUMBER STYLES
