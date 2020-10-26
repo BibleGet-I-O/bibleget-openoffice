@@ -229,18 +229,39 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "</style>";
         
         previewDocScript = "<script>"
-            + "var getPixelRatioVals = function(rulerLength,convertToCM){"
+            + "var getPixelRatioVals = function(rulerLength,units){"
             + "let inchesToCM = 2.54,"
+            + "inchesToMM = 25.4,"
+            + "inchesToPoints = 72,"
+            + "inchesToPicas = 6,"
             + "dpr = window.devicePixelRatio,"
             //ppi = ((96 * dpr) / 100),
             //dpi = (96 * ppi),
             + "dpi = 96 * dpr,"
-            + "drawInterval = 0.125;"
-            + "if(convertToCM){"
-            //ppi /= inchesToCM;
+            + "drawInterval = 0.1;"
+            + "switch(units){"
+            + "case 2: " //CM
             + "dpi /= inchesToCM;"
             + "rulerLength *= inchesToCM;"
             + "drawInterval = 0.25;"
+            + "break;"
+            + "case 8: " //INCH
+            + "break;"
+            + "case 1: " //MM
+            + "dpi /= inchesToMM;"
+            + "rulerLength *= inchesToMM;"
+            + "drawInterval = 6;"
+            + "break;"
+            + "case 7: " //PICA
+            + "dpi /= inchesToPicas;"
+            + "rulerLength *= inchesToPicas;"
+            + "drawInterval = 1;"
+            + "break;"
+            + "case 6: " //POINT
+            + "dpi /= inchesToPoints;"
+            + "rulerLength *= inchesToPoints;"
+            + "drawInterval = 12;"
+            + "break;"
             + "}"
             + "return {"
             + "inchesToCM: inchesToCM,"
@@ -272,8 +293,8 @@ public class OptionsFrame extends javax.swing.JFrame {
              * @ lftindnt (float) in Inches, to set xPos of triangle for left indent
              * @ rgtindnt (float) in Inches, to set xPos of triangle for right indent
             */
-            + "drawRuler = function(rulerLen, cvtToCM, lftindnt, rgtindnt){"
-            + "var pixelRatioVals = getPixelRatioVals(rulerLen,cvtToCM),"
+            + "drawRuler = function(rulerLen, units, lftindnt, rgtindnt){"
+            + "var pixelRatioVals = getPixelRatioVals(rulerLen,units),"
             + "initialPadding = 35,"
             + "$canvas = jQuery('.previewRuler');"
             + "$canvas.each(function(){"
@@ -297,11 +318,56 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "context.stroke();"
             + "let currentWholeNumber = 0;"
             + "let offset = 2;"
-            + "for(let interval = 0; interval <= pixelRatioVals.rulerLength; interval += pixelRatioVals.drawInterval){"
+            + "for(let interval = 0; interval <= pixelRatioVals.rulerLength; interval = (Math.round((interval + pixelRatioVals.drawInterval) * 10) / 10)){"
             + "let xPosA = Math.round(interval*pixelRatioVals.dpi)+0.5;"
             + "if(interval == Math.floor(interval) && interval > 0){"
+            + "switch(units){"
+            + "case 2: " //CM
+            + "case 8: " //INCH
             + "if(currentWholeNumber+1 == 10){ offset+=4; }"
             + "context.fillText(++currentWholeNumber,initialPadding+xPosA-offset,14);"
+            + "break;"
+            + "case 1: " //MM
+            + "if(Math.floor(interval) % 6 == 0){"
+            + "if((currentWholeNumber+1)*6 == 12){ offset+=4; }"
+            + "context.fillText(++currentWholeNumber*6,initialPadding+xPosA-offset,14);"
+            + "}"
+            + "else{"
+            + "context.beginPath();"
+            + "context.moveTo(initialPadding+xPosA,10);"
+            + "context.lineTo(initialPadding+xPosA,5);"
+            + "context.closePath();"
+            + "context.stroke();"
+            + "}"
+            + "break;"
+            + "case 7: " //PICA
+            + "if(Math.floor(interval) % 2 == 0){"
+            + "if((currentWholeNumber+1)*2 == 10){ offset+=4; }"
+            + "context.fillText(++currentWholeNumber*2,initialPadding+xPosA-offset,14);"
+            + "}"
+            + "else{"
+            + "context.beginPath();"
+            + "context.moveTo(initialPadding+xPosA,10);"
+            + "context.lineTo(initialPadding+xPosA,5);"
+            + "context.closePath();"
+            + "context.stroke();"
+            + "}"
+            + "break;"
+            + "case 6: " //POINT
+            + "if(Math.floor(interval) % 36 == 0){"
+            + "if((currentWholeNumber+1)*36 == 36){ offset+=4; }"
+            + "else if((currentWholeNumber+1)*36 == 108){ offset +=4; }"
+            + "context.fillText(++currentWholeNumber*36,initialPadding+xPosA-offset,14);"
+            + "}"
+            + "else{"
+            + "context.beginPath();"
+            + "context.moveTo(initialPadding+xPosA,10);"
+            + "context.lineTo(initialPadding+xPosA,5);"
+            + "context.closePath();"
+            + "context.stroke();"
+            + "}"
+            + "break;"
+            + "}"
             + "}"
             + "else if(interval == Math.floor(interval)+0.5){"
             + "context.beginPath();"
@@ -325,12 +391,12 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "};"
             + "jQuery(document).ready(function(){"
             + "let rulerLength = "+rulerLength+";"
-            + "let pixelRatioVals = getPixelRatioVals(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + ");"
+            + "let pixelRatioVals = getPixelRatioVals(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ");"
             + "let leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
             + "let rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
             + "let bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
             + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-            + "drawRuler(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");"
+            + "drawRuler(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");"
             + "});"
             + "</script>";
         
@@ -2236,12 +2302,12 @@ public class OptionsFrame extends javax.swing.JFrame {
         }
 
         String jScript = "rulerLength = "+rulerLength+";"
-        + "pixelRatioVals = getPixelRatioVals(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + ");"
+        + "pixelRatioVals = getPixelRatioVals(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ");"
         + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
         + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
         + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
         + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-        + "drawRuler(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+        + "drawRuler(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
         browser.executeJavaScript(jScript, browser.getURL(),0);
     }//GEN-LAST:event_jButtonRightIndentLessMouseClicked
 
@@ -2256,12 +2322,12 @@ public class OptionsFrame extends javax.swing.JFrame {
         }
 
         String jScript = "rulerLength = "+rulerLength+";"
-        + "pixelRatioVals = getPixelRatioVals(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + ");"
+        + "pixelRatioVals = getPixelRatioVals(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ");"
         + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
         + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
         + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
         + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-        + "drawRuler(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+        + "drawRuler(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
         browser.executeJavaScript(jScript, browser.getURL(),0);
     }//GEN-LAST:event_jButtonRightIndentMoreMouseClicked
 
@@ -2322,12 +2388,12 @@ public class OptionsFrame extends javax.swing.JFrame {
         }
 
         String jScript = "rulerLength = "+rulerLength+";"
-        + "pixelRatioVals = getPixelRatioVals(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + ");"
+        + "pixelRatioVals = getPixelRatioVals(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ");"
         + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
         + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
         + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
         + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-        + "drawRuler(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+        + "drawRuler(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
         browser.executeJavaScript(jScript, browser.getURL(),0);
     }//GEN-LAST:event_jButtonLeftIndentLessMouseClicked
 
@@ -2342,12 +2408,12 @@ public class OptionsFrame extends javax.swing.JFrame {
         }
 
         String jScript = "rulerLength = "+rulerLength+";"
-        + "pixelRatioVals = getPixelRatioVals(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + ");"
+        + "pixelRatioVals = getPixelRatioVals(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ");"
         + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
         + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
         + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
         + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-        + "drawRuler(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+        + "drawRuler(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
         browser.executeJavaScript(jScript, browser.getURL(),0);
 
     }//GEN-LAST:event_jButtonLeftIndentMoreMouseClicked
@@ -2984,12 +3050,12 @@ public class OptionsFrame extends javax.swing.JFrame {
                 USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT = BGET.MEASUREUNIT.valueOf(mUnit1);
                 BibleGetIO.measureUnit = BGET.MEASUREUNIT.valueOf(mUnit1);
                 String jScript = "rulerLength = "+rulerLength+";"
-                + "pixelRatioVals = getPixelRatioVals(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + ");"
+                + "pixelRatioVals = getPixelRatioVals(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ");"
                 + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
                 + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
                 + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
                 + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-                + "drawRuler(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+                + "drawRuler(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
                 browser.executeJavaScript(jScript, browser.getURL(),0);
                 switch(BGET.MEASUREUNIT.valueOf(mUnit1)){
                     case CM:
