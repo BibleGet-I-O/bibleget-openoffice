@@ -79,7 +79,7 @@ public class BibleGetDB {
                 + "PARAGRAPHSTYLES_FONTFAMILY VARCHAR(50), "
                 + "PARAGRAPHSTYLES_ALIGNMENT INT, "
                 + "PARAGRAPHSTYLES_NOVERSIONFORMATTING BOOLEAN, "
-                + "PARAGRAPHSTYLES_INTERFACEINCM BOOLEAN, "
+                + "PARAGRAPHSTYLES_MEASUREUNIT INT, "
                 + "BIBLEVERSIONSTYLES_BOLD BOOLEAN, "
                 + "BIBLEVERSIONSTYLES_ITALIC BOOLEAN, "
                 + "BIBLEVERSIONSTYLES_UNDERLINE BOOLEAN, "
@@ -132,7 +132,7 @@ public class BibleGetDB {
                 + "PARAGRAPHSTYLES_FONTFAMILY, "
                 + "PARAGRAPHSTYLES_ALIGNMENT, "
                 + "PARAGRAPHSTYLES_NOVERSIONFORMATTING, "
-                + "PARAGRAPHSTYLES_INTERFACEINCM, "
+                + "PARAGRAPHSTYLES_MEASUREUNIT, "
                 + "BIBLEVERSIONSTYLES_BOLD, "
                 + "BIBLEVERSIONSTYLES_ITALIC, "
                 + "BIBLEVERSIONSTYLES_UNDERLINE, "
@@ -177,7 +177,7 @@ public class BibleGetDB {
                 + "LAYOUTPREFS_VERSENUMBER_SHOW, "
                 + "PREFERREDVERSIONS"
                 + ") VALUES ("
-                + "150,0,0,'"+defaultFont+"'," + BGET.ALIGN.JUSTIFY.getValue() + ",false," + (BibleGetIO.measureUnit==BGET.MEASUREUNIT.CM?"true":"false") + ","            //PARAGRAPH STYLES
+                + "150,0,0,'"+defaultFont+"'," + BGET.ALIGN.JUSTIFY.getValue() + ",false," + (BibleGetIO.measureUnit.getValue()) + ","            //PARAGRAPH STYLES
                 + "true,false,false,false,'#0000FF','#FFFFFF',14," + BGET.VALIGN.NORMAL.getValue() + ","    //BIBLE VERSION STYLES
                 + "true,false,false,false,'#AA0000','#FFFFFF',12," + BGET.VALIGN.NORMAL.getValue() + ","    //BOOK CHAPTER STYLES
                 + "false,false,false,false,'#AA0000','#FFFFFF',10," + BGET.VALIGN.SUPERSCRIPT.getValue() + ","    //VERSENUMBER STYLES

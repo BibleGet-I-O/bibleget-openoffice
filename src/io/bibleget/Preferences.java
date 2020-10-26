@@ -37,7 +37,7 @@ public class Preferences {
     public String PARAGRAPHSTYLES_FONTFAMILY;
     public BGET.ALIGN PARAGRAPHSTYLES_ALIGNMENT;
     public Boolean PARAGRAPHSTYLES_NOVERSIONFORMATTING;
-    public Boolean PARAGRAPHSTYLES_INTERFACEINCM;
+    public BGET.MEASUREUNIT PARAGRAPHSTYLES_MEASUREUNIT;
     public Boolean BIBLEVERSIONSTYLES_BOLD;
     public Boolean BIBLEVERSIONSTYLES_ITALIC;
     public Boolean BIBLEVERSIONSTYLES_UNDERLINE;
@@ -85,11 +85,11 @@ public class Preferences {
     private Preferences() throws ClassNotFoundException, SQLException, Exception{
         biblegetDB = BibleGetDB.getInstance();
         JsonObject myOptions = biblegetDB.getOptions();
-        System.out.println("PREFERENCES :: " + myOptions.toString());
-        System.out.println("PREFERENCES :: getting JsonValue of options rows");
+        //System.out.println("PREFERENCES :: " + myOptions.toString());
+        //System.out.println("PREFERENCES :: getting JsonValue of options rows");
         JsonValue myResults = myOptions.get("rows");
-        System.out.println("PREFERENCES :: " + myResults.toString());
-        System.out.println("PREFERENCES :: navigating values in json tree and setting global variables");
+        //System.out.println("PREFERENCES :: " + myResults.toString());
+        //System.out.println("PREFERENCES :: navigating values in json tree and setting global variables");
         navigateTree(myResults, null);        
     }
     
@@ -163,6 +163,7 @@ public class Preferences {
             case "PARAGRAPHSTYLES_LEFTINDENT": PARAGRAPHSTYLES_LEFTINDENT = value; break;
             case "PARAGRAPHSTYLES_RIGHTINDENT": PARAGRAPHSTYLES_RIGHTINDENT = value; break;
             case "PARAGRAPHSTYLES_ALIGNMENT": PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.valueOf(value); break;
+            case "PARAGRAPHSTYLES_MEASUREUNIT": PARAGRAPHSTYLES_MEASUREUNIT = BGET.MEASUREUNIT.valueOf(value) ; break;
             case "BIBLEVERSIONSTYLES_FONTSIZE": BIBLEVERSIONSTYLES_FONTSIZE = value; break;       
             case "BIBLEVERSIONSTYLES_VALIGN": BIBLEVERSIONSTYLES_VALIGN = BGET.VALIGN.valueOf(value); break;
             case "BOOKCHAPTERSTYLES_FONTSIZE": BOOKCHAPTERSTYLES_FONTSIZE = value; break;
@@ -186,7 +187,6 @@ public class Preferences {
     private void getBooleanOption(String key,boolean value){
         switch(key){
             case "PARAGRAPHSTYLES_NOVERSIONFORMATTING": PARAGRAPHSTYLES_NOVERSIONFORMATTING = value; break;
-            case "PARAGRAPHSTYLES_INTERFACEINCM": PARAGRAPHSTYLES_INTERFACEINCM = value; break;
             case "BIBLEVERSIONSTYLES_BOLD": BIBLEVERSIONSTYLES_BOLD = value; break;
             case "BIBLEVERSIONSTYLES_ITALIC": BIBLEVERSIONSTYLES_ITALIC = value; break;
             case "BIBLEVERSIONSTYLES_UNDERLINE": BIBLEVERSIONSTYLES_UNDERLINE = value; break;

@@ -5,6 +5,14 @@
  */
 package io.bibleget;
 
+import com.sun.star.beans.UnknownPropertyException;
+import com.sun.star.beans.XPropertySet;
+import com.sun.star.frame.XController;
+import com.sun.star.lang.IllegalArgumentException;
+import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.uno.AnyConverter;
+import com.sun.star.uno.UnoRuntime;
+import com.sun.star.view.XViewSettingsSupplier;
 import static io.bibleget.BibleGetI18N.__;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -71,15 +79,20 @@ public class OptionsFrame extends javax.swing.JFrame {
     private final ImageIcon buttonStateOffHover = new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/toggle button state off hover.png"));
     private final ImageIcon buttonStateOnHover = new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/toggle button state on hover.png"));
     private static OptionsFrame instance;
-        
+    
+    private XController m_xController;
+    
+    private String rulerLength = "6.7";
+    
     /**
      * Creates new form OptionsFrame
      * @param pkgPath
      */
-    private OptionsFrame() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception {
+    private OptionsFrame(XController m_xController) throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception {
         this.L10NBibleBooks = LocalizedBibleBooks.getInstance();
         this.FFLCRenderer = new FontFamilyListCellRenderer();
-                
+        this.m_xController = m_xController;
+        
         //jTextPane does not initialize correctly, it causes a Null Exception Pointer
         //Following line keeps this from crashing the program
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
@@ -96,7 +109,30 @@ public class OptionsFrame extends javax.swing.JFrame {
         }
         //System.out.println("getting JsonObject of biblegetDB options");
         this.fontFamilies = BibleGetIO.getFontFamilies();
-        
+
+        XViewSettingsSupplier xViewSettings = (XViewSettingsSupplier) UnoRuntime.queryInterface(XViewSettingsSupplier.class,m_xController);
+        XPropertySet viewSettings=xViewSettings.getViewSettings();
+        System.out.println("I got the HorizontalRulerMetric property, here is the type :" + AnyConverter.getType(viewSettings.getPropertyValue("HorizontalRulerMetric")));
+        System.out.println("And here is the value: " + AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric")));
+        int mUnit1 = AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric"));
+        USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT = BGET.MEASUREUNIT.valueOf(mUnit1);
+        switch(BGET.MEASUREUNIT.valueOf(mUnit1)){
+            case CM:
+                System.out.println("Ruler is currently in CM");
+                break;
+            case MM:
+                System.out.println("Ruler is currently in MM");
+                break;
+            case INCH:
+                System.out.println("Ruler is currently in INCHES");
+                break;
+            case PICA:
+                System.out.println("Ruler is currently in PICAS");
+                break;
+            case POINT:
+                System.out.println("Ruler is currently in POINTS");
+                break;
+        }
         //System.out.println("(OptionsFrame: 127) USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR ="+USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);        
         String vnPosition = USERPREFS.VERSENUMBERSTYLES_VALIGN == BGET.VALIGN.NORMAL ? "position: static;" : "position: relative;";
         String vnTop = "";
@@ -288,12 +324,13 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "});"
             + "};"
             + "jQuery(document).ready(function(){"
-            + "let pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
+            + "let rulerLength = "+rulerLength+";"
+            + "let pixelRatioVals = getPixelRatioVals(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + ");"
             + "let leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
             + "let rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
-            + "let bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
+            + "let bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
             + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-            + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");"
+            + "drawRuler(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");"
             + "});"
             + "</script>";
         
@@ -333,11 +370,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         jInternalFrame1.getContentPane().add(browserUI, BorderLayout.CENTER);
     }
 
-    public static OptionsFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
+    public static OptionsFrame getInstance(XController m_xController) throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
     {
         if(instance == null)
         {
-            instance = new OptionsFrame();
+            instance = new OptionsFrame(m_xController);
         }
         return instance;
     }
@@ -2198,12 +2235,13 @@ public class OptionsFrame extends javax.swing.JFrame {
             //System.out.println("Error updating PARAGRAPHSTYLES_RIGHTINDENT in database");
         }
 
-        String jScript = "pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
+        String jScript = "rulerLength = "+rulerLength+";"
+        + "pixelRatioVals = getPixelRatioVals(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + ");"
         + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
         + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
-        + "bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
+        + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
         + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-        + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+        + "drawRuler(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
         browser.executeJavaScript(jScript, browser.getURL(),0);
     }//GEN-LAST:event_jButtonRightIndentLessMouseClicked
 
@@ -2217,12 +2255,13 @@ public class OptionsFrame extends javax.swing.JFrame {
             //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
         }
 
-        String jScript = "pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
+        String jScript = "rulerLength = "+rulerLength+";"
+        + "pixelRatioVals = getPixelRatioVals(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + ");"
         + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
         + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
-        + "bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
+        + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
         + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-        + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+        + "drawRuler(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
         browser.executeJavaScript(jScript, browser.getURL(),0);
     }//GEN-LAST:event_jButtonRightIndentMoreMouseClicked
 
@@ -2282,12 +2321,13 @@ public class OptionsFrame extends javax.swing.JFrame {
             //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
         }
 
-        String jScript = "pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
+        String jScript = "rulerLength = "+rulerLength+";"
+        + "pixelRatioVals = getPixelRatioVals(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + ");"
         + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
         + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
-        + "bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
+        + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
         + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-        + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+        + "drawRuler(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
         browser.executeJavaScript(jScript, browser.getURL(),0);
     }//GEN-LAST:event_jButtonLeftIndentLessMouseClicked
 
@@ -2301,12 +2341,13 @@ public class OptionsFrame extends javax.swing.JFrame {
             //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
         }
 
-        String jScript = "pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
+        String jScript = "rulerLength = "+rulerLength+";"
+        + "pixelRatioVals = getPixelRatioVals(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + ");"
         + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
         + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
-        + "bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
+        + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
         + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-        + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+        + "drawRuler(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
         browser.executeJavaScript(jScript, browser.getURL(),0);
 
     }//GEN-LAST:event_jButtonLeftIndentMoreMouseClicked
@@ -2781,7 +2822,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
             try {
-                new OptionsFrame().setVisible(true);
+                new OptionsFrame(instance.m_xController).setVisible(true);
             } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
                 Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
             } catch (Exception ex) {
@@ -2923,7 +2964,56 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     @Override
     public void setVisible(final boolean visible) {
-      // make sure that frame is marked as not disposed if it is asked to be visible
+        XViewSettingsSupplier xViewSettings = (XViewSettingsSupplier) UnoRuntime.queryInterface(XViewSettingsSupplier.class,m_xController);
+        XPropertySet viewSettings=xViewSettings.getViewSettings();
+        try {
+            System.out.println("I got the HorizontalRulerMetric property, here is the type :" + AnyConverter.getType(viewSettings.getPropertyValue("HorizontalRulerMetric")));
+        } catch (UnknownPropertyException | WrappedTargetException ex) {
+            Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            System.out.println("And here is the value: " + AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric")));
+        } catch (UnknownPropertyException | WrappedTargetException | IllegalArgumentException ex) {
+            Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        int mUnit1;
+        try {
+            mUnit1 = AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric"));
+            if(BibleGetIO.measureUnit != BGET.MEASUREUNIT.valueOf(mUnit1)){
+                //value has changed
+                USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT = BGET.MEASUREUNIT.valueOf(mUnit1);
+                BibleGetIO.measureUnit = BGET.MEASUREUNIT.valueOf(mUnit1);
+                String jScript = "rulerLength = "+rulerLength+";"
+                + "pixelRatioVals = getPixelRatioVals(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + ");"
+                + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
+                + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
+                + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
+                + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
+                + "drawRuler(rulerLength," + (USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT==BGET.MEASUREUNIT.CM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
+                browser.executeJavaScript(jScript, browser.getURL(),0);
+                switch(BGET.MEASUREUNIT.valueOf(mUnit1)){
+                    case CM:
+                        System.out.println("Ruler is currently in CM");
+                        break;
+                    case MM:
+                        System.out.println("Ruler is currently in MM");
+                        break;
+                    case INCH:
+                        System.out.println("Ruler is currently in INCHES");
+                        break;
+                    case PICA:
+                        System.out.println("Ruler is currently in PICAS");
+                        break;
+                    case POINT:
+                        System.out.println("Ruler is currently in POINTS");
+                        break;
+                }
+            }
+        } catch (UnknownPropertyException | WrappedTargetException | IllegalArgumentException ex) {
+            Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        // make sure that frame is marked as not disposed if it is asked to be visible
       if (visible) {
           //setDisposed(false);
       }
