@@ -32,8 +32,8 @@ public class Preferences {
     private final BibleGetDB biblegetDB;    
     
     public Integer PARAGRAPHSTYLES_LINEHEIGHT;
-    public Integer PARAGRAPHSTYLES_LEFTINDENT;
-    public Integer PARAGRAPHSTYLES_RIGHTINDENT;
+    public Double PARAGRAPHSTYLES_LEFTINDENT;
+    public Double PARAGRAPHSTYLES_RIGHTINDENT;
     public String PARAGRAPHSTYLES_FONTFAMILY;
     public BGET.ALIGN PARAGRAPHSTYLES_ALIGNMENT;
     public Boolean PARAGRAPHSTYLES_NOVERSIONFORMATTING;
@@ -125,8 +125,15 @@ public class Preferences {
                 break;
             case NUMBER:
                 JsonNumber num = (JsonNumber) tree;
-                System.out.println("NUMBER " + num.toString());
-                getNumberOption(key,num.intValue());
+                System.out.println("key " + key + " | NUMBER " + num.toString());
+                
+                if(num.toString().contains(".")){
+                    System.out.println(key + " is a double");
+                    getNumberOption(key,num.doubleValue());
+                } else {
+                    System.out.println(key + " is an integer");
+                    getNumberOption(key,num.intValue());
+                }
                 break;
             case TRUE:
                 getBooleanOption(key,true);
@@ -160,8 +167,6 @@ public class Preferences {
     private void getNumberOption(String key,int value){
         switch(key){
             case "PARAGRAPHSTYLES_LINEHEIGHT": PARAGRAPHSTYLES_LINEHEIGHT = value; break; //think of it as percent
-            case "PARAGRAPHSTYLES_LEFTINDENT": PARAGRAPHSTYLES_LEFTINDENT = value; break;
-            case "PARAGRAPHSTYLES_RIGHTINDENT": PARAGRAPHSTYLES_RIGHTINDENT = value; break;
             case "PARAGRAPHSTYLES_ALIGNMENT": PARAGRAPHSTYLES_ALIGNMENT = BGET.ALIGN.valueOf(value); break;
             case "PARAGRAPHSTYLES_MEASUREUNIT": PARAGRAPHSTYLES_MEASUREUNIT = BGET.MEASUREUNIT.valueOf(value) ; break;
             case "BIBLEVERSIONSTYLES_FONTSIZE": BIBLEVERSIONSTYLES_FONTSIZE = value; break;       
@@ -182,6 +187,13 @@ public class Preferences {
             case "LAYOUTPREFS_BOOKCHAPTER_FORMAT": LAYOUTPREFS_BOOKCHAPTER_FORMAT = BGET.FORMAT.valueOf(value); break;
             case "LAYOUTPREFS_VERSENUMBER_SHOW": LAYOUTPREFS_VERSENUMBER_SHOW = BGET.VISIBILITY.valueOf(value); break;
         }    
+    }
+    
+    private void getNumberOption(String key,Double value){
+        switch(key){
+            case "PARAGRAPHSTYLES_LEFTINDENT": PARAGRAPHSTYLES_LEFTINDENT = value; break;
+            case "PARAGRAPHSTYLES_RIGHTINDENT": PARAGRAPHSTYLES_RIGHTINDENT = value; break;        
+        }
     }
     
     private void getBooleanOption(String key,boolean value){
