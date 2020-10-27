@@ -118,7 +118,6 @@ public class Preferences {
                    navigateTree(val, null);
                 break;
             case STRING:
-                System.out.println("STRING");
                 JsonString st = (JsonString) tree;
                 System.out.println("key " + key + " | STRING " + st.getString());
                 getStringOption(key,st.getString());
@@ -127,24 +126,24 @@ public class Preferences {
                 JsonNumber num = (JsonNumber) tree;
                 System.out.println("key " + key + " | NUMBER " + num.toString());
                 
-                if(num.toString().contains(".")){
-                    System.out.println(key + " is a double");
-                    getNumberOption(key,num.doubleValue());
-                } else {
+                if(num.isIntegral()){ //num.toString().contains(".") || num.toString().contains(",")
                     System.out.println(key + " is an integer");
                     getNumberOption(key,num.intValue());
+                } else {
+                    System.out.println(key + " is a double");
+                    getNumberOption(key,num.doubleValue());
                 }
                 break;
             case TRUE:
                 getBooleanOption(key,true);
-                System.out.println("BOOLEAN " + tree.getValueType().toString());
+                System.out.println("key " + key + " | BOOLEAN " + tree.getValueType().toString());
                 break;
             case FALSE:
                 getBooleanOption(key,false);
-                System.out.println("BOOLEAN " + tree.getValueType().toString());
+                System.out.println("key " + key + " | BOOLEAN " + tree.getValueType().toString());
                 break;
             case NULL:
-                System.out.println("NULL " + tree.getValueType().toString());
+                System.out.println("key " + key + " | NULL " + tree.getValueType().toString());
                 break;
         }
     }

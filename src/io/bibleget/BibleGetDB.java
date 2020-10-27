@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
@@ -526,7 +525,7 @@ public class BibleGetDB {
                     case Types.TIMESTAMP:
                         colDataTypes.add(java.sql.Timestamp.class); break;
                     default:
-                        colDataTypes.add(String.class); break;
+                        colDataTypes.add(java.lang.String.class); break;
                 }
             }
             cols.close();
@@ -635,21 +634,21 @@ public class BibleGetDB {
         dataOption = StringUtils.upperCase(dataOption);
         String metaDataStr = "";
         if(dataOption.startsWith("BIBLEBOOKS") || dataOption.equals("LANGUAGES") || dataOption.equals("VERSIONS") || dataOption.endsWith("IDX")){
-            System.out.println("getMetaData received a valid request for "+dataOption);
+            //System.out.println("getMetaData received a valid request for "+dataOption);
             if(instance.connect()){
                 if(instance.conn == null){
                     System.out.println("What is going on here? Why is connection null?");
                 }else{
-                    System.out.println("getMetaData has connected to the database...");
+                    //System.out.println("getMetaData has connected to the database...");
                 }
                 String sqlexec = "SELECT "+dataOption+" FROM METADATA WHERE ID=0";
                 try(Statement stmt = instance.conn.createStatement()){
                     try (ResultSet rsOps = stmt.executeQuery(sqlexec)) {
-                        System.out.println("query seems to have been successful...");
-                        ResultSetMetaData rsMD = rsOps.getMetaData();
-                        int cols = rsMD.getColumnCount();
-                        String colnm = rsMD.getColumnName(cols);
-                        System.out.println("there are "+Integer.toString(cols)+" columns in this resultset and name is: "+colnm+"(requested "+dataOption+")");
+                        //System.out.println("query seems to have been successful...");
+                        //ResultSetMetaData rsMD = rsOps.getMetaData();
+                        //int cols = rsMD.getColumnCount();
+                        //String colnm = rsMD.getColumnName(cols);
+                        //System.out.println("there are "+Integer.toString(cols)+" columns in this resultset and name is: "+colnm+"(requested "+dataOption+")");
                         while(rsOps.next()){
                             metaDataStr = rsOps.getString(dataOption);
                         }

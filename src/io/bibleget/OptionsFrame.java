@@ -44,7 +44,6 @@ import javax.swing.plaf.basic.BasicInternalFrameUI;
 import org.cef.CefApp;
 import org.cef.CefClient;
 import org.cef.CefSettings;
-import org.cef.CefSettings.LogSeverity;
 import org.cef.OS;
 import org.cef.browser.CefBrowser;
 
@@ -3415,7 +3414,7 @@ public class OptionsFrame extends javax.swing.JFrame {
                 jLabelRightIndent.setText(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.name());
                 
                 System.out.println("Ruler switched from " + BibleGetIO.measureUnit.name() + "|" + BibleGetIO.measureUnit.getValue() + " to " + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.name() + "|" + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ".");
-                System.out.println("rulerLength = "+rulerLength);
+                //System.out.println("rulerLength = "+rulerLength);
                 BibleGetIO.measureUnit = USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT;
             } else {
                 System.out.println("While making the preferences window visible, we detected that the ruler units have not changed. No need to redraw the ruler as far as I can tell.");

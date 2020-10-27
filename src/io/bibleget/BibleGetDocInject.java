@@ -28,56 +28,49 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.json.Json;
 import javax.json.JsonArray;
-import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-import javax.json.JsonString;
-import javax.json.JsonValue;
 
 /**
  *
  * @author Lwangaman
+ * 
+ * TODO: calculate left / right indents according to current ruler units
  */
-public class BibleGetJSON {
+public class BibleGetDocInject {
 
     private final XController m_xController;
     private XModel m_xModel;
-    private XTextDocument m_xTextDocument;
-    
-    private String paragraphAlignment;
-    private short paragraphLineSpacing; 
-    private String paragraphFontFamily;
-    private int paragraphLeftIndent;
-    
-    private Color textColorBookChapter;
-    private Color bgColorBookChapter;
-    private boolean boldBookChapter;
-    private boolean italicsBookChapter;
-    private boolean underscoreBookChapter;
-    private float fontSizeBookChapter;
-    private String vAlignBookChapter;
-
-    private Color textColorVerseNumber;
-    private Color bgColorVerseNumber;
-    private boolean boldVerseNumber;
-    private boolean italicsVerseNumber;
-    private boolean underscoreVerseNumber;
-    private float fontSizeVerseNumber;
-    private String vAlignVerseNumber;
-
-    private Color textColorVerseText;
-    private Color bgColorVerseText;
-    private boolean boldVerseText;
-    private boolean italicsVerseText;
-    private boolean underscoreVerseText;
-    private float fontSizeVerseText;
-    private String vAlignVerseText;
-    
-    private boolean noVersionFormatting;
-    
+    private XTextDocument m_xTextDocument;    
     private XTextViewCursor m_xViewCursor;
     
-    private final BibleGetDB biblegetDB;
+    private final Preferences USERPREFS;
+    private final LocalizedBibleBooks L10NBibleBooks;
+
+    private final Double Inches2CM = 2.54;
+    private final Double Inches2MM = 25.4;
+    private final Double Inches2Points = 72.0;
+    private final Double Inches2Picas = 6.0;
+    
+    private final Double CM2Inches = 0.393701;
+    private final Double CM2MM = 10.0;
+    private final Double CM2Points = 28.3465;
+    private final Double CM2Picas = 2.36222;
+    
+    private final Double MM2Inches = 0.0393701;
+    private final Double MM2CM = 0.1;
+    private final Double MM2Points = 2.83465;
+    private final Double MM2Picas = 0.236222;
+    
+    private final Double Points2Inches = 0.0138889;
+    private final Double Points2CM = 0.0352778;
+    private final Double Points2MM = 0.352778;
+    private final Double Points2Picas = 0.083334;
+    
+    private final Double Picas2Inches = 0.166665;
+    private final Double Picas2CM = 0.42333;
+    private final Double Picas2MM = 4.2333;
+    private final Double Picas2Points = 11.9999;
     
    /**
      *
@@ -85,22 +78,19 @@ public class BibleGetJSON {
      * @throws java.lang.ClassNotFoundException
      * @throws java.sql.SQLException
      */
-    public BibleGetJSON(XController xController) throws ClassNotFoundException, SQLException, Exception{
-        m_xController = xController;
+    public BibleGetDocInject(XController xController) throws ClassNotFoundException, SQLException, Exception{
+        USERPREFS = Preferences.getInstance();
+        if(USERPREFS != null){
+            System.out.println("USERPREFS is not null at least.");
+        }
+        this.L10NBibleBooks = LocalizedBibleBooks.getInstance();
+        this.m_xController = xController;
         if (xController != null) {
             m_xModel = (XModel) xController.getModel();
             m_xTextDocument = (XTextDocument) UnoRuntime.queryInterface(XTextDocument.class,m_xModel);
             XTextViewCursorSupplier xViewCursorSupplier = (XTextViewCursorSupplier) UnoRuntime.queryInterface(XTextViewCursorSupplier.class,m_xController);
             m_xViewCursor = xViewCursorSupplier.getViewCursor();
         }
-
-        // Get preferences from database       
-        biblegetDB = BibleGetDB.getInstance();
-        JsonObject myOptions = biblegetDB.getOptions();
-        //System.out.println(myOptions.toString());
-        JsonValue myResults = myOptions.get("rows");
-        navigateTree(myResults, null);
-        
     }
     
     public void JSONParse(String jsonString) throws UnknownPropertyException, PropertyVetoException, com.sun.star.lang.IllegalArgumentException, com.sun.star.lang.WrappedTargetException
@@ -127,7 +117,7 @@ public class BibleGetJSON {
 //        }
         //System.out.println( xPropertySet.getPropertyValue("CharFontName") );
         //System.out.println( xPropertySet.getPropertyValue("CharFontFamily") );
-        //System.out.println( "Wanting to set CharFontName to value: "+paragraphFontFamily );
+        //System.out.println( "Wanting to set CharFontName to value: "+USERPREFS.PARAGRAPHSTYLES_FONTFAMILY );
        
         JsonReader jsonReader = Json.createReader(new StringReader(jsonString));
         JsonObject json = jsonReader.readObject();
@@ -205,21 +195,21 @@ public class BibleGetJSON {
             
             //xPropertySet.setPropertyValue("ParaStyleName", "Text body");
             try {
-                xPropertySet.setPropertyValue("CharFontName", paragraphFontFamily);
-                xPropertySet.setPropertyValue("ParaLeftMargin", paragraphLeftIndent*200 );
+                xPropertySet.setPropertyValue("CharFontName", USERPREFS.PARAGRAPHSTYLES_FONTFAMILY );
+                xPropertySet.setPropertyValue("ParaLeftMargin", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *200 );
                 //set paragraph line spacing      
                 com.sun.star.style.LineSpacing lineSpacing = new com.sun.star.style.LineSpacing();
                 lineSpacing.Mode = com.sun.star.style.LineSpacingMode.PROP;
-                lineSpacing.Height = paragraphLineSpacing;
+                lineSpacing.Height = USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT.shortValue();
                 xPropertySet.setPropertyValue("ParaLineSpacing",lineSpacing);
-//                System.out.print("paragraphFontFamily: ");
-//                System.out.println(paragraphFontFamily);
-//                System.out.print("paragraphLeftIndent: ");
-//                System.out.println(paragraphLeftIndent);
-//                System.out.print("paragraphLineSpacing: ");
-//                System.out.println(paragraphLineSpacing);
+//                System.out.print("USERPREFS.PARAGRAPHSTYLES_FONTFAMILY: ");
+//                System.out.println(USERPREFS.PARAGRAPHSTYLES_FONTFAMILY);
+//                System.out.print("USERPREFS.PARAGRAPHSTYLES_LEFTINDENT: ");
+//                System.out.println(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
+//                System.out.print("USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT: ");
+//                System.out.println(USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT);
             } catch (UnknownPropertyException | PropertyVetoException | com.sun.star.lang.IllegalArgumentException | com.sun.star.lang.WrappedTargetException ex){
-                Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
             }
             
             if(newversion){
@@ -233,7 +223,7 @@ public class BibleGetJSON {
                     try {                    
                         m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
                     } catch (IllegalArgumentException ex) {
-                        Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
                     }                                    
                 }
                 
@@ -241,58 +231,53 @@ public class BibleGetJSON {
                     xPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.LEFT);
 
                     // set properties of text change based on user preferences
-                    if (boldBookChapter){
+                    if (USERPREFS.BIBLEVERSIONSTYLES_BOLD){
                         xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.BOLD);
                     } 
                     else{
                         xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.NORMAL);
                     }
-                    if(italicsBookChapter){
+                    if(USERPREFS.BIBLEVERSIONSTYLES_ITALIC){
                         xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.ITALIC);
                     }
                     else{
                         xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.NONE);
                     }
-                    if(underscoreBookChapter){
+                    if(USERPREFS.BIBLEVERSIONSTYLES_UNDERLINE){
                         xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.SINGLE);
                     }
                     else{
                         xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.NONE);
                     }
-                    xPropertySet.setPropertyValue("CharColor", textColorBookChapter.getRGB());
-                    xPropertySet.setPropertyValue("CharBackColor", bgColorBookChapter.getRGB() & ~0xFF000000);
-//                    System.out.print("textColorBookChapter: ");
-//                    System.out.println(textColorBookChapter);
-//                    System.out.print("bgColorBookChapter: ");
-//                    System.out.println(bgColorBookChapter);
+                    xPropertySet.setPropertyValue("CharColor", USERPREFS.BIBLEVERSIONSTYLES_TEXTCOLOR.getRGB());
+                    xPropertySet.setPropertyValue("CharBackColor", USERPREFS.BIBLEVERSIONSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
+//                    System.out.print("USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR: ");
+//                    System.out.println(USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);
+//                    System.out.print("USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR: ");
+//                    System.out.println(USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR);
                     
-                    switch (vAlignBookChapter) {
-                        case "sub":
-                            xPropertySet.setPropertyValue("CharEscapement", (short)-101);
-                            xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
+                    switch (USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION) {
+                        case TOP:
+                            //xPropertySet.setPropertyValue("CharEscapement", (short)-101);
+                            //xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
                             //xPropertySet.setPropertyValue("CharEscapementAuto", true);
                             break;
-                        case "super":
-                            xPropertySet.setPropertyValue("CharEscapement", (short)101);
-                            xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
+                        case BOTTOM:
+                            //xPropertySet.setPropertyValue("CharEscapement", (short)101);
+                            //xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
                             //xPropertySet.setPropertyValue("CharEscapementAuto", true);
-                            break;
-                        default:
-                            xPropertySet.setPropertyValue("CharEscapement", (short)0);
-                            xPropertySet.setPropertyValue("CharEscapementHeight", (byte)100);
-                            //xPropertySet.setPropertyValue("CharEscapementAuto", false);
                             break;
                     }
-                    xPropertySet.setPropertyValue("CharHeight", (float) fontSizeBookChapter);
+                    xPropertySet.setPropertyValue("CharHeight", USERPREFS.BIBLEVERSIONSTYLES_FONTSIZE.floatValue() );
                 } catch (UnknownPropertyException | PropertyVetoException | com.sun.star.lang.IllegalArgumentException | com.sun.star.lang.WrappedTargetException ex){
-                    Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 m_xText.insertString(xTextRange, currentversion, false);
                 
                 try {                    
                     m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
                 } catch (IllegalArgumentException ex) {
-                    Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             
@@ -308,71 +293,71 @@ public class BibleGetJSON {
                     try {                    
                         m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
                     } catch (IllegalArgumentException ex) {
-                        Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
                     }                
                 }
                 
                 xPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.LEFT );
                 
                 // set properties of text change based on user preferences
-                if (boldBookChapter){
+                if (USERPREFS.BOOKCHAPTERSTYLES_BOLD){
                     xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.BOLD);
                 } 
                 else{
                     xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.NORMAL);
                 }
-                if(italicsBookChapter){
+                if(USERPREFS.BOOKCHAPTERSTYLES_ITALIC){
                     xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.ITALIC);
                 }
                 else{
                     xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.NONE);
                 }
-                if(underscoreBookChapter){
+                if(USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE){
                     xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.SINGLE);
                 }
                 else{
                     xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.NONE);
                 }
-                xPropertySet.setPropertyValue("CharColor", textColorBookChapter.getRGB());
-                xPropertySet.setPropertyValue("CharBackColor", bgColorBookChapter.getRGB() & ~0xFF000000);
-                switch (vAlignBookChapter) {
-                    case "sub":
-                        xPropertySet.setPropertyValue("CharEscapement", (short)-101);
-                        xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
+                xPropertySet.setPropertyValue("CharColor", USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR.getRGB());
+                xPropertySet.setPropertyValue("CharBackColor", USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
+                switch (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION) {
+                    case TOP:
+                        //xPropertySet.setPropertyValue("CharEscapement", (short)-101);
+                        //xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
                         //xPropertySet.setPropertyValue("CharEscapementAuto", true);
                         break;
-                    case "super":
-                        xPropertySet.setPropertyValue("CharEscapement", (short)101);
-                        xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
+                    case BOTTOM:
+                        //xPropertySet.setPropertyValue("CharEscapement", (short)101);
+                        //xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
                         //xPropertySet.setPropertyValue("CharEscapementAuto", true);
                         break;
-                    default:
-                        xPropertySet.setPropertyValue("CharEscapement", (short)0);
-                        xPropertySet.setPropertyValue("CharEscapementHeight", (byte)100);
+                    case BOTTOMINLINE:
+                        //xPropertySet.setPropertyValue("CharEscapement", (short)0);
+                        //xPropertySet.setPropertyValue("CharEscapementHeight", (byte)100);
                         //xPropertySet.setPropertyValue("CharEscapementAuto", false);
                         break;
                 }
-                xPropertySet.setPropertyValue("CharHeight", (float) fontSizeBookChapter);
+                xPropertySet.setPropertyValue("CharHeight", (float) USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE);
                 
                 m_xText.insertString(xTextRange, currentbook+" "+currentchapter, false);
                 
                 try {                    
                     m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
                 } catch (com.sun.star.lang.IllegalArgumentException ex) {
-                    Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 
-                switch(paragraphAlignment){
-                    case "left":
+                switch(USERPREFS.PARAGRAPHSTYLES_ALIGNMENT){
+                    case LEFT:
                         xPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.LEFT );
                         break;
-                    case "right":
+                    case RIGHT:
                         xPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.RIGHT );
                         break;
-                    case "center":
+                    case CENTER:
                         xPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.CENTER );
                         break;
-                    case "justify":
+                    case JUSTIFY:
                         xPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.BLOCK );
                         break;
                     default:
@@ -386,42 +371,42 @@ public class BibleGetJSON {
                 
                 //System.out.print("\n"+currentverse);
                 // set properties of text change based on user preferences
-                if (boldVerseNumber){
+                if (USERPREFS.VERSENUMBERSTYLES_BOLD){
                     xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.BOLD);
                 } 
                 else{
                     xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.NORMAL);
                 }
-                if(italicsVerseNumber){
+                if(USERPREFS.VERSENUMBERSTYLES_ITALIC){
                     xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.ITALIC);
                 }
                 else{
                     xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.NONE);
                 }
-                if(underscoreVerseNumber){
+                if(USERPREFS.VERSENUMBERSTYLES_UNDERLINE){
                     xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.SINGLE);
                 }
                 else{
                     xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.NONE);
                 }
-                xPropertySet.setPropertyValue("CharColor", textColorVerseNumber.getRGB());
-                xPropertySet.setPropertyValue("CharBackColor", bgColorVerseNumber.getRGB() & ~0xFF000000);
-                //System.out.println(vAlignVerseNumber);
-                xPropertySet.setPropertyValue("CharHeight", (float)fontSizeVerseNumber);
+                xPropertySet.setPropertyValue("CharColor", USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR.getRGB());
+                xPropertySet.setPropertyValue("CharBackColor", USERPREFS.VERSENUMBERSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
+                //System.out.println(USERPREFS.VERSENUMBERSTYLES_VALIGN);
+                xPropertySet.setPropertyValue("CharHeight", USERPREFS.VERSENUMBERSTYLES_FONTSIZE.floatValue());
                 
-                switch (vAlignVerseNumber) {
-                    case "sub":
+                switch (USERPREFS.VERSENUMBERSTYLES_VALIGN) {
+                    case SUBSCRIPT:
                         xPropertySet.setPropertyValue("CharEscapement", (short)-101);
                         xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
                         //xPropertySet.setPropertyValue("CharEscapementAuto", true);
                         break;
-                    case "super":
+                    case SUPERSCRIPT:
                         //System.out.println("We are in business! This is going to be superscript");
                         xPropertySet.setPropertyValue("CharEscapement", (short)101);
                         xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
                         //xPropertySet.setPropertyValue("CharEscapementAuto", true);
                         break;
-                    default:
+                    case NORMAL:
                         xPropertySet.setPropertyValue("CharEscapement", (short)0);
                         xPropertySet.setPropertyValue("CharEscapementHeight", (byte)100);
                         //xPropertySet.setPropertyValue("CharEscapementAuto", false);
@@ -485,13 +470,13 @@ public class BibleGetJSON {
                             }
                         }
                         
-                        if(noVersionFormatting){ formattingTagContents = " "+formattingTagContents+" "; }
+                        if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING){ formattingTagContents = " "+formattingTagContents+" "; }
                         
                         switch (matchedTag) {
                             case "pof":
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+400);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+400);
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -499,15 +484,15 @@ public class BibleGetJSON {
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
                                 }
                                 normalText = false;
                                 break;
                             case "pos":
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+400);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+400);
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -515,15 +500,15 @@ public class BibleGetJSON {
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
                                 }
                                 normalText = false;
                                 break;
                             case "poif":
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+600);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+600);
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -531,15 +516,15 @@ public class BibleGetJSON {
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
                                 }
                                 normalText = false;
                                 break;
                             case "po":
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+400);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+400);
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -547,15 +532,15 @@ public class BibleGetJSON {
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
                                 }
                                 normalText = false;
                                 break;
                             case "poi":
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+600);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+600);
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -563,15 +548,15 @@ public class BibleGetJSON {
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
                                 }
                                 normalText = false;
                                 break;
                             case "pol":
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+400);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+400);
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -579,16 +564,16 @@ public class BibleGetJSON {
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200));
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200));
                                 }
                                 normalText = false;
                                 break;
                             case "poil":
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200)+600);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+600);
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -596,9 +581,9 @@ public class BibleGetJSON {
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
-                                if(noVersionFormatting==false){
+                                if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (paragraphLeftIndent*200));
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200));
                                 }
                                 normalText = false;
                                 break;
@@ -615,10 +600,10 @@ public class BibleGetJSON {
                                 //xPropertySet.setPropertyValue("CharBackTransparent", false);
                                 xPropertySet.setPropertyValue("CharBackColor", Color.LIGHT_GRAY.getRGB() & ~0xFF000000);
                                 m_xText.insertString(xTextRange, matcher1.group(4), false);
-                                if(boldVerseText==false){
+                                if(USERPREFS.VERSETEXTSTYLES_BOLD==false){
                                     xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.NORMAL);                                
                                 }
-                                xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB() & ~0xFF000000);
+                                xPropertySet.setPropertyValue("CharBackColor", USERPREFS.VERSETEXTSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
                         }
                         remainingText = remainingText.replaceFirst("<"+matcher1.group(2)+">"+matcher1.group(4)+"</"+matcher1.group(2)+">", "");
                     }
@@ -659,7 +644,7 @@ public class BibleGetJSON {
         try {
             m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
         } catch (com.sun.star.lang.IllegalArgumentException ex) {
-            Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
         }        
         
     }
@@ -680,94 +665,13 @@ public class BibleGetJSON {
         
         m_xText.insertString(xTextRange, " "+speakerTagContents+" ", false);
         
-        if(boldVerseText==false){
+        if(USERPREFS.VERSETEXTSTYLES_BOLD==false){
             xPropertySet.setPropertyValue("CharWeight", FontWeight.NORMAL);                                
         }
-        //xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB());
-        xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB() & ~0xFF000000);
-        //xPropertySet.setPropertyValue("CharColor", textColorVerseText.getRGB());
+        //xPropertySet.setPropertyValue("CharBackColor", USERPREFS.VERSETEXTSTYLES_BGCOLOR.getRGB());
+        xPropertySet.setPropertyValue("CharBackColor", USERPREFS.VERSETEXTSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
+        //xPropertySet.setPropertyValue("CharColor", USERPREFS.VERSETEXTSTYLES_COLOR.getRGB());
         m_xText.insertString(xTextRange, speakerTagAfter, false);   
-    }
-    
-    private void navigateTree(JsonValue tree, String key) {
-        if (key != null){
-            //System.out.print("Key " + key + ": ");
-        }
-        switch(tree.getValueType()) {
-            case OBJECT:
-                //System.out.println("OBJECT");
-                JsonObject object = (JsonObject) tree;
-                for (String name : object.keySet())
-                   navigateTree(object.get(name), name);
-                break;
-            case ARRAY:
-                //System.out.println("ARRAY");
-                JsonArray array = (JsonArray) tree;
-                for (JsonValue val : array)
-                   navigateTree(val, null);
-                break;
-            case STRING:
-                JsonString st = (JsonString) tree;
-                //System.out.println("STRING " + st.getString());
-                getStringOption(key,st.getString());
-                break;
-            case NUMBER:
-                JsonNumber num = (JsonNumber) tree;
-                //System.out.println("NUMBER " + num.toString());
-                getNumberOption(key,num.intValue());
-                break;
-            case TRUE:
-                getBooleanOption(key,true);
-                //System.out.println("BOOLEAN " + tree.getValueType().toString());
-                break;
-            case FALSE:
-                getBooleanOption(key,false);
-                //System.out.println("BOOLEAN " + tree.getValueType().toString());
-                break;
-            case NULL:
-                //System.out.println("NULL " + tree.getValueType().toString());
-                break;
-        }
-    }
-    
-    private void getStringOption(String key,String value){
-        switch(key){
-            case "PARAGRAPHALIGNMENT": paragraphAlignment = value; break;
-            case "PARAGRAPHFONTFAMILY": paragraphFontFamily = value; break;
-            case "TEXTCOLORBOOKCHAPTER": textColorBookChapter = Color.decode(value); break; //decode string representation of hex value
-            case "BGCOLORBOOKCHAPTER": bgColorBookChapter = Color.decode(value); break; //decode string representation of hex value
-            case "VALIGNBOOKCHAPTER": vAlignBookChapter = value; break;
-            case "TEXTCOLORVERSENUMBER": textColorVerseNumber = Color.decode(value); break; //decode string representation of hex value
-            case "BGCOLORVERSENUMBER": bgColorVerseNumber = Color.decode(value); break; //decode string representation of hex value
-            case "VALIGNVERSENUMBER": vAlignVerseNumber = value; break;
-            case "TEXTCOLORVERSETEXT": textColorVerseText = Color.decode(value); break; //decode string representation of hex value
-            case "BGCOLORVERSETEXT": bgColorVerseText = Color.decode(value); break; //decode string representation of hex value
-            case "VALIGNVERSETEXT": vAlignVerseText = value; break;
-        }
-    }
-    
-    private void getNumberOption(String key,int value){
-        switch(key){
-            case "PARAGRAPHLINESPACING": paragraphLineSpacing = (short)value; break; //think of it as percent
-            case "PARAGRAPHLEFTINDENT": paragraphLeftIndent = value; break;
-            case "FONTSIZEBOOKCHAPTER": fontSizeBookChapter = (float)value; break;       
-            case "FONTSIZEVERSENUMBER": fontSizeVerseNumber = (float)value; break;
-            case "FONTSIZEVERSETEXT": fontSizeVerseText = (float)value; break;
-        }    
-    }
-    private void getBooleanOption(String key,boolean value){
-        switch(key){
-            case "BOLDBOOKCHAPTER": boldBookChapter = value; break;
-            case "ITALICSBOOKCHAPTER": italicsBookChapter = value; break;
-            case "UNDERSCOREBOOKCHAPTER": underscoreBookChapter = value; break;
-            case "BOLDVERSENUMBER": boldVerseNumber = value; break;
-            case "ITALICSVERSENUMBER": italicsVerseNumber = value; break;
-            case "UNDERSCOREVERSENUMBER": underscoreVerseNumber = value; break;
-            case "BOLDVERSETEXT": boldVerseText = value; break;
-            case "ITALICSVERSETEXT": italicsVerseText = value; break;
-            case "UNDERSCOREVERSETEXT": underscoreVerseText = value; break;
-            case "NOVERSIONFORMATTING": noVersionFormatting = value; break;
-        }    
     }
     
     public double pointsToMillimeters(int points)
@@ -780,28 +684,28 @@ public class BibleGetJSON {
     
     private void setVerseTextStyles(com.sun.star.beans.XPropertySet xPropertySet) throws UnknownPropertyException, PropertyVetoException, com.sun.star.lang.IllegalArgumentException, com.sun.star.lang.WrappedTargetException
     {
-            if (boldVerseText){
+            if (USERPREFS.VERSETEXTSTYLES_BOLD){
                 xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.BOLD);
             } 
             else{
                 xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.NORMAL);
             }
-            if(italicsVerseText){
+            if(USERPREFS.VERSETEXTSTYLES_ITALIC){
                 xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.ITALIC);
             }
             else{
                 xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.NONE);
             }
-            if(underscoreVerseText){
+            if(USERPREFS.VERSETEXTSTYLES_UNDERLINE){
                 xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.SINGLE);
             }
             else{
                 xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.NONE);
             }
-            xPropertySet.setPropertyValue("CharColor", textColorVerseText.getRGB());
-            xPropertySet.setPropertyValue("CharBackColor", bgColorVerseText.getRGB() & ~0xFF000000);
-            xPropertySet.setPropertyValue("CharHeight", (float)fontSizeVerseText);
-            
+            xPropertySet.setPropertyValue("CharColor", USERPREFS.VERSETEXTSTYLES_TEXTCOLOR.getRGB());
+            xPropertySet.setPropertyValue("CharBackColor", USERPREFS.VERSETEXTSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
+            xPropertySet.setPropertyValue("CharHeight", USERPREFS.VERSETEXTSTYLES_FONTSIZE.floatValue());
+            /*
             switch (vAlignVerseText) {
                 case "sub":
                     xPropertySet.setPropertyValue("CharEscapement", (short)-101);
@@ -818,7 +722,8 @@ public class BibleGetJSON {
                     xPropertySet.setPropertyValue("CharEscapementHeight", (byte)100);
                     //xPropertySet.setPropertyValue("CharEscapementAuto", false);
                     break;
-            }        
+            }
+            */
     }
     
     private void insertParagraphBreak(XText m_xText,com.sun.star.text.XTextRange xTextRange)
@@ -826,7 +731,7 @@ public class BibleGetJSON {
         try {
             m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
         } catch (com.sun.star.lang.IllegalArgumentException ex) {
-            Logger.getLogger(BibleGetJSON.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
         }            
     }
 }
