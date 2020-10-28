@@ -35,7 +35,6 @@ import javax.json.JsonReader;
  *
  * @author Lwangaman
  * 
- * TODO: calculate left / right indents according to current ruler units
  */
 public class BibleGetDocInject {
 
@@ -47,30 +46,13 @@ public class BibleGetDocInject {
     private final Preferences USERPREFS;
     private final LocalizedBibleBooks L10NBibleBooks;
 
-    private final Double Inches2CM = 2.54;
     private final Double Inches2MM = 25.4;
-    private final Double Inches2Points = 72.0;
-    private final Double Inches2Picas = 6.0;
-    
-    private final Double CM2Inches = 0.393701;
     private final Double CM2MM = 10.0;
-    private final Double CM2Points = 28.3465;
-    private final Double CM2Picas = 2.36222;
-    
-    private final Double MM2Inches = 0.0393701;
-    private final Double MM2CM = 0.1;
-    private final Double MM2Points = 2.83465;
-    private final Double MM2Picas = 0.236222;
-    
-    private final Double Points2Inches = 0.0138889;
-    private final Double Points2CM = 0.0352778;
     private final Double Points2MM = 0.352778;
-    private final Double Points2Picas = 0.083334;
-    
-    private final Double Picas2Inches = 0.166665;
-    private final Double Picas2CM = 0.42333;
     private final Double Picas2MM = 4.2333;
-    private final Double Picas2Points = 11.9999;
+    
+    private Double leftMarginIn100thMM = 0.0;
+    private Double rightMarginIn100thMM = 0.0;
     
    /**
      *
@@ -196,7 +178,37 @@ public class BibleGetDocInject {
             //xPropertySet.setPropertyValue("ParaStyleName", "Text body");
             try {
                 xPropertySet.setPropertyValue("CharFontName", USERPREFS.PARAGRAPHSTYLES_FONTFAMILY );
-                xPropertySet.setPropertyValue("ParaLeftMargin", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *200 );
+                /**
+                * Left / right indents are calculated according to current ruler units
+                *      FROM http://www.openoffice.org/api/docs/common/ref/com/sun/star/style/ParagraphProperties.html :
+                *          ParaLeftMargin and ParaRightMargin properties determine the left/right margin of the paragraph in 100th mm.
+                *      In order to have a precise indent, convert the userpref value from the current unit to mm and then multiply by 100
+                */
+                switch(USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT){
+                    case CM:
+                        leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * CM2MM) * 100;
+                        rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * CM2MM) * 100;
+                        break;
+                    case MM:
+                        leftMarginIn100thMM = USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * 100;
+                        rightMarginIn100thMM = USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * 100;
+                        break;
+                    case INCH:
+                        leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Inches2MM) * 100;
+                        rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Inches2MM) * 100;
+                        break;
+                    case POINT:
+                        leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Points2MM) * 100;
+                        rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Points2MM) * 100;
+                        break;
+                    case PICA:
+                        leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Picas2MM) * 100;
+                        rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Picas2MM) * 100;
+                        break;
+                }
+                
+                xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()); //USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *200
+                xPropertySet.setPropertyValue("ParaRightMargin", rightMarginIn100thMM.intValue());
                 //set paragraph line spacing      
                 com.sun.star.style.LineSpacing lineSpacing = new com.sun.star.style.LineSpacing();
                 lineSpacing.Mode = com.sun.star.style.LineSpacingMode.PROP;
@@ -476,7 +488,8 @@ public class BibleGetDocInject {
                             case "pof":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+400);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+400);
+                                    xPropertySet.setPropertyValue("ParaRightMargin", rightMarginIn100thMM.intValue());
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -492,7 +505,7 @@ public class BibleGetDocInject {
                             case "pos":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+400);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+400);
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -508,7 +521,7 @@ public class BibleGetDocInject {
                             case "poif":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+600);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+600);
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -524,7 +537,7 @@ public class BibleGetDocInject {
                             case "po":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+400);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+400);
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -540,7 +553,7 @@ public class BibleGetDocInject {
                             case "poi":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+600);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+600);
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -556,7 +569,7 @@ public class BibleGetDocInject {
                             case "pol":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+400);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+400);
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -566,14 +579,14 @@ public class BibleGetDocInject {
                                 }
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200));
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM);
                                 }
                                 normalText = false;
                                 break;
                             case "poil":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200)+600);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+600);
                                 }
                                 if(nestedTag){
                                     insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
@@ -583,7 +596,7 @@ public class BibleGetDocInject {
                                 }
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT*200));
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM);
                                 }
                                 normalText = false;
                                 break;
