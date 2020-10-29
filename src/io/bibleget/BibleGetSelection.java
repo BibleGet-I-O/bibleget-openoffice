@@ -101,7 +101,7 @@ public class BibleGetSelection {
                                 if(myResponse != null){
                                     xTextRange.setString("");
                                     BibleGetDocInject myJSON = new BibleGetDocInject(m_xController);
-                                    myJSON.JSONParse(myResponse);
+                                    myJSON.InsertTextAtCurrentCursor(myResponse);
                                 }
                                 else{
                                     JOptionPane.showMessageDialog(null,__("There was a problem communicating with the BibleGet server. Please try again."),"ERROR >> SERVER CONNECTIVITY ISSUE",JOptionPane.ERROR_MESSAGE);

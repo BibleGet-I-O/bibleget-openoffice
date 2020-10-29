@@ -6,21 +6,30 @@
 
 package io.bibleget;
 
+import com.sun.star.awt.FontSlant;
+import com.sun.star.awt.FontUnderline;
 import com.sun.star.awt.FontWeight;
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.frame.XController;
 import com.sun.star.frame.XModel;
+import com.sun.star.style.CaseMap;
+import com.sun.star.style.LineSpacing;
+import com.sun.star.style.LineSpacingMode;
+import com.sun.star.style.ParagraphAdjust;
+import com.sun.star.text.ControlCharacter;
 import com.sun.star.text.XText;
 import com.sun.star.text.XTextDocument;
 import com.sun.star.text.XTextRange;
 import com.sun.star.text.XTextViewCursor;
 import com.sun.star.text.XTextViewCursorSupplier;
+import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 import java.awt.Color;
 import java.io.StringReader;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,6 +63,9 @@ public class BibleGetDocInject {
     private Double leftMarginIn100thMM = 0.0;
     private Double rightMarginIn100thMM = 0.0;
     
+    private final Double pofIndent;
+    private final Double poiIndent;
+    
    /**
      *
      * @param xController
@@ -73,9 +85,39 @@ public class BibleGetDocInject {
             XTextViewCursorSupplier xViewCursorSupplier = (XTextViewCursorSupplier) UnoRuntime.queryInterface(XTextViewCursorSupplier.class,m_xController);
             m_xViewCursor = xViewCursorSupplier.getViewCursor();
         }
+            /**
+            * Left / right indents are calculated according to current ruler units
+            *      FROM http://www.openoffice.org/api/docs/common/ref/com/sun/star/style/ParagraphProperties.html :
+            *          ParaLeftMargin and ParaRightMargin properties determine the left/right margin of the paragraph in 100th mm.
+            *      In order to have a precise indent, convert the userpref value from the current unit to mm and then multiply by 100
+            */
+            switch(USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT){
+                case CM:
+                    leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * CM2MM) * 100;
+                    rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * CM2MM) * 100;
+                    break;
+                case MM:
+                    leftMarginIn100thMM = USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * 100;
+                    rightMarginIn100thMM = USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * 100;
+                    break;
+                case INCH:
+                    leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Inches2MM) * 100;
+                    rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Inches2MM) * 100;
+                    break;
+                case POINT:
+                    leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Points2MM) * 100;
+                    rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Points2MM) * 100;
+                    break;
+                case PICA:
+                    leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Picas2MM) * 100;
+                    rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Picas2MM) * 100;
+                    break;
+            }
+            pofIndent = leftMarginIn100thMM + 500.0;
+            poiIndent = leftMarginIn100thMM + 1000.0;
     }
     
-    public void JSONParse(String jsonString) throws UnknownPropertyException, PropertyVetoException, com.sun.star.lang.IllegalArgumentException, com.sun.star.lang.WrappedTargetException
+    public void InsertTextAtCurrentCursor(String jsonString) throws UnknownPropertyException, PropertyVetoException, com.sun.star.lang.IllegalArgumentException, com.sun.star.lang.WrappedTargetException
     {
         XText m_xText = m_xTextDocument.getText();
         
@@ -100,27 +142,49 @@ public class BibleGetDocInject {
         //System.out.println( xPropertySet.getPropertyValue("CharFontName") );
         //System.out.println( xPropertySet.getPropertyValue("CharFontFamily") );
         //System.out.println( "Wanting to set CharFontName to value: "+USERPREFS.PARAGRAPHSTYLES_FONTFAMILY );
-       
+
+        ArrayList<String> BibleVersionStack = new ArrayList<>();
+        ArrayList<String> BookChapterStack = new ArrayList<>();
+        
+        String currentFontName = (String)xPropertySet.getPropertyValue("CharFontName");
+        float currentCharWeight = (float)xPropertySet.getPropertyValue("CharWeight");
+        FontSlant currentCharPosture = (FontSlant)xPropertySet.getPropertyValue("CharPosture");
+        Short currentCharUnderline = (Short)xPropertySet.getPropertyValue("CharUnderline");
+        Short currentCharStrikeout = (Short)xPropertySet.getPropertyValue("CharStrikeout");
+        boolean currentCharCrossedOut = (boolean)xPropertySet.getPropertyValue("CharCrossedOut");
+        float currentCharHeight = (float)xPropertySet.getPropertyValue("CharHeight");
+        int currentCharColor = (int)xPropertySet.getPropertyValue("CharColor");
+        int currentCharBackColor = (int)xPropertySet.getPropertyValue("CharBackColor");
+        Short currentCharEscapement = (Short)xPropertySet.getPropertyValue("CharEscapement");
+        byte currentCharEscapementHeight = (byte)xPropertySet.getPropertyValue("CharEscapementHeight");
+        LineSpacing currentParaLineSpacing = (LineSpacing)xPropertySet.getPropertyValue("ParaLineSpacing");
+        int currentParaLeftMargin = (int)xPropertySet.getPropertyValue("ParaLeftMargin");
+        int currentParaRightMargin = (int)xPropertySet.getPropertyValue("ParaRightMargin");
+        Short currentParaAdjust = (Short)xPropertySet.getPropertyValue("ParaAdjust");
+        
         JsonReader jsonReader = Json.createReader(new StringReader(jsonString));
         JsonObject json = jsonReader.readObject();
         JsonArray arrayJson = json.getJsonArray("results");
 
-        String prevversion = "";
-        boolean newversion;
-        String prevbook = "";
-        boolean newbook;
-        int prevchapter = -1;
-        boolean newchapter;
-        String prevverse = "";
-        boolean newverse;
+        String prevVersion = "";
+        boolean newVersion;
+        String prevBook = "";
+        boolean newBook;
+        int prevChapter = -1;
+        boolean newChapter;
+        String prevVerse = "";
+        boolean newVerse;
         
-        String currentversion;
-        String currentbook;
-        int currentchapter;
-        String currentverse;
+        String currentVersion;
+        String currentBook;
+        String currentBookAbbrev;
+        int currentBookUnivIdx;
+        int currentChapter;
+        String currentVerse;
+        String originalQuery;
         
-        boolean firstversion = true;
-        boolean firstchapter = true;
+        boolean firstVersion = true;
+        boolean firstChapter = true;
         
         boolean firstVerse = false;
         boolean normalText = false;
@@ -129,313 +193,208 @@ public class BibleGetDocInject {
         while (pIterator.hasNext())
         {
             JsonObject currentJson = (JsonObject) pIterator.next();
-            currentbook = currentJson.getString("book");
-            currentchapter = currentJson.getInt("chapter");
-            currentverse = currentJson.getString("verse");
-            currentversion = currentJson.getString("version");
-            //System.out.println("Current Book = " + currentbook);
-            //System.out.println("Current Chapter = " + currentchapter);
-            //System.out.println("Current Verse = " + currentverse);
+            currentBook = currentJson.getString("book");
+            currentBookAbbrev = currentJson.getString("bookabbrev");
+            currentBookUnivIdx = Integer.decode(currentJson.getString("univbooknum"));
+            currentChapter = currentJson.getInt("chapter");
+            currentVerse = currentJson.getString("verse");
+            currentVersion = currentJson.getString("version");
+            originalQuery = currentJson.getString("originalquery");
             
-            if(!currentverse.equals(prevverse)){
-                newverse = true;
-                prevverse = currentverse;
+            if(!currentVerse.equals(prevVerse)){
+                newVerse = true;
+                prevVerse = currentVerse;
             }
             else{
-                newverse = false;
+                newVerse = false;
             }
             
-            if(currentchapter != prevchapter){
-                newchapter = true;
-                newverse = true;
-                prevchapter = currentchapter;
+            if(currentChapter != prevChapter){
+                newChapter = true;
+                newVerse = true;
+                prevChapter = currentChapter;
             }
             else{
-                newchapter = false;
+                newChapter = false;
             }
             
-            if(!currentbook.equals(prevbook)){
-                newbook = true;
-                newchapter = true;
-                newverse = true;
-                prevbook = currentbook;
+            if(!currentBook.equals(prevBook)){
+                newBook = true;
+                newChapter = true;
+                newVerse = true;
+                prevBook = currentBook;
             }
             else{
-                newbook = false;
+                newBook = false;
             }
             
-            if(!currentversion.equals(prevversion)){
-                newversion = true;
-                newbook = true;
-                newchapter = true;
-                newverse = true;
-                prevversion = currentversion;
+            if(!currentVersion.equals(prevVersion)){
+                newVersion = true;
+                newBook = true;
+                newChapter = true;
+                newVerse = true;
+                prevVersion = currentVersion;
             }
             else{
-                newversion = false;
-            }
-            
-            //xPropertySet.setPropertyValue("ParaStyleName", "Text body");
-            try {
-                xPropertySet.setPropertyValue("CharFontName", USERPREFS.PARAGRAPHSTYLES_FONTFAMILY );
-                /**
-                * Left / right indents are calculated according to current ruler units
-                *      FROM http://www.openoffice.org/api/docs/common/ref/com/sun/star/style/ParagraphProperties.html :
-                *          ParaLeftMargin and ParaRightMargin properties determine the left/right margin of the paragraph in 100th mm.
-                *      In order to have a precise indent, convert the userpref value from the current unit to mm and then multiply by 100
-                */
-                switch(USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT){
-                    case CM:
-                        leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * CM2MM) * 100;
-                        rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * CM2MM) * 100;
-                        break;
-                    case MM:
-                        leftMarginIn100thMM = USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * 100;
-                        rightMarginIn100thMM = USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * 100;
-                        break;
-                    case INCH:
-                        leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Inches2MM) * 100;
-                        rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Inches2MM) * 100;
-                        break;
-                    case POINT:
-                        leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Points2MM) * 100;
-                        rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Points2MM) * 100;
-                        break;
-                    case PICA:
-                        leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Picas2MM) * 100;
-                        rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Picas2MM) * 100;
-                        break;
-                }
-                
-                xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()); //USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *200
-                xPropertySet.setPropertyValue("ParaRightMargin", rightMarginIn100thMM.intValue());
-                //set paragraph line spacing      
-                com.sun.star.style.LineSpacing lineSpacing = new com.sun.star.style.LineSpacing();
-                lineSpacing.Mode = com.sun.star.style.LineSpacingMode.PROP;
-                lineSpacing.Height = USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT.shortValue();
-                xPropertySet.setPropertyValue("ParaLineSpacing",lineSpacing);
-//                System.out.print("USERPREFS.PARAGRAPHSTYLES_FONTFAMILY: ");
-//                System.out.println(USERPREFS.PARAGRAPHSTYLES_FONTFAMILY);
-//                System.out.print("USERPREFS.PARAGRAPHSTYLES_LEFTINDENT: ");
-//                System.out.println(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
-//                System.out.print("USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT: ");
-//                System.out.println(USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT);
-            } catch (UnknownPropertyException | PropertyVetoException | com.sun.star.lang.IllegalArgumentException | com.sun.star.lang.WrappedTargetException ex){
-                Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            if(newversion){
-                firstVerse = true;                
-                
-                firstchapter = true;
-                if(firstversion==true){
-                    firstversion=false;
-                }
-                else{
-                    try {                    
-                        m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
-                    } catch (IllegalArgumentException ex) {
-                        Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
-                    }                                    
-                }
-                
-                try{
-                    xPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.LEFT);
-
-                    // set properties of text change based on user preferences
-                    if (USERPREFS.BIBLEVERSIONSTYLES_BOLD){
-                        xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.BOLD);
-                    } 
-                    else{
-                        xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.NORMAL);
-                    }
-                    if(USERPREFS.BIBLEVERSIONSTYLES_ITALIC){
-                        xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.ITALIC);
-                    }
-                    else{
-                        xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.NONE);
-                    }
-                    if(USERPREFS.BIBLEVERSIONSTYLES_UNDERLINE){
-                        xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.SINGLE);
-                    }
-                    else{
-                        xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.NONE);
-                    }
-                    xPropertySet.setPropertyValue("CharColor", USERPREFS.BIBLEVERSIONSTYLES_TEXTCOLOR.getRGB());
-                    xPropertySet.setPropertyValue("CharBackColor", USERPREFS.BIBLEVERSIONSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
-//                    System.out.print("USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR: ");
-//                    System.out.println(USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);
-//                    System.out.print("USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR: ");
-//                    System.out.println(USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR);
-                    
-                    switch (USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION) {
-                        case TOP:
-                            //xPropertySet.setPropertyValue("CharEscapement", (short)-101);
-                            //xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
-                            //xPropertySet.setPropertyValue("CharEscapementAuto", true);
-                            break;
-                        case BOTTOM:
-                            //xPropertySet.setPropertyValue("CharEscapement", (short)101);
-                            //xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
-                            //xPropertySet.setPropertyValue("CharEscapementAuto", true);
-                            break;
-                    }
-                    xPropertySet.setPropertyValue("CharHeight", USERPREFS.BIBLEVERSIONSTYLES_FONTSIZE.floatValue() );
-                } catch (UnknownPropertyException | PropertyVetoException | com.sun.star.lang.IllegalArgumentException | com.sun.star.lang.WrappedTargetException ex){
-                    Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                m_xText.insertString(xTextRange, currentversion, false);
-                
-                try {                    
-                    m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
-                } catch (IllegalArgumentException ex) {
-                    Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            
-            if(newbook || newchapter){
-                //System.out.println(currentbook+" "+currentchapter);
-                firstVerse = true;
-                
-                if(firstchapter==true)
-                {
-                    firstchapter=false;
-                }
-                else{
-                    try {                    
-                        m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
-                    } catch (IllegalArgumentException ex) {
-                        Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
-                    }                
-                }
-                
-                xPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.LEFT );
-                
-                // set properties of text change based on user preferences
-                if (USERPREFS.BOOKCHAPTERSTYLES_BOLD){
-                    xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.BOLD);
-                } 
-                else{
-                    xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.NORMAL);
-                }
-                if(USERPREFS.BOOKCHAPTERSTYLES_ITALIC){
-                    xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.ITALIC);
-                }
-                else{
-                    xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.NONE);
-                }
-                if(USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE){
-                    xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.SINGLE);
-                }
-                else{
-                    xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.NONE);
-                }
-                xPropertySet.setPropertyValue("CharColor", USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR.getRGB());
-                xPropertySet.setPropertyValue("CharBackColor", USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
-                switch (USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION) {
-                    case TOP:
-                        //xPropertySet.setPropertyValue("CharEscapement", (short)-101);
-                        //xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
-                        //xPropertySet.setPropertyValue("CharEscapementAuto", true);
-                        break;
-                    case BOTTOM:
-                        //xPropertySet.setPropertyValue("CharEscapement", (short)101);
-                        //xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
-                        //xPropertySet.setPropertyValue("CharEscapementAuto", true);
-                        break;
-                    case BOTTOMINLINE:
-                        //xPropertySet.setPropertyValue("CharEscapement", (short)0);
-                        //xPropertySet.setPropertyValue("CharEscapementHeight", (byte)100);
-                        //xPropertySet.setPropertyValue("CharEscapementAuto", false);
-                        break;
-                }
-                xPropertySet.setPropertyValue("CharHeight", (float) USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE);
-                
-                m_xText.insertString(xTextRange, currentbook+" "+currentchapter, false);
-                
-                try {                    
-                    m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
-                } catch (com.sun.star.lang.IllegalArgumentException ex) {
-                    Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                
-                switch(USERPREFS.PARAGRAPHSTYLES_ALIGNMENT){
-                    case LEFT:
-                        xPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.LEFT );
-                        break;
-                    case RIGHT:
-                        xPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.RIGHT );
-                        break;
-                    case CENTER:
-                        xPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.CENTER );
-                        break;
-                    case JUSTIFY:
-                        xPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.BLOCK );
-                        break;
-                    default:
-                        xPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.BLOCK );                        
-                }
-                
-            }
-            
-            if(newverse){
-                normalText = false;
-                
-                //System.out.print("\n"+currentverse);
-                // set properties of text change based on user preferences
-                if (USERPREFS.VERSENUMBERSTYLES_BOLD){
-                    xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.BOLD);
-                } 
-                else{
-                    xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.NORMAL);
-                }
-                if(USERPREFS.VERSENUMBERSTYLES_ITALIC){
-                    xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.ITALIC);
-                }
-                else{
-                    xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.NONE);
-                }
-                if(USERPREFS.VERSENUMBERSTYLES_UNDERLINE){
-                    xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.SINGLE);
-                }
-                else{
-                    xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.NONE);
-                }
-                xPropertySet.setPropertyValue("CharColor", USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR.getRGB());
-                xPropertySet.setPropertyValue("CharBackColor", USERPREFS.VERSENUMBERSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
-                //System.out.println(USERPREFS.VERSENUMBERSTYLES_VALIGN);
-                xPropertySet.setPropertyValue("CharHeight", USERPREFS.VERSENUMBERSTYLES_FONTSIZE.floatValue());
-                
-                switch (USERPREFS.VERSENUMBERSTYLES_VALIGN) {
-                    case SUBSCRIPT:
-                        xPropertySet.setPropertyValue("CharEscapement", (short)-101);
-                        xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
-                        //xPropertySet.setPropertyValue("CharEscapementAuto", true);
-                        break;
-                    case SUPERSCRIPT:
-                        //System.out.println("We are in business! This is going to be superscript");
-                        xPropertySet.setPropertyValue("CharEscapement", (short)101);
-                        xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
-                        //xPropertySet.setPropertyValue("CharEscapementAuto", true);
-                        break;
-                    case NORMAL:
-                        xPropertySet.setPropertyValue("CharEscapement", (short)0);
-                        xPropertySet.setPropertyValue("CharEscapementHeight", (byte)100);
-                        //xPropertySet.setPropertyValue("CharEscapementAuto", false);
-                        break;
-                }
-                
-                m_xText.insertString(xTextRange, " "+currentverse, false);
+                newVersion = false;
             }
                         
-            setVerseTextStyles(xPropertySet);
+            if(newVersion){
+                firstVerse = true;                
+                //firstChapter = true;
+                
+                switch(USERPREFS.LAYOUTPREFS_BIBLEVERSION_WRAP){
+                    case PARENTHESES:
+                        currentVersion = "(" + currentVersion + ")";
+                        break;
+                    case BRACKETS:
+                        currentVersion = "[" + currentVersion + "]";
+                        break;
+                }
+                
+                if(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW == BGET.VISIBILITY.SHOW){
+                    if(BookChapterStack.size() > 0){
+                        switch(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION){
+                            case BOTTOM:
+                                insertParagraphBreak(m_xText,xTextRange);
+                                setParagraphStyles(xPropertySet,BGET.PARAGRAPHTYPE.BOOKCHAPTER);
+                                break;
+                            case TOP:
+                                insertParagraphBreak(m_xText,xTextRange);
+                                setParagraphStyles(xPropertySet,BGET.PARAGRAPHTYPE.BOOKCHAPTER);
+                                break;
+                            case BOTTOMINLINE:
+                                m_xText.insertString(xTextRange, " ", false);
+                                break;
+                        }
+                        setTextStyles(xPropertySet,BGET.PARAGRAPHTYPE.BOOKCHAPTER);
+                        m_xText.insertString(xTextRange, BookChapterStack.get(0), false);
+                        BookChapterStack.remove(0);
+                    }
+                    switch(USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION){
+                        case BOTTOM:
+                            BibleVersionStack.add(currentVersion);
+                            if(BibleVersionStack.size() > 1){
+                                insertParagraphBreak(m_xText,xTextRange);
+                                setParagraphStyles(xPropertySet,BGET.PARAGRAPHTYPE.BIBLEVERSION);
+                                setTextStyles(xPropertySet,BGET.PARAGRAPHTYPE.BIBLEVERSION);
+                                m_xText.insertString(xTextRange, BibleVersionStack.get(0), false);
+                                BibleVersionStack.remove(0);
+                            }
+                            break;
+                        case TOP:
+                            if(firstVersion == false){
+                                insertParagraphBreak(m_xText,xTextRange);
+                            } else {
+                                insertParagraphBreak(m_xText,xTextRange); //TODO: perhaps only insert paragraph break if current paragraph is not empty?
+                                firstVersion = false;
+                            }
+                            setParagraphStyles(xPropertySet,BGET.PARAGRAPHTYPE.BIBLEVERSION);
+                            setTextStyles(xPropertySet,BGET.PARAGRAPHTYPE.BIBLEVERSION);
+                            m_xText.insertString(xTextRange, currentVersion, false);
+                            break;
+                    }                           
+                }
+            }
+                
+            if(newBook || newChapter){
+                //System.out.println(currentBook+" "+currentChapter);
+                String bkChStr = "";
+                switch(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT){
+                    case BIBLELANG:
+                        bkChStr = currentBook + " " + currentChapter;
+                        break;
+                    case BIBLELANGABBREV:
+                        bkChStr = currentBookAbbrev + " " + currentChapter;
+                        break;
+                    case USERLANG:
+                        bkChStr = L10NBibleBooks.GetBookByIndex(currentBookUnivIdx - 1).Fullname + " " + currentChapter;
+                        break;
+                    case USERLANGABBREV:
+                        bkChStr = L10NBibleBooks.GetBookByIndex(currentBookUnivIdx - 1).Abbrev + " " + currentChapter;
+                        break;
+                }
+                if(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY){
+                    String patternStr = "^[1-3]{0,1}((\\p{L}\\p{M}*)+)[1-9][0-9]{0,2}";
+                    Pattern pattern = Pattern.compile(patternStr);
+                    Matcher matcher = pattern.matcher(originalQuery);
+                    if(matcher.find()){
+                        bkChStr += matcher.replaceFirst("");
+                    } else {
+                        Pattern pattern2 = Pattern.compile("^[1-9][0-9]{0,2}");
+                        Matcher matcher2 = pattern2.matcher(originalQuery);
+                        bkChStr += matcher2.replaceFirst("");
+                    }
+                }
+                switch(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP){
+                    case PARENTHESES:
+                        bkChStr = "(" + bkChStr + ")";
+                        break;
+                    case BRACKETS:
+                        bkChStr = "[" + bkChStr + "]";
+                        break;
+                }
+                
+                firstVerse = true;
+                
+                switch(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION){
+                    case BOTTOM:
+                        BookChapterStack.add(bkChStr);
+                        if(BookChapterStack.size() > 1){
+                            insertParagraphBreak(m_xText, xTextRange);
+                            setParagraphStyles(xPropertySet, BGET.PARAGRAPHTYPE.BOOKCHAPTER);
+                            setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.BOOKCHAPTER);
+                            BookChapterStack.remove(0);
+                        }
+                        break;
+                    case TOP:
+                        if(firstChapter == false){
+                            insertParagraphBreak(m_xText, xTextRange);
+                        } else if(firstChapter && (USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW == BGET.VISIBILITY.HIDE || USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION == BGET.POS.BOTTOM) ){
+                            insertParagraphBreak(m_xText, xTextRange); //TODO: perhaps only insertParagraphBreak if current paragraph is not empty?
+                            firstChapter = false;
+                        } else {
+                            insertParagraphBreak(m_xText, xTextRange);
+                            firstChapter = false;
+                        }
+                        setParagraphStyles(xPropertySet, BGET.PARAGRAPHTYPE.BOOKCHAPTER);
+                        setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.BOOKCHAPTER);
+                        m_xText.insertString(xTextRange, bkChStr, false);
+                        break;
+                    case BOTTOMINLINE:
+                        BookChapterStack.add(bkChStr);
+                        if(BookChapterStack.size() > 1){
+                            m_xText.insertString(xTextRange, " ", false);
+                            setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.BOOKCHAPTER);
+                            m_xText.insertString(xTextRange, BookChapterStack.get(0) , false);
+                            BookChapterStack.remove(0);
+                        }
+                        break;
+                }
+            }
             
+            if(newVerse){
+                normalText = false;
+                //System.out.print("\n"+currentVerse);
+                if(firstVerse){
+                    insertParagraphBreak(m_xText, xTextRange);
+                    setParagraphStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSES);
+                    firstVerse = false;
+                }
+                if(USERPREFS.LAYOUTPREFS_VERSENUMBER_SHOW == BGET.VISIBILITY.SHOW){
+                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSENUMBER);
+                    m_xText.insertString(xTextRange, " " + currentVerse, false);
+                } else {
+                    m_xText.insertString(xTextRange, " ", false);
+                }
+            }
+            setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
             String currentText = currentJson.getString("text").replace("\n","").replace("\r","");
             String remainingText = currentText;
-            //if(currentText.contains("<"))
-            if(currentText.matches("(?su).*<[/]{0,1}(?:speaker|sm|po)[f|l|s|i|3]{0,1}[f|l]{0,1}>.*")) //[/]{0,1}(?:sm|po)[f|l|s|i|3]{0,1}[f|l]{0,1}>
+            if(currentText.matches("(?su).*<[/]{0,1}(?:speaker|sm|i|pr|po)[f|l|s|i|3]{0,1}[f|l]{0,1}>.*")) //[/]{0,1}(?:sm|po)[f|l|s|i|3]{0,1}[f|l]{0,1}>
             {                
-                Pattern pattern1 = Pattern.compile("(.*?)<((speaker|sm|po)[f|l|s|i|3]{0,1}[f|l]{0,1})>(.*?)</\\2>",Pattern.UNICODE_CHARACTER_CLASS);
+                int currentSpaceAfter = AnyConverter.toInt(xPropertySet.getPropertyValue("ParaBottomMargin"));
+                Pattern pattern1 = Pattern.compile("(.*?)<((speaker|sm|i|pr|po)[f|l|s|i|3]{0,1}[f|l]{0,1})>(.*?)</\\2>",Pattern.UNICODE_CHARACTER_CLASS);
                 Matcher matcher1 = pattern1.matcher(currentText);
                 //int iteration = 0;
                 
@@ -459,27 +418,14 @@ public class BibleGetDocInject {
                         
                         //check for nested speaker tags!
                         boolean nestedTag = false;
-                        String speakerTagBefore = "";
-                        String speakerTagContents = "";
-                        String speakerTagAfter = "";
+                        NestedTagObj nestedTagObj = null;
+                        //String speakerTagBefore = "";
+                        //String speakerTagContents = "";
+                        //String speakerTagAfter = "";
                         
-                        if(formattingTagContents.matches("(?su).*<[/]{0,1}speaker>.*")){
+                        if(formattingTagContents.matches("(?su).*<[/]{0,1}(?:speaker|sm|i|pr|po)[f|l|s|i]{0,1}[f|l]{0,1}>.*")){
                             nestedTag = true;
-                            
-                            String remainingText2 = formattingTagContents;
-                            
-                            Matcher matcher2 = pattern1.matcher(formattingTagContents);
-                            //int iteration2 = 0;
-                            while(matcher2.find()){
-                                if(matcher2.group(2) != null && matcher2.group(2).isEmpty() == false && "speaker".equals(matcher2.group(2))){
-                                    if(matcher2.group(1) != null && matcher2.group(1).isEmpty() == false){
-                                        speakerTagBefore = matcher2.group(1);
-                                        remainingText2 = remainingText2.replaceFirst(matcher2.group(1), "");
-                                    }
-                                    speakerTagContents = matcher2.group(4);
-                                    speakerTagAfter = remainingText2.replaceFirst("<"+matcher2.group(2)+">"+matcher2.group(4)+"</"+matcher2.group(2)+">", "");
-                                }
-                            }
+                            nestedTagObj = new NestedTagObj(formattingTagContents);
                         }
                         
                         if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING){ formattingTagContents = " "+formattingTagContents+" "; }
@@ -488,143 +434,163 @@ public class BibleGetDocInject {
                             case "pof":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+400);
-                                    xPropertySet.setPropertyValue("ParaRightMargin", rightMarginIn100thMM.intValue());
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", pofIndent.intValue());
+                                    xPropertySet.setPropertyValue("ParaBottomMargin", 0);
                                 }
                                 if(nestedTag){
-                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                    insertNestedTag(nestedTagObj, m_xText, xTextRange, xPropertySet);
                                 }
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
                                 }
                                 normalText = false;
                                 break;
                             case "pos":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+400);
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", pofIndent.intValue());
+                                    xPropertySet.setPropertyValue("ParaBottomMargin", 0);
                                 }
                                 if(nestedTag){
-                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                    insertNestedTag(nestedTagObj, m_xText, xTextRange, xPropertySet);
                                 }
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
                                 }
                                 normalText = false;
                                 break;
                             case "poif":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+600);
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", poiIndent.intValue());
+                                    xPropertySet.setPropertyValue("ParaBottomMargin", 0);
                                 }
                                 if(nestedTag){
-                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                    insertNestedTag(nestedTagObj, m_xText, xTextRange, xPropertySet);
                                 }
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
                                 }
                                 normalText = false;
                                 break;
                             case "po":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+400);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", pofIndent.intValue());
+                                    xPropertySet.setPropertyValue("ParaBottomMargin", 0);
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
                                 }
                                 if(nestedTag){
-                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                    insertNestedTag(nestedTagObj, m_xText, xTextRange, xPropertySet);
                                 }
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
                                 }
                                 normalText = false;
                                 break;
                             case "poi":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+600);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", poiIndent.intValue());
+                                    xPropertySet.setPropertyValue("ParaBottomMargin", 0);
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
                                 }
                                 if(nestedTag){
-                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                    insertNestedTag(nestedTagObj, m_xText, xTextRange, xPropertySet);
                                 }
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
                                 }
                                 normalText = false;
                                 break;
                             case "pol":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+400);
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", pofIndent.intValue());
+                                    xPropertySet.setPropertyValue("ParaBottomMargin", 0);
                                 }
                                 if(nestedTag){
-                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                    insertNestedTag(nestedTagObj, m_xText, xTextRange, xPropertySet);
                                 }
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM);
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", pofIndent.intValue());
                                 }
                                 normalText = false;
                                 break;
                             case "poil":
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     if(!firstVerse && normalText){ insertParagraphBreak(m_xText,xTextRange); }
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue()+600);
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", poiIndent.intValue());
                                 }
                                 if(nestedTag){
-                                    insertNestedSpeakerTag(speakerTagBefore, speakerTagContents, speakerTagAfter, m_xText, xTextRange, xPropertySet);
+                                    insertNestedTag(nestedTagObj, m_xText, xTextRange, xPropertySet);
                                 }
                                 else{
                                     m_xText.insertString(xTextRange, formattingTagContents, false);
                                 }
                                 if(USERPREFS.PARAGRAPHSTYLES_NOVERSIONFORMATTING==false){
                                     insertParagraphBreak(m_xText,xTextRange);
-                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM);
+                                    setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+                                    xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue());
                                 }
                                 normalText = false;
                                 break;
                             case "sm":
                                 String smallCaps = matcher1.group(4).toLowerCase();
                                 //System.out.println("SMALLCAPSIZE THIS TEXT: "+smallCaps);
-                                xPropertySet.setPropertyValue("CharCaseMap", com.sun.star.style.CaseMap.SMALLCAPS);
+                                xPropertySet.setPropertyValue("CharCaseMap", CaseMap.SMALLCAPS);
                                 m_xText.insertString(xTextRange, smallCaps, false);
-                                xPropertySet.setPropertyValue("CharCaseMap", com.sun.star.style.CaseMap.NONE);
+                                xPropertySet.setPropertyValue("CharCaseMap", CaseMap.NONE);
                                 break;
                             case "speaker":
 //                                System.out.println("We have found a speaker tag");
-                                xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.BOLD);
+                                xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
                                 //xPropertySet.setPropertyValue("CharBackTransparent", false);
                                 xPropertySet.setPropertyValue("CharBackColor", Color.LIGHT_GRAY.getRGB() & ~0xFF000000);
-                                m_xText.insertString(xTextRange, matcher1.group(4), false);
+                                m_xText.insertString(xTextRange, " " + matcher1.group(4) + " ", false);
                                 if(USERPREFS.VERSETEXTSTYLES_BOLD==false){
-                                    xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.NORMAL);                                
+                                    xPropertySet.setPropertyValue("CharWeight", FontWeight.NORMAL);                                
                                 }
                                 xPropertySet.setPropertyValue("CharBackColor", USERPREFS.VERSETEXTSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
                         }
                         remainingText = remainingText.replaceFirst("<"+matcher1.group(2)+">"+matcher1.group(4)+"</"+matcher1.group(2)+">", "");
                     }
                 }
+                xPropertySet.setPropertyValue("ParaBottomMargin", currentSpaceAfter);
 //                System.out.println("We have a match for special formatting: "+currentText);
 //                System.out.println("And after elaborating our matches, this is what we have left: "+remainingText);
 //                System.out.println();
-                if(!"".equals(remainingText))
+                if(remainingText.isEmpty() == false)
                 {
                     m_xText.insertString(xTextRange, remainingText, false);
                 }
@@ -654,37 +620,97 @@ public class BibleGetDocInject {
             
         }
         
-        try {
-            m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
-        } catch (com.sun.star.lang.IllegalArgumentException ex) {
-            Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
-        }        
+        if(BookChapterStack.size() > 0){
+            if(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.BOTTOM){
+                insertParagraphBreak(m_xText, xTextRange);
+                setParagraphStyles(xPropertySet, BGET.PARAGRAPHTYPE.BOOKCHAPTER);
+            } else {
+                m_xText.insertString(xTextRange, " ", false);
+            }
+            setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.BOOKCHAPTER);
+            m_xText.insertString(xTextRange, BookChapterStack.get(0), false);
+            BookChapterStack.remove(0);
+        }
+        
+        if(USERPREFS.LAYOUTPREFS_BIBLEVERSION_SHOW == BGET.VISIBILITY.SHOW && BibleVersionStack.size() > 0){
+            insertParagraphBreak(m_xText, xTextRange);
+            setParagraphStyles(xPropertySet, BGET.PARAGRAPHTYPE.BIBLEVERSION);
+            setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.BIBLEVERSION);
+            m_xText.insertString(xTextRange, BibleVersionStack.get(0), false);
+            BibleVersionStack.remove(0);
+        }
+        
+        insertParagraphBreak(m_xText, xTextRange);
+        //restore original text styles
+        xPropertySet.setPropertyValue("CharFontName",currentFontName);
+        xPropertySet.setPropertyValue("CharWeight",currentCharWeight);
+        xPropertySet.setPropertyValue("CharPosture",currentCharPosture);
+        xPropertySet.setPropertyValue("CharUnderline",currentCharUnderline);
+        xPropertySet.setPropertyValue("CharStrikeout",currentCharStrikeout);
+        xPropertySet.setPropertyValue("CharCrossedOut",currentCharCrossedOut);
+        xPropertySet.setPropertyValue("CharHeight",currentCharHeight);
+        xPropertySet.setPropertyValue("CharColor",currentCharColor);
+        xPropertySet.setPropertyValue("CharBackColor",currentCharBackColor);
+        xPropertySet.setPropertyValue("CharEscapement",currentCharEscapement);
+        xPropertySet.setPropertyValue("CharEscapementHeight",currentCharEscapementHeight);
+        xPropertySet.setPropertyValue("ParaLineSpacing", currentParaLineSpacing);
+        xPropertySet.setPropertyValue("ParaLeftMargin", currentParaLeftMargin);
+        xPropertySet.setPropertyValue("ParaRightMargin", currentParaRightMargin);
+        xPropertySet.setPropertyValue("ParaAdjust", currentParaAdjust);
         
     }
     
-    private void insertNestedSpeakerTag(String speakerTagBefore, String speakerTagContents, String speakerTagAfter, XText m_xText, XTextRange xTextRange, XPropertySet xPropertySet) throws UnknownPropertyException, PropertyVetoException, com.sun.star.lang.IllegalArgumentException, com.sun.star.lang.WrappedTargetException
+    private void insertNestedTag(NestedTagObj nestedTagObj, XText m_xText, XTextRange xTextRange, XPropertySet xPropertySet) throws UnknownPropertyException, PropertyVetoException, com.sun.star.lang.IllegalArgumentException, com.sun.star.lang.WrappedTargetException
     {
-        
-//        System.out.println("We are now working with a nested Speaker Tag."); //Using BG="+grayBG.getRGB()+"=R("+r+"),B("+b+"),G("+g+")
-//        System.out.println("speakerTagBefore=<"+speakerTagBefore+">,speakerTagContents=<"+speakerTagContents+">,speakerTagAfter=<"+speakerTagAfter+">");
-        m_xText.insertString(xTextRange, speakerTagBefore, false);
-        
-        xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
-        //xPropertySet.setPropertyValue("CharBackTransparent", false);
-        
-        //xPropertySet.setPropertyValue("CharBackColor", Color.LIGHT_GRAY.getRGB());
-        xPropertySet.setPropertyValue("CharBackColor", Color.LIGHT_GRAY.getRGB() & ~0xFF000000);
-        //xPropertySet.setPropertyValue("CharColor", Color.YELLOW.getRGB());
-        
-        m_xText.insertString(xTextRange, " "+speakerTagContents+" ", false);
-        
-        if(USERPREFS.VERSETEXTSTYLES_BOLD==false){
-            xPropertySet.setPropertyValue("CharWeight", FontWeight.NORMAL);                                
+        if(nestedTagObj.Before.isEmpty() == false){
+            setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+            m_xText.insertString(xTextRange, nestedTagObj.Before, false);
         }
-        //xPropertySet.setPropertyValue("CharBackColor", USERPREFS.VERSETEXTSTYLES_BGCOLOR.getRGB());
-        xPropertySet.setPropertyValue("CharBackColor", USERPREFS.VERSETEXTSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
-        //xPropertySet.setPropertyValue("CharColor", USERPREFS.VERSETEXTSTYLES_COLOR.getRGB());
-        m_xText.insertString(xTextRange, speakerTagAfter, false);   
+        
+        switch(nestedTagObj.Tag){
+            case "speaker":
+                xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+                xPropertySet.setPropertyValue("CharPosture", FontSlant.NONE);
+                xPropertySet.setPropertyValue("CharUnderline", FontUnderline.NONE);
+                xPropertySet.setPropertyValue("CharHeight", USERPREFS.VERSETEXTSTYLES_FONTSIZE);
+                xPropertySet.setPropertyValue("CharColor", Color.BLACK.getRGB());
+                xPropertySet.setPropertyValue("CharBackColor", Color.LIGHT_GRAY.getRGB() & ~0xFF000000);
+                xPropertySet.setPropertyValue("CharEscapement", (short)0);
+                xPropertySet.setPropertyValue("CharEscapementHeight", (byte)100);
+                m_xText.insertString(xTextRange, " " + nestedTagObj.Contents + " ", false);
+                break;
+            case "sm":
+                xPropertySet.setPropertyValue("CharCaseMap", CaseMap.SMALLCAPS);
+                m_xText.insertString(xTextRange, nestedTagObj.Contents.toLowerCase(), false);
+                xPropertySet.setPropertyValue("CharCaseMap", CaseMap.NONE);
+                break;
+            case "poi":
+                insertParagraphBreak(m_xText, xTextRange);
+                xPropertySet.setPropertyValue("ParaLeftMargin", poiIndent.intValue());
+                xPropertySet.setPropertyValue("ParaBottomMargin", 0);
+                setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+                m_xText.insertString(xTextRange, nestedTagObj.Contents, false);
+                insertParagraphBreak(m_xText, xTextRange);
+                setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+                break;
+            case "po":
+                insertParagraphBreak(m_xText, xTextRange);
+                xPropertySet.setPropertyValue("ParaLeftMargin", pofIndent.intValue());
+                xPropertySet.setPropertyValue("ParaBottomMargin", 0);
+                setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+                m_xText.insertString(xTextRange, nestedTagObj.Contents, false);
+                insertParagraphBreak(m_xText, xTextRange);
+                setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+                break;
+        }
+        
+        if(nestedTagObj.After.isEmpty() == false){
+            setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+            m_xText.insertString(xTextRange, nestedTagObj.After, false);
+        }
+        
+        setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+        
     }
     
     public double pointsToMillimeters(int points)
@@ -695,56 +721,176 @@ public class BibleGetDocInject {
         return rounded;
     }
     
-    private void setVerseTextStyles(com.sun.star.beans.XPropertySet xPropertySet) throws UnknownPropertyException, PropertyVetoException, com.sun.star.lang.IllegalArgumentException, com.sun.star.lang.WrappedTargetException
-    {
-            if (USERPREFS.VERSETEXTSTYLES_BOLD){
-                xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.BOLD);
-            } 
-            else{
-                xPropertySet.setPropertyValue("CharWeight", com.sun.star.awt.FontWeight.NORMAL);
-            }
-            if(USERPREFS.VERSETEXTSTYLES_ITALIC){
-                xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.ITALIC);
-            }
-            else{
-                xPropertySet.setPropertyValue("CharPosture", com.sun.star.awt.FontSlant.NONE);
-            }
-            if(USERPREFS.VERSETEXTSTYLES_UNDERLINE){
-                xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.SINGLE);
-            }
-            else{
-                xPropertySet.setPropertyValue("CharUnderline", com.sun.star.awt.FontUnderline.NONE);
-            }
-            xPropertySet.setPropertyValue("CharColor", USERPREFS.VERSETEXTSTYLES_TEXTCOLOR.getRGB());
-            xPropertySet.setPropertyValue("CharBackColor", USERPREFS.VERSETEXTSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
-            xPropertySet.setPropertyValue("CharHeight", USERPREFS.VERSETEXTSTYLES_FONTSIZE.floatValue());
-            /*
-            switch (vAlignVerseText) {
-                case "sub":
-                    xPropertySet.setPropertyValue("CharEscapement", (short)-101);
-                    xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
-                    //xPropertySet.setPropertyValue("CharEscapementAuto", true);
-                    break;
-                case "super":
-                    xPropertySet.setPropertyValue("CharEscapement", (short)101);
-                    xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
-                    //xPropertySet.setPropertyValue("CharEscapementAuto", true);
-                    break;
-                default:
-                    xPropertySet.setPropertyValue("CharEscapement", (short)0);
-                    xPropertySet.setPropertyValue("CharEscapementHeight", (byte)100);
-                    //xPropertySet.setPropertyValue("CharEscapementAuto", false);
-                    break;
-            }
-            */
-    }
-    
-    private void insertParagraphBreak(XText m_xText,com.sun.star.text.XTextRange xTextRange)
+    private void insertParagraphBreak(XText m_xText,XTextRange xTextRange)
     {
         try {
-            m_xText.insertControlCharacter(xTextRange, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, false);
+            m_xText.insertControlCharacter(xTextRange, ControlCharacter.PARAGRAPH_BREAK, false);
         } catch (com.sun.star.lang.IllegalArgumentException ex) {
             Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
         }            
     }
+    
+    private void setParagraphStyles(XPropertySet xPropertySet, BGET.PARAGRAPHTYPE parType){
+        try {
+            xPropertySet.setPropertyValue("CharFontName", USERPREFS.PARAGRAPHSTYLES_FONTFAMILY );
+            xPropertySet.setPropertyValue("ParaLeftMargin", leftMarginIn100thMM.intValue());
+            xPropertySet.setPropertyValue("ParaRightMargin", rightMarginIn100thMM.intValue());
+            //set paragraph line spacing      
+            LineSpacing lineSpacing = new LineSpacing();
+            lineSpacing.Mode = LineSpacingMode.PROP;
+            lineSpacing.Height = USERPREFS.PARAGRAPHSTYLES_LINEHEIGHT.shortValue();
+            xPropertySet.setPropertyValue("ParaLineSpacing",lineSpacing);
+            
+            BGET.ALIGN myAlignment = BGET.ALIGN.JUSTIFY;
+            switch(parType){
+                case BIBLEVERSION:
+                    myAlignment = USERPREFS.LAYOUTPREFS_BIBLEVERSION_ALIGNMENT;
+                    break;
+                case BOOKCHAPTER:
+                    myAlignment = USERPREFS.LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT;
+                    break;
+                case VERSES:
+                    myAlignment = USERPREFS.PARAGRAPHSTYLES_ALIGNMENT;
+                    break;
+            }
+            if(parType == BGET.PARAGRAPHTYPE.BOOKCHAPTER && USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION == BGET.POS.BOTTOMINLINE){
+                //do nothing
+            } else {
+                switch(myAlignment){
+                    case LEFT:
+                        xPropertySet.setPropertyValue("ParaAdjust",ParagraphAdjust.LEFT);
+                        break;
+                    case CENTER:
+                        xPropertySet.setPropertyValue("ParaAdjust",ParagraphAdjust.CENTER);
+                        break;
+                    case RIGHT:
+                        xPropertySet.setPropertyValue("ParaAdjust",ParagraphAdjust.RIGHT);
+                        break;
+                    case JUSTIFY:
+                        xPropertySet.setPropertyValue("ParaAdjust",ParagraphAdjust.BLOCK);
+                        break;
+                }
+            }
+            
+        } catch (UnknownPropertyException | PropertyVetoException | com.sun.star.lang.IllegalArgumentException | com.sun.star.lang.WrappedTargetException ex){
+            Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
+        }        
+    }
+    
+    private void setTextStyles(XPropertySet xPropertySet, BGET.PARAGRAPHTYPE parType) throws UnknownPropertyException, PropertyVetoException, com.sun.star.lang.IllegalArgumentException, com.sun.star.lang.WrappedTargetException
+    {
+        switch(parType){
+            case BIBLEVERSION:
+                xPropertySet.setPropertyValue("CharHeight", USERPREFS.BIBLEVERSIONSTYLES_FONTSIZE.floatValue());
+                if(USERPREFS.BIBLEVERSIONSTYLES_BOLD){
+                    xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+                } else {
+                    xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+                }
+                if(USERPREFS.BIBLEVERSIONSTYLES_ITALIC){
+                    xPropertySet.setPropertyValue("CharPosture", FontSlant.ITALIC);
+                }
+                else{
+                    xPropertySet.setPropertyValue("CharPosture", FontSlant.NONE);
+                }
+                if(USERPREFS.BIBLEVERSIONSTYLES_UNDERLINE){
+                    xPropertySet.setPropertyValue("CharUnderline", FontUnderline.SINGLE);
+                }
+                else{
+                    xPropertySet.setPropertyValue("CharUnderline", FontUnderline.NONE);
+                }
+                xPropertySet.setPropertyValue("CharColor", USERPREFS.BIBLEVERSIONSTYLES_TEXTCOLOR.getRGB());
+                xPropertySet.setPropertyValue("CharBackColor", USERPREFS.BIBLEVERSIONSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
+                xPropertySet.setPropertyValue("CharEscapement", (short)0);
+                xPropertySet.setPropertyValue("CharEscapementHeight", (byte)100);
+                break;
+            case BOOKCHAPTER:
+                xPropertySet.setPropertyValue("CharHeight", USERPREFS.BOOKCHAPTERSTYLES_FONTSIZE.floatValue());
+                if(USERPREFS.BOOKCHAPTERSTYLES_BOLD){
+                    xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+                } else {
+                    xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+                }
+                if(USERPREFS.BOOKCHAPTERSTYLES_ITALIC){
+                    xPropertySet.setPropertyValue("CharPosture", FontSlant.ITALIC);
+                }
+                else{
+                    xPropertySet.setPropertyValue("CharPosture", FontSlant.NONE);
+                }
+                if(USERPREFS.BOOKCHAPTERSTYLES_UNDERLINE){
+                    xPropertySet.setPropertyValue("CharUnderline", FontUnderline.SINGLE);
+                }
+                else{
+                    xPropertySet.setPropertyValue("CharUnderline", FontUnderline.NONE);
+                }
+                xPropertySet.setPropertyValue("CharColor", USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR.getRGB());
+                xPropertySet.setPropertyValue("CharBackColor", USERPREFS.BOOKCHAPTERSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
+                xPropertySet.setPropertyValue("CharEscapement", (short)0);
+                xPropertySet.setPropertyValue("CharEscapementHeight", (byte)100);
+                break;
+            case VERSENUMBER:
+                xPropertySet.setPropertyValue("CharHeight", USERPREFS.VERSENUMBERSTYLES_FONTSIZE.floatValue());
+                if(USERPREFS.VERSENUMBERSTYLES_BOLD){
+                    xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+                } else {
+                    xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+                }
+                if(USERPREFS.VERSENUMBERSTYLES_ITALIC){
+                    xPropertySet.setPropertyValue("CharPosture", FontSlant.ITALIC);
+                }
+                else{
+                    xPropertySet.setPropertyValue("CharPosture", FontSlant.NONE);
+                }
+                if(USERPREFS.VERSENUMBERSTYLES_UNDERLINE){
+                    xPropertySet.setPropertyValue("CharUnderline", FontUnderline.SINGLE);
+                }
+                else{
+                    xPropertySet.setPropertyValue("CharUnderline", FontUnderline.NONE);
+                }
+                xPropertySet.setPropertyValue("CharColor", USERPREFS.VERSENUMBERSTYLES_TEXTCOLOR.getRGB());
+                xPropertySet.setPropertyValue("CharBackColor", USERPREFS.VERSENUMBERSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
+                switch(USERPREFS.VERSENUMBERSTYLES_VALIGN){
+                    case SUPERSCRIPT:
+                        xPropertySet.setPropertyValue("CharEscapement", (short)101);
+                        xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
+                        break;
+                    case SUBSCRIPT:
+                        xPropertySet.setPropertyValue("CharEscapement", (short)-101);
+                        xPropertySet.setPropertyValue("CharEscapementHeight", (byte)58);
+                        break;
+                    case NORMAL:
+                        xPropertySet.setPropertyValue("CharEscapement", (short)0);
+                        xPropertySet.setPropertyValue("CharEscapementHeight", (byte)100);
+                        break;
+                }
+                break;
+            case VERSETEXT:
+                xPropertySet.setPropertyValue("CharHeight", USERPREFS.VERSETEXTSTYLES_FONTSIZE.floatValue());
+                if(USERPREFS.VERSETEXTSTYLES_BOLD){
+                    xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+                } else {
+                    xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+                }
+                if(USERPREFS.VERSETEXTSTYLES_ITALIC){
+                    xPropertySet.setPropertyValue("CharPosture", FontSlant.ITALIC);
+                }
+                else{
+                    xPropertySet.setPropertyValue("CharPosture", FontSlant.NONE);
+                }
+                if(USERPREFS.VERSETEXTSTYLES_UNDERLINE){
+                    xPropertySet.setPropertyValue("CharUnderline", FontUnderline.SINGLE);
+                }
+                else{
+                    xPropertySet.setPropertyValue("CharUnderline", FontUnderline.NONE);
+                }
+                xPropertySet.setPropertyValue("CharColor", USERPREFS.VERSETEXTSTYLES_TEXTCOLOR.getRGB());
+                xPropertySet.setPropertyValue("CharBackColor", USERPREFS.VERSETEXTSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
+                xPropertySet.setPropertyValue("CharEscapement", (short)0);
+                xPropertySet.setPropertyValue("CharEscapementHeight", (byte)100);
+                break;
+        }
+        
+        
+    }
+    
 }

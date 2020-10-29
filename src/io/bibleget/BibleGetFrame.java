@@ -303,7 +303,7 @@ public final class BibleGetFrame extends javax.swing.JFrame {
                 myResponse = myHTTPCaller.sendGet(myInputContent,versionsSelcd);
                 if(myResponse != null){
                     BibleGetDocInject myJSON = new BibleGetDocInject(m_xController);
-                    myJSON.JSONParse(myResponse);
+                    myJSON.InsertTextAtCurrentCursor(myResponse);
                     this.setVisible(false);
                 }
                 else{
