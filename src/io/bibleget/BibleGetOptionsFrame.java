@@ -13,7 +13,7 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.view.XViewSettingsSupplier;
-import static io.bibleget.BibleGetI18N.__;
+import static io.bibleget.BGetI18N.__;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -51,16 +51,16 @@ import org.cef.browser.CefBrowser;
  *
  * @author Lwangaman
  */
-public class OptionsFrame extends javax.swing.JFrame {
+public class BibleGetOptionsFrame extends javax.swing.JFrame {
 
-    private final BibleGetDB biblegetDB;
+    private final DBHelper biblegetDB;
     private final Preferences USERPREFS;
     private final LocalizedBibleBooks L10NBibleBooks;
         
     private final FontFamilyListCellRenderer FFLCRenderer;
     private final DefaultComboBoxModel fontFamilies;
-    private final CefApp cefApp;
-    private final CefClient client;
+    private static CefApp cefApp;
+    private static CefClient client;
     private final CefBrowser browser;
     private final Component browserUI;
     private final String previewDocument;
@@ -78,7 +78,7 @@ public class OptionsFrame extends javax.swing.JFrame {
     private final ImageIcon buttonStateOn = new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/toggle button state on.png"));
     private final ImageIcon buttonStateOffHover = new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/toggle button state off hover.png"));
     private final ImageIcon buttonStateOnHover = new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/toggle button state on hover.png"));
-    private static OptionsFrame instance;
+    private static BibleGetOptionsFrame instance;
     
     private XController m_xController;
     
@@ -130,7 +130,7 @@ public class OptionsFrame extends javax.swing.JFrame {
      * Creates new form OptionsFrame
      * @param pkgPath
      */
-    private OptionsFrame(XController m_xController) throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception {
+    private BibleGetOptionsFrame(XController m_xController) throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception {
         this.L10NBibleBooks = LocalizedBibleBooks.getInstance();
         this.FFLCRenderer = new FontFamilyListCellRenderer();
         this.m_xController = m_xController;
@@ -140,8 +140,8 @@ public class OptionsFrame extends javax.swing.JFrame {
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
         
         // Get preferences from database       
-        //System.out.println("getting instance of BibleGetDB");
-        biblegetDB = BibleGetDB.getInstance();
+        //System.out.println("getting instance of DBHelper");
+        biblegetDB = DBHelper.getInstance();
         USERPREFS = Preferences.getInstance();
         if(USERPREFS != null){
             System.out.println("USERPREFS is not null at least.");
@@ -163,7 +163,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         } else {
             System.out.println("Ruler unit does not seem to have changed (" + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.name() + " | " + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ")" );
         }
-        //System.out.println("(OptionsFrame: 127) USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR ="+USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);        
+        //System.out.println("(BibleGetOptionsFrame: 127) USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR ="+USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);        
         String vnPosition = USERPREFS.VERSENUMBERSTYLES_VALIGN == BGET.VALIGN.NORMAL ? "position: static;" : "position: relative;";
         String vnTop = "";
         switch(USERPREFS.VERSENUMBERSTYLES_VALIGN){
@@ -459,13 +459,14 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "</body>";
 
                         
-        //this.myMessages = BibleGetI18N.getMessages();
+        //this.myMessages = BGetI18N.getMessages();
+        //String HTMLStrWithStyles = String.format(HTMLStr,s);
+        
         CefSettings settings = new CefSettings();
         settings.windowless_rendering_enabled = OS.isLinux();
         //settings.log_severity = LogSeverity.LOGSEVERITY_ERROR;
         cefApp = CefApp.getInstance(settings);
         client = cefApp.createClient();
-        //String HTMLStrWithStyles = String.format(HTMLStr,s);
         browser = client.createBrowser( DataUri.create("text/html",previewDocument), OS.isLinux(), false);
         browserUI = browser.getUIComponent();
                 
@@ -473,11 +474,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         jInternalFrame1.getContentPane().add(browserUI, BorderLayout.CENTER);
     }
 
-    public static OptionsFrame getInstance(XController m_xController) throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
+    public static BibleGetOptionsFrame getInstance(XController m_xController) throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
     {
         if(instance == null)
         {
-            instance = new OptionsFrame(m_xController);
+            instance = new BibleGetOptionsFrame(m_xController);
         }
         return instance;
     }
@@ -2934,7 +2935,7 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         }
         catch(NullPointerException ex){
-            Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BibleGetOptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
         return hex;
     }
@@ -3007,7 +3008,7 @@ public class OptionsFrame extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(BibleGetFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(BibleGetQuoteFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
         
@@ -3016,11 +3017,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
             try {
-                new OptionsFrame(instance.m_xController).setVisible(true);
+                new BibleGetOptionsFrame(instance.m_xController).setVisible(true);
             } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
-                Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(BibleGetOptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
             } catch (Exception ex) {
-                Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(BibleGetOptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
     }
@@ -3165,12 +3166,12 @@ public class OptionsFrame extends javax.swing.JFrame {
         try {
             System.out.println("I got the HorizontalRulerMetric property, here is the type :" + AnyConverter.getType(viewSettings.getPropertyValue("HorizontalRulerMetric")));
         } catch (UnknownPropertyException | WrappedTargetException ex) {
-            Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BibleGetOptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
             System.out.println("And here is the value: " + AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric")));
         } catch (UnknownPropertyException | WrappedTargetException | IllegalArgumentException ex) {
-            Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BibleGetOptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
         int mUnit1;
         try {
@@ -3420,7 +3421,7 @@ public class OptionsFrame extends javax.swing.JFrame {
                 System.out.println("While making the preferences window visible, we detected that the ruler units have not changed. No need to redraw the ruler as far as I can tell.");
             }
         } catch (UnknownPropertyException | WrappedTargetException | IllegalArgumentException ex) {
-            Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BibleGetOptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         // make sure that frame is marked as not disposed if it is asked to be visible

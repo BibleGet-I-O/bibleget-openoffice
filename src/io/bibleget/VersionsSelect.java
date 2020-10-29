@@ -39,11 +39,11 @@ public class VersionsSelect extends javax.swing.JList {
     private int versionLangs = 0;
     private int versionCount = 0;
    
-    private static BibleGetDB biblegetDB;
+    private static DBHelper biblegetDB;
         
     public VersionsSelect() throws ClassNotFoundException, SQLException, Exception
     {       
-        biblegetDB = BibleGetDB.getInstance();
+        biblegetDB = DBHelper.getInstance();
         String bibleVersionsStr = biblegetDB.getMetaData("VERSIONS");
         if(null == bibleVersionsStr){
             System.out.println(this.getClass().getSimpleName() + "-> We have a problem Watson! bibleVersionsStr is null.");

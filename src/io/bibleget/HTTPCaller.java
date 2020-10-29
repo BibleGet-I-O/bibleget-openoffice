@@ -6,7 +6,7 @@
 
 package io.bibleget;
 
-import static io.bibleget.BibleGetI18N.__;
+import static io.bibleget.BGetI18N.__;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.StringReader;
@@ -59,7 +59,7 @@ import javax.net.ssl.TrustManagerFactory;
  */
 public class HTTPCaller {
     
-    private static Indexes indexes = null;
+    private static BibleIndexes indexes = null;
     private final List<String> errorMessages = new ArrayList<>();
     private static int counter = 0;
         
@@ -221,8 +221,8 @@ public class HTTPCaller {
     public int isValidBook(String book) throws SQLException, Exception{
         try {
             JsonArrayBuilder biblebooksBldr = Json.createArrayBuilder();
-            BibleGetDB bibleGetDB;
-            bibleGetDB = BibleGetDB.getInstance();
+            DBHelper bibleGetDB;
+            bibleGetDB = DBHelper.getInstance();
             for(int i=0;i<73;i++){
                 String usrprop = bibleGetDB.getMetaData("BIBLEBOOKS"+Integer.toString(i));
                 //System.out.println("value of BIBLEBOOKS"+Integer.toString(i)+": "+usrprop);                
@@ -254,7 +254,7 @@ public class HTTPCaller {
         //String versionsStr = StringUtils.join(selectedVersions.toArray(), ',');
         //System.out.println("Starting integrity check on query "+myQuery+" for versions: "+versionsStr);
         if(indexes==null) {
-            indexes = Indexes.getInstance();
+            indexes = BibleIndexes.getInstance();
         }
         //build indexes based on versions
         

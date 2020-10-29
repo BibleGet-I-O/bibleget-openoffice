@@ -45,7 +45,7 @@ import javax.json.JsonReader;
  * @author Lwangaman
  * 
  */
-public class BibleGetDocInject {
+public class BGetDocInject {
 
     private final XController m_xController;
     private XModel m_xModel;
@@ -72,7 +72,7 @@ public class BibleGetDocInject {
      * @throws java.lang.ClassNotFoundException
      * @throws java.sql.SQLException
      */
-    public BibleGetDocInject(XController xController) throws ClassNotFoundException, SQLException, Exception{
+    public BGetDocInject(XController xController) throws ClassNotFoundException, SQLException, Exception{
         USERPREFS = Preferences.getInstance();
         if(USERPREFS != null){
             System.out.println("USERPREFS is not null at least.");
@@ -726,7 +726,7 @@ public class BibleGetDocInject {
         try {
             m_xText.insertControlCharacter(xTextRange, ControlCharacter.PARAGRAPH_BREAK, false);
         } catch (com.sun.star.lang.IllegalArgumentException ex) {
-            Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
         }            
     }
     
@@ -773,7 +773,7 @@ public class BibleGetDocInject {
             }
             
         } catch (UnknownPropertyException | PropertyVetoException | com.sun.star.lang.IllegalArgumentException | com.sun.star.lang.WrappedTargetException ex){
-            Logger.getLogger(BibleGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BGetDocInject.class.getName()).log(Level.SEVERE, null, ex);
         }        
     }
     

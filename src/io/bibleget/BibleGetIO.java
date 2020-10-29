@@ -52,13 +52,13 @@ public final class BibleGetIO extends WeakBase
     private com.sun.star.text.XTextDocument m_xTextDocument;
 
     private static String packagePath;
-    private static BibleGetFrame myFrame;
-    private static OptionsFrame myOptionFrame;
+    private static BibleGetQuoteFrame myFrame;
+    private static BibleGetOptionsFrame myOptionFrame;
     private static DefaultComboBoxModel fontFamilies;
-    private static BibleGetHelp myHelpFrame;   
+    private static BibleGetHelpFrame myHelpFrame;   
     private static BibleGetSelection quoteFromSelection;
-    private static BibleGetDB biblegetDB;
-    private static BibleGetAbout bibleGetAbout;
+    private static DBHelper biblegetDB;
+    private static BibleGetAboutFrame bibleGetAbout;
     
     private static String myLocale;
     private static Locale uiLocale;
@@ -66,7 +66,7 @@ public final class BibleGetIO extends WeakBase
     public static BGET.MEASUREUNIT measureUnit;
     
     private static BibleGetIO instance;
-
+    
     public BibleGetIO( XComponentContext context )
     {
         m_xContext = context;
@@ -75,7 +75,7 @@ public final class BibleGetIO extends WeakBase
         packagePath = xPackageInformationProvider.getPackageLocation(m_implementationName);        
         //System.out.println(packagePath);
         
-        //myOptionFrame = OptionsFrame.getInstance(packagePath);
+        //myOptionFrame = BibleGetOptionsFrame.getInstance(packagePath);
         
         fontFamilies = getFonts();
         
@@ -88,7 +88,7 @@ public final class BibleGetIO extends WeakBase
                 }
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(BibleGetFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(BibleGetQuoteFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }        
     }
 
@@ -204,7 +204,7 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.myFrame.setVisible(true);
                     }
                     else{
-                        BibleGetIO.myFrame = BibleGetFrame.getInstance(instance.m_xController);
+                        BibleGetIO.myFrame = BibleGetQuoteFrame.getInstance(instance.m_xController);
                         BibleGetIO.myFrame.setVisible(true);                
                     }
                 } catch (ClassNotFoundException | SQLException ex) {
@@ -223,7 +223,7 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.myOptionFrame.setVisible(true);
                     }
                     else{
-                        BibleGetIO.myOptionFrame = OptionsFrame.getInstance(instance.m_xController);
+                        BibleGetIO.myOptionFrame = BibleGetOptionsFrame.getInstance(instance.m_xController);
                         BibleGetIO.myOptionFrame.setVisible(true);
                     }
                 } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
@@ -243,8 +243,8 @@ public final class BibleGetIO extends WeakBase
                     }
                     else{
                         //make sure we also have the database initialized first
-                        BibleGetIO.biblegetDB = BibleGetDB.getInstance();                        
-                        BibleGetIO.bibleGetAbout = BibleGetAbout.getInstance();
+                        BibleGetIO.biblegetDB = DBHelper.getInstance();                        
+                        BibleGetIO.bibleGetAbout = BibleGetAboutFrame.getInstance();
                         BibleGetIO.bibleGetAbout.setVisible(true);
                     }
                 } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
@@ -274,7 +274,7 @@ public final class BibleGetIO extends WeakBase
                 }
                 else{
                     try {
-                        BibleGetIO.myHelpFrame = BibleGetHelp.getInstance();
+                        BibleGetIO.myHelpFrame = BibleGetHelpFrame.getInstance();
                         BibleGetIO.myHelpFrame.setVisible(true);
                     } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
                         Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
@@ -521,19 +521,19 @@ public final class BibleGetIO extends WeakBase
                     BibleGetIO.uiLocale = new Locale(BibleGetIO.myLocale);
                     Locale.setDefault(BibleGetIO.uiLocale);
                     //instance.myMessages = BibleGetI18N.getMessages();
-                    BibleGetIO.biblegetDB = BibleGetDB.getInstance();
+                    BibleGetIO.biblegetDB = DBHelper.getInstance();
                     if(BibleGetIO.biblegetDB != null){ 
                         //System.out.println("BibleGetIO main class : We have an instance of database!"); 
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.myFrame"); 
-                        BibleGetIO.myFrame = BibleGetFrame.getInstance(instance.m_xController);
+                        BibleGetIO.myFrame = BibleGetQuoteFrame.getInstance(instance.m_xController);
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.quoteFromSelection"); 
                         BibleGetIO.quoteFromSelection = BibleGetSelection.getInstance(instance.m_xController);
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.myHelpFrame"); 
-                        BibleGetIO.myHelpFrame = BibleGetHelp.getInstance();
+                        BibleGetIO.myHelpFrame = BibleGetHelpFrame.getInstance();
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.bibleGetAbout"); 
-                        BibleGetIO.bibleGetAbout =  BibleGetAbout.getInstance();
+                        BibleGetIO.bibleGetAbout =  BibleGetAboutFrame.getInstance();
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.myOptionFrame"); 
-                        BibleGetIO.myOptionFrame = OptionsFrame.getInstance(instance.m_xController);
+                        BibleGetIO.myOptionFrame = BibleGetOptionsFrame.getInstance(instance.m_xController);
                     }
                     else{ 
                         System.out.println("Sorry, no database instance here."); 

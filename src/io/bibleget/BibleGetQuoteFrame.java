@@ -14,7 +14,7 @@ import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.frame.XController;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.WrappedTargetException;
-import static io.bibleget.BibleGetI18N.__;
+import static io.bibleget.BGetI18N.__;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -51,7 +51,7 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author Lwangaman
  */
-public final class BibleGetFrame extends javax.swing.JFrame {
+public final class BibleGetQuoteFrame extends javax.swing.JFrame {
 
     private final XController m_xController;
     private final int screenWidth;
@@ -61,20 +61,20 @@ public final class BibleGetFrame extends javax.swing.JFrame {
     private final int frameLeft;
     private final int frameTop;
     
-    private static BibleGetDB biblegetDB;
+    private static DBHelper biblegetDB;
     private SeparatorList<BibleVersion> versionsByLang;
     private EventList<BibleVersion> bibleVersions;
     private boolean[] enabledFlags;
     private int[] indices;
 
     
-    private static BibleGetFrame instance;
+    private static BibleGetQuoteFrame instance;
     
     /**
      * Creates new form BibleGetFrame
      * @param xController
      */
-    private BibleGetFrame(XController xController) throws ClassNotFoundException, SQLException, Exception {
+    private BibleGetQuoteFrame(XController xController) throws ClassNotFoundException, SQLException, Exception {
         m_xController = xController;
         screenWidth = (int)java.awt.Toolkit.getDefaultToolkit().getScreenSize().getWidth();
         screenHeight = (int)java.awt.Toolkit.getDefaultToolkit().getScreenSize().getHeight();
@@ -87,15 +87,15 @@ public final class BibleGetFrame extends javax.swing.JFrame {
         initComponents();
     }
 
-    private BibleGetFrame() {
+    private BibleGetQuoteFrame() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    public static BibleGetFrame getInstance(XController xController) throws ClassNotFoundException, SQLException, Exception
+    public static BibleGetQuoteFrame getInstance(XController xController) throws ClassNotFoundException, SQLException, Exception
     {
         if(instance == null)
         {
-            instance = new BibleGetFrame(xController);
+            instance = new BibleGetQuoteFrame(xController);
         }
         return instance;
     }
@@ -105,7 +105,7 @@ public final class BibleGetFrame extends javax.swing.JFrame {
      * @throws ClassNotFoundException
      */
     private void prepareDynamicInformation() throws ClassNotFoundException, SQLException, Exception{
-        biblegetDB = BibleGetDB.getInstance();
+        biblegetDB = DBHelper.getInstance();
         String bibleVersionsStr = biblegetDB.getMetaData("VERSIONS");
         System.out.println(this.getClass().getSimpleName() + " -> prepareDynamicInformation -> bibleVersionsStr = " + bibleVersionsStr);
         if(null == bibleVersionsStr){
@@ -302,7 +302,7 @@ public final class BibleGetFrame extends javax.swing.JFrame {
                 //JOptionPane.showMessageDialog(null, "All is proceeding nicely", "progress info", JOptionPane.INFORMATION_MESSAGE);
                 myResponse = myHTTPCaller.sendGet(myInputContent,versionsSelcd);
                 if(myResponse != null){
-                    BibleGetDocInject myJSON = new BibleGetDocInject(m_xController);
+                    BGetDocInject myJSON = new BGetDocInject(m_xController);
                     myJSON.InsertTextAtCurrentCursor(myResponse);
                     this.setVisible(false);
                 }
@@ -316,9 +316,9 @@ public final class BibleGetFrame extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, errorDialog, "ERROR >> MALFORMED QUERYSTRING", JOptionPane.ERROR_MESSAGE);
             }
         } catch (HeadlessException | ClassNotFoundException | UnknownPropertyException | PropertyVetoException | IllegalArgumentException | WrappedTargetException | UnsupportedEncodingException | SQLException ex) {
-            Logger.getLogger(BibleGetFrame.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BibleGetQuoteFrame.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
-            Logger.getLogger(BibleGetFrame.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BibleGetQuoteFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
             
     }//GEN-LAST:event_jButton1MouseClicked
@@ -495,8 +495,12 @@ public final class BibleGetFrame extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(BibleGetFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(BibleGetQuoteFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
         //</editor-fold>
         //</editor-fold>
@@ -506,7 +510,7 @@ public final class BibleGetFrame extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
-            new BibleGetFrame().setVisible(true);
+            new BibleGetQuoteFrame().setVisible(true);
         });
     }
 

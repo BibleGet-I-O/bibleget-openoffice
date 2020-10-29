@@ -20,15 +20,15 @@ import javax.json.JsonReader;
  *
  * @author Lwangaman
  */
-public class Indexes {
+public class BibleIndexes {
 
-    private static BibleGetDB bibleGetDB;
-    private static Indexes instance = null;
+    private static DBHelper bibleGetDB;
+    private static BibleIndexes instance = null;
     private static Set<String> versionsabbrev = null;
     private static HashMap<String,VersionIDX> VersionIndexes;
     
-    private Indexes() throws ClassNotFoundException, SQLException, Exception {
-        bibleGetDB = BibleGetDB.getInstance();
+    private BibleIndexes() throws ClassNotFoundException, SQLException, Exception {
+        bibleGetDB = DBHelper.getInstance();
         if(versionsabbrev==null) {
             String versions = bibleGetDB.getMetaData("VERSIONS");
             JsonReader jsonReader = Json.createReader(new StringReader(versions));
@@ -42,9 +42,9 @@ public class Indexes {
         }
     }
     
-    public static Indexes getInstance() throws ClassNotFoundException, SQLException, Exception {
+    public static BibleIndexes getInstance() throws ClassNotFoundException, SQLException, Exception {
         if(instance==null) {
-            instance = new Indexes();
+            instance = new BibleIndexes();
         }
         return instance;
     }

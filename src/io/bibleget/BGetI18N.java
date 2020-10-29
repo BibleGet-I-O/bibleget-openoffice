@@ -18,7 +18,7 @@ import org.apache.commons.text.WordUtils;
  *
  * @author Lwangaman
  */
-public class BibleGetI18N {
+public class BGetI18N {
     
     /*
     static final ResourceBundle myResources =
@@ -328,11 +328,11 @@ public class BibleGetI18N {
         if(LANGUAGECODES.containsKey(language)){
             String langKey = LANGUAGECODES.get(language);
             String localizedLang = LANGUAGES_TRANSLATED.get(langKey);
-            //System.out.println("BibleGetI18N.java: language = "+language+", langKey = "+langKey+", localizedLang = "+localizedLang);
+            //System.out.println("BGetI18N.java: language = "+language+", langKey = "+langKey+", localizedLang = "+localizedLang);
             return WordUtils.capitalizeFully(localizedLang);
         }
         else{
-            //System.out.println("BibleGetI18N.java: could not find "+language+" in LANGUAGECODES hashmap, no localization will be done. Returning same value" );
+            //System.out.println("BGetI18N.java: could not find "+language+" in LANGUAGECODES hashmap, no localization will be done. Returning same value" );
             return WordUtils.capitalizeFully(language);
         }
     }

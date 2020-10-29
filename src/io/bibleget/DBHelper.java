@@ -39,10 +39,10 @@ import org.apache.commons.lang3.SystemUtils;
  *
  * @author Lwangaman
  */
-public class BibleGetDB {
+public class DBHelper {
 
     //private final String dbPath;
-    private static BibleGetDB instance = null;
+    private static DBHelper instance = null;
     private Connection conn = null;
     //private DatabaseMetaData dbMeta = null;
     //private ResultSet rs = null;
@@ -54,12 +54,12 @@ public class BibleGetDB {
     private static final HashMap<String, Entry<Integer, Entry<String, String>>> tableSchemas = new HashMap<>(); //<String tableName, Entry<Integer schemaVersion, Entry<String tableSchema, String tableData>>
     
     
-    private BibleGetDB() throws ClassNotFoundException {
+    private DBHelper() throws ClassNotFoundException {
         try {
-            BibleGetDB.setDBSystemDir();
+            DBHelper.setDBSystemDir();
             Class.forName("org.apache.derby.jdbc.EmbeddedDriver");            
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
         }
         String defaultFont = "";
         if(SystemUtils.IS_OS_WINDOWS){
@@ -202,14 +202,14 @@ public class BibleGetDB {
         final String metadataTableInitialData = "INSERT INTO METADATA (ID) VALUES (0)";
         final int MetadataTableSchemaVersion = 1;
         
-        BibleGetDB.tableSchemas.put("OPTIONS", new SimpleEntry<>(OptionsTableSchemaVersion, new SimpleEntry<>(optionsTableSchema,optionsTableInitialData)));
-        BibleGetDB.tableSchemas.put("METADATA", new SimpleEntry<>(MetadataTableSchemaVersion, new SimpleEntry<>(metadataTableSchema,metadataTableInitialData)));
+        DBHelper.tableSchemas.put("OPTIONS", new SimpleEntry<>(OptionsTableSchemaVersion, new SimpleEntry<>(optionsTableSchema,optionsTableInitialData)));
+        DBHelper.tableSchemas.put("METADATA", new SimpleEntry<>(MetadataTableSchemaVersion, new SimpleEntry<>(metadataTableSchema,metadataTableInitialData)));
     }
     
-    public static BibleGetDB getInstance() throws ClassNotFoundException, SQLException, Exception {
+    public static DBHelper getInstance() throws ClassNotFoundException, SQLException, Exception {
         if(instance == null)
         {            
-            instance = new BibleGetDB();
+            instance = new DBHelper();
             BGET.TABLE dbInitialized = instance.initialize();
             if(dbInitialized == BGET.TABLE.INITIALIZED){ 
                 System.out.println("Database is initialized too!"); 
@@ -232,8 +232,8 @@ public class BibleGetDB {
                 //this means we already have a connection, so return true (hoping it's not something else that has connected?)
                 return true;
             } else {
-                //Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex.getMessage() + " : " + Arrays.toString(ex.getStackTrace()));
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                //Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex.getMessage() + " : " + Arrays.toString(ex.getStackTrace()));
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                 return false;
             }
         }
@@ -245,7 +245,7 @@ public class BibleGetDB {
             try {
                 instance.conn.close();
             } catch (SQLException ex) {
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -284,18 +284,18 @@ public class BibleGetDB {
             }
         } catch (SQLException ex) {
             if( ex.getSQLState().equals("X0Y32") ) {
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.INFO, null, "Database BIBLEGET already exists.  No need to recreate");
+                Logger.getLogger(DBHelper.class.getName()).log(Level.INFO, null, "Database BIBLEGET already exists.  No need to recreate");
                 System.out.println("Database BIBLEGET already exists.  No need to recreate: "+ex.getMessage());
                 //return instance.getOrSetDBData("GET");
                 return instance.initializeSchemas();
             } else if (ex.getNextException().getErrorCode() ==  45000) {
                 //this means another JVM has already connected to the database, which means we cannot use it (perhaps Netbeans)
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, "Another JVM is already connected to the BIBLEGET database. We cannot use it like this.");
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, "Another JVM is already connected to the BIBLEGET database. We cannot use it like this.");
                 System.out.println("Seems like we already have a connection: "+ex.getMessage()+" "+ex.getNextException().getMessage());
                 return BGET.TABLE.ERROR;
             } else {
-                //Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex.getMessage() + " : " + Arrays.toString(ex.getStackTrace()));
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                //Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex.getMessage() + " : " + Arrays.toString(ex.getStackTrace()));
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                 System.out.println("Not sure what the problem might be with the database connection: "+ex.getMessage());
                 return BGET.TABLE.ERROR;
             }
@@ -322,7 +322,7 @@ public class BibleGetDB {
                     System.out.println("SCHEMA_VERSIONS table initialized, now checking schema versions of the other tables...");
                     //since creating the SCHEMA_VERSIONS table is equivalent to updating the schemas,
                     //we also have to empty and re-initialize any other existing tables
-                    Set<String> keys = BibleGetDB.tableSchemas.keySet();            
+                    Set<String> keys = DBHelper.tableSchemas.keySet();            
                     for(String tableName : keys){
                         if(instance.tableExists(tableName)){
                             System.out.println(tableName + " table exists, will now delete and recreate...");
@@ -381,7 +381,7 @@ public class BibleGetDB {
                     String tableName = rsOps.getString("TABLENAME");
                     int storedSchemaVersion = rsOps.getInt("SCHEMAVERSION");
                     System.out.println("Retrieved values from SCHEMA_VERSIONS: TABLENAME = " + tableName + ", SCHEMAVERSION = " + storedSchemaVersion);
-                    Entry<Integer, Entry<String,String>> tableSchemaEntry = BibleGetDB.tableSchemas.get(tableName);
+                    Entry<Integer, Entry<String,String>> tableSchemaEntry = DBHelper.tableSchemas.get(tableName);
                     //if the schema version stored in the table is less than the version proposed in the current release,
                     //then we need to update the schemas
                     if(instance.tableExists(tableName)){
@@ -408,7 +408,7 @@ public class BibleGetDB {
                                                 System.out.println("Update was successful");
                                             }
                                         } catch (SQLException ex){
-                                            Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                                            Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                                         }
                                     } else {
                                         System.out.println("There seems to have been an error while initializing the " + tableName + " table...");
@@ -427,7 +427,7 @@ public class BibleGetDB {
                     }
                 }
             } catch (SQLException ex){
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
@@ -476,7 +476,7 @@ public class BibleGetDB {
             try {
                 instance.conn.close();
             } catch (SQLException ex) {
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         return BGET.TABLE.INITIALIZED;
@@ -530,7 +530,7 @@ public class BibleGetDB {
             }
             cols.close();
         } catch (SQLException ex) {
-            Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -567,7 +567,7 @@ public class BibleGetDB {
                             //System.out.println(colName + " <" + dataType + ">");
                         }
                         JsonObject currentRow = thisRow.build();
-                        //System.out.println("BibleGetDB.java: thisRow = "+currentRow.toString());
+                        //System.out.println("DBHelper.java: thisRow = "+currentRow.toString());
                         myRows.add(currentRow);
                     }
                     rsOps.close();
@@ -576,11 +576,11 @@ public class BibleGetDB {
                 instance.disconnect();
                 JsonArray currentRows = myRows.build();
                 JsonObject finalOptionsJson = myOptionsTable.add("rows", currentRows).build();
-                //System.out.println("BibleGetDB.java: finalOptionsJson = "+finalOptionsJson.toString());
+                //System.out.println("DBHelper.java: finalOptionsJson = "+finalOptionsJson.toString());
                 return finalOptionsJson;
                 
             } catch (SQLException ex) {
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                 return null;
             }
         }
@@ -595,7 +595,7 @@ public class BibleGetDB {
                 if(colNames.contains(option)){
                     int idx = colNames.indexOf(option);
                     Class dataType = colDataTypes.get(idx);
-                    //System.out.println(BibleGetDB.class.getName()+" [299]: dataType="+dataType.getName() );
+                    //System.out.println(DBHelper.class.getName()+" [299]: dataType="+dataType.getName() );
                     try (Statement stmt = instance.conn.createStatement()) {
                         String sqlexec = "SELECT "+option+" FROM OPTIONS";
                         try (ResultSet rsOps = stmt.executeQuery(sqlexec)) {
@@ -623,7 +623,7 @@ public class BibleGetDB {
                 }
 
             } catch (SQLException ex) {
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                 return null;
             }
         }
@@ -656,7 +656,7 @@ public class BibleGetDB {
                     }
                     stmt.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 instance.disconnect();
             }
@@ -696,7 +696,7 @@ public class BibleGetDB {
                     //returns true only when returning a resultset; should not be the case here
                 }
             } catch (SQLException ex) {
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         return false;
@@ -734,7 +734,7 @@ public class BibleGetDB {
                     //returns true only when returning a resultset; should not be the case here
                 }
             } catch (SQLException ex) {
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         return false;
@@ -775,7 +775,7 @@ public class BibleGetDB {
                 }
                 stmt.close();
             } catch (SQLException ex) {
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         return false;
@@ -814,7 +814,7 @@ public class BibleGetDB {
                 }
                 stmt.close();
             } catch (SQLException ex) {
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         return false;
@@ -843,7 +843,7 @@ public class BibleGetDB {
             }
             stmt.close();
         } catch (SQLException ex) {
-            Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }
@@ -873,7 +873,7 @@ public class BibleGetDB {
                                             JsonArray currentJson = (JsonArray) pIterator.next();
                                             //TODO: double check that JsonArray.toString is working as intended
                                             String biblebooks_str = currentJson.toString(); //.replaceAll("\"", "\\\\\"");
-                                            //System.out.println("BibleGetDB line 267: BIBLEBOOKS"+Integer.toString(index)+"='"+biblebooks_str+"'");
+                                            //System.out.println("DBHelper line 267: BIBLEBOOKS"+Integer.toString(index)+"='"+biblebooks_str+"'");
                                             String stmt_str = "UPDATE METADATA SET BIBLEBOOKS"+Integer.toString(index)+"='"+biblebooks_str+"' WHERE ID=0";
                                             //System.out.println("executing update: "+stmt_str);
                                             int update = stmt1.executeUpdate(stmt_str);
@@ -978,7 +978,7 @@ public class BibleGetDB {
                 }
                 instance.disconnect();
             }   catch (SQLException ex) {
-                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                 return false;
             }
             return true;
@@ -1000,7 +1000,7 @@ public class BibleGetDB {
                 throw new Exception("Table name cannot be an empty string!");
             }
         } catch (SQLException ex) {
-            Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }
@@ -1015,11 +1015,11 @@ public class BibleGetDB {
                         return BGET.TABLE.CREATED;
                     }
                 } catch (SQLException ex) {
-                    Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else {
                 try(Statement stmt = instance.conn.createStatement()) {
-                    Entry<Integer, Entry<String,String>> tableSchemaEntry = BibleGetDB.tableSchemas.get(tableName);
+                    Entry<Integer, Entry<String,String>> tableSchemaEntry = DBHelper.tableSchemas.get(tableName);
                     //int schemaDefinitionVersion = tableSchemaEntry.getKey();
                     Entry<String,String> tableSchemaDefData = tableSchemaEntry.getValue();
                     String schemaDefinition = tableSchemaDefData.getKey();
@@ -1029,7 +1029,7 @@ public class BibleGetDB {
                         return BGET.TABLE.CREATED;
                     }
                 } catch (SQLException ex) {
-                    Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         } else {
@@ -1042,14 +1042,14 @@ public class BibleGetDB {
         if(!"".equals(tableName)){
             System.out.println("initializeTable function has detected that we are trying to initialize the " + tableName + " table");
             if("SCHEMA_VERSIONS".equals(tableName)){
-                Set<String> keys = BibleGetDB.tableSchemas.keySet();
+                Set<String> keys = DBHelper.tableSchemas.keySet();
                 String tableNames[] = keys.toArray(new String[keys.size()]);
                 System.out.println("tableNames = " + Arrays.toString(tableNames));
                 int idx = 0;
                 String insertValues[] = new String[keys.size()];
                 //String.join(",", tableNames)
                 for(String schemaName : tableNames) {
-                    Entry<Integer, Entry<String,String>> tableSchemaEntry = BibleGetDB.tableSchemas.get(schemaName);
+                    Entry<Integer, Entry<String,String>> tableSchemaEntry = DBHelper.tableSchemas.get(schemaName);
                     //System.out.println(pair.getKey() + " = " + pair.getValue());
                     insertValues[idx++] = "('" + schemaName + "'," + tableSchemaEntry.getKey() + ")";
                 }
@@ -1061,12 +1061,12 @@ public class BibleGetDB {
                         return BGET.TABLE.INITIALIZED;
                     }
                 } catch (SQLException ex){
-                    Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else {
                 //all other cases
                 try(Statement stmt = instance.conn.createStatement()) {
-                    Entry<Integer, Entry<String,String>> tableSchemaEntry = BibleGetDB.tableSchemas.get(tableName);
+                    Entry<Integer, Entry<String,String>> tableSchemaEntry = DBHelper.tableSchemas.get(tableName);
                     //int schemaDefinitionVersion = tableSchemaEntry.getKey();
                     Entry<String,String> tableSchemaDefData = tableSchemaEntry.getValue();
                     //String schemaDefinition = tableSchemaDefData.getKey();
@@ -1076,7 +1076,7 @@ public class BibleGetDB {
                         return BGET.TABLE.INITIALIZED;
                     }
                 } catch (SQLException ex) {
-                    Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             
@@ -1093,7 +1093,7 @@ public class BibleGetDB {
                 return BGET.TABLE.DELETED;
             }
         } catch(SQLException ex){
-            Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
         }
         return BGET.TABLE.ERROR;
     }
@@ -1127,7 +1127,7 @@ public class BibleGetDB {
                             int update = stmt2.executeUpdate(stmt_str);
                             //System.out.println("executeUpdate resulted in: "+Integer.toString(update));
                         } catch (SQLException ex){
-                            Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                            Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                             dataUpdateOK = false;
                         }
                         stmt2.close();
@@ -1146,7 +1146,7 @@ public class BibleGetDB {
                     try{
                         int update = stmt2.executeUpdate(stmt_str);
                     } catch (SQLException ex){
-                        Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     stmt2.close();
                 }                                    
@@ -1169,7 +1169,7 @@ public class BibleGetDB {
                     try{
                         int update = stmt2.executeUpdate(stmt_str);
                     } catch (SQLException ex){
-                        Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     stmt2.close();
                 }

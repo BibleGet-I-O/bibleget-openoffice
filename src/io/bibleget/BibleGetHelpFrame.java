@@ -5,7 +5,7 @@
  */
 package io.bibleget;
 
-import static io.bibleget.BibleGetI18N.__;
+import static io.bibleget.BGetI18N.__;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -47,9 +47,9 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author Lwangaman
  */
-public class BibleGetHelp extends javax.swing.JFrame {
+public class BibleGetHelpFrame extends javax.swing.JFrame {
 
-    private static BibleGetHelp instance;
+    private static BibleGetHelpFrame instance;
     private LocalCellRenderer renderer;
     
     private final HTMLEditorKit kit;
@@ -67,7 +67,7 @@ public class BibleGetHelp extends javax.swing.JFrame {
     private final int frameLeft;
     private final int frameTop;
     
-    private final BibleGetDB bibleGetDB;
+    private final DBHelper bibleGetDB;
     //private JsonArray bibleVersionsObj;
     private JsonArray bibleBooksLangsObj;
     private final int bibleBooksLangsAmount;
@@ -82,7 +82,7 @@ public class BibleGetHelp extends javax.swing.JFrame {
     /**
      * Creates new form BibleGetHelp
      */
-    private BibleGetHelp() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception {
+    private BibleGetHelpFrame() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception {
         this.langsLocalized = new ArrayList<>();
         //jTextPane does not initialize correctly, it causes a Null Exception Pointer
         //Following line keeps this from crashing the program
@@ -93,17 +93,17 @@ public class BibleGetHelp extends javax.swing.JFrame {
                 
         String bbBooks;
         
-        bibleGetDB = BibleGetDB.getInstance();
+        bibleGetDB = DBHelper.getInstance();
         if(bibleGetDB != null){
             //System.out.println("oh good, biblegetDB is not null!");
             JsonReader jsonReader;
             langsSupported = bibleGetDB.getMetaData("LANGUAGES");
-            //System.out.println("BibleGetHelp.java: langsSupported = "+langsSupported);
+            //System.out.println("BibleGetHelpFrame.java: langsSupported = "+langsSupported);
             jsonReader = Json.createReader(new StringReader(langsSupported));
             bibleBooksLangsObj = jsonReader.readArray();
             bibleBooksLangsAmount = bibleBooksLangsObj.size(); //il numero di lingue in cui vengono riconosciuti i nomi dei libri della Bibbia?
-            bibleBooksLangsObj.stream().map((jsonValue) -> (JsonString) jsonValue).map((langToLocalize) -> BibleGetI18N.localizeLanguage(langToLocalize.getString())).forEach((localizedLang) -> {
-                //System.out.println("BibleGetHelp.java: supported language = "+langToLocalize.getString()+", localized = "+localizedLang);
+            bibleBooksLangsObj.stream().map((jsonValue) -> (JsonString) jsonValue).map((langToLocalize) -> BGetI18N.localizeLanguage(langToLocalize.getString())).forEach((localizedLang) -> {
+                //System.out.println("BibleGetHelpFrame.java: supported language = "+langToLocalize.getString()+", localized = "+localizedLang);
                 langsLocalized.add(localizedLang);
             });
             Collections.sort(langsLocalized);
@@ -124,7 +124,7 @@ public class BibleGetHelp extends javax.swing.JFrame {
             booksAndAbbreviations = new HashMap<>();
             String buildStr;
             for(int q=0;q<bibleBooksLangsObj.size();q++) {
-                curLang = (bibleBooksLangsObj.getString(q) != null) ? BibleGetI18N.localizeLanguage(bibleBooksLangsObj.getString(q)).toUpperCase() : "";
+                curLang = (bibleBooksLangsObj.getString(q) != null) ? BGetI18N.localizeLanguage(bibleBooksLangsObj.getString(q)).toUpperCase() : "";
                 buildStr = "";
                 for(int i=0;i<73;i++) {
                     
@@ -160,7 +160,7 @@ public class BibleGetHelp extends javax.swing.JFrame {
         styles.addRule("th { text-align: center; border: 4px ridge #DEB887; background-color: #F5F5DC; padding: 3px; }");
         styles.addRule("td { text-align: justify; border: 3px ridge #DEB887; background-color: #F5F5DC; padding: 3px; }");
         
-        //System.out.println("We have package path in BibleGetHelp! It is: "+packagePath);
+        //System.out.println("We have package path in BibleGetHelpFrame! It is: "+packagePath);
         
         HTMLStr0 = "<html><head><meta charset=\"utf-8\"></head><body>"
                 + "<h1>"+__("Help for BibleGet (Open Office Writer)")+"</h1>"
@@ -319,11 +319,11 @@ public class BibleGetHelp extends javax.swing.JFrame {
         initComponents();
     }
 
-    public static BibleGetHelp getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
+    public static BibleGetHelpFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
     {
         if(instance == null)
         {
-            instance = new BibleGetHelp();
+            instance = new BibleGetHelpFrame();
         }
         return instance;
     }
@@ -557,8 +557,10 @@ public class BibleGetHelp extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(BibleGetHelp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(BibleGetHelpFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
         //</editor-fold>
         
@@ -567,11 +569,11 @@ public class BibleGetHelp extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
             try {
-                new BibleGetHelp().setVisible(true);
+                new BibleGetHelpFrame().setVisible(true);
             } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
-                Logger.getLogger(BibleGetHelp.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(BibleGetHelpFrame.class.getName()).log(Level.SEVERE, null, ex);
             } catch (Exception ex) {
-                Logger.getLogger(BibleGetHelp.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(BibleGetHelpFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
     }
