@@ -5,6 +5,14 @@
  */
 package io.bibleget;
 
+import com.sun.star.beans.UnknownPropertyException;
+import com.sun.star.beans.XPropertySet;
+import com.sun.star.frame.XController;
+import com.sun.star.lang.IllegalArgumentException;
+import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.uno.AnyConverter;
+import com.sun.star.uno.UnoRuntime;
+import com.sun.star.view.XViewSettingsSupplier;
 import static io.bibleget.BibleGetI18N.__;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -71,15 +79,62 @@ public class OptionsFrame extends javax.swing.JFrame {
     private final ImageIcon buttonStateOffHover = new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/toggle button state off hover.png"));
     private final ImageIcon buttonStateOnHover = new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/toggle button state on hover.png"));
     private static OptionsFrame instance;
-        
+    
+    private XController m_xController;
+    
+    //should we convert to inches as base, and then from inches to the next unit?
+    private final Double Inches2CM = 2.54;
+    private final Double Inches2MM = 25.4;
+    private final Double Inches2Points = 72.0;
+    private final Double Inches2Picas = 6.0;
+    
+    private final Double CM2Inches = 0.393701;
+    private final Double CM2MM = 10.0;
+    private final Double CM2Points = 28.3465;
+    private final Double CM2Picas = 2.36222;
+    
+    private final Double MM2Inches = 0.0393701;
+    private final Double MM2CM = 0.1;
+    private final Double MM2Points = 2.83465;
+    private final Double MM2Picas = 0.236222;
+    
+    private final Double Points2Inches = 0.0138889;
+    private final Double Points2CM = 0.0352778;
+    private final Double Points2MM = 0.352778;
+    private final Double Points2Picas = 0.083334;
+    
+    private final Double Picas2Inches = 0.166665;
+    private final Double Picas2CM = 0.42333;
+    private final Double Picas2MM = 4.2333;
+    private final Double Picas2Points = 11.9999;
+
+    private final Double maxIndentCM = 5.0;
+    private final Double stepIndentCM = 1.0;
+    
+    private final Double maxIndentINCH = 2.5;
+    private final Double stepIndentINCH = 0.5;
+    
+    private final Double maxIndentMM = 48.0;
+    private final Double stepIndentMM = 12.0;
+    
+    private final Double maxIndentPoints = 144.0;
+    private final Double stepIndentPoints = 36.0;
+    
+    private final Double maxIndentPicas = 12.0;
+    private final Double stepIndentPicas = 3.0;
+    
+    
+    private String rulerLength = "6.7";
+    
     /**
      * Creates new form OptionsFrame
      * @param pkgPath
      */
-    private OptionsFrame() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception {
+    private OptionsFrame(XController m_xController) throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception {
         this.L10NBibleBooks = LocalizedBibleBooks.getInstance();
         this.FFLCRenderer = new FontFamilyListCellRenderer();
-                
+        this.m_xController = m_xController;
+        
         //jTextPane does not initialize correctly, it causes a Null Exception Pointer
         //Following line keeps this from crashing the program
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
@@ -96,7 +151,18 @@ public class OptionsFrame extends javax.swing.JFrame {
         }
         //System.out.println("getting JsonObject of biblegetDB options");
         this.fontFamilies = BibleGetIO.getFontFamilies();
-        
+
+        XViewSettingsSupplier xViewSettings = (XViewSettingsSupplier) UnoRuntime.queryInterface(XViewSettingsSupplier.class,m_xController);
+        XPropertySet viewSettings=xViewSettings.getViewSettings();
+        System.out.println("I got the HorizontalRulerMetric property, here is the type :" + AnyConverter.getType(viewSettings.getPropertyValue("HorizontalRulerMetric")));
+        System.out.println("And here is the value: " + AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric")));
+        int mUnit1 = AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric"));
+        USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT = BGET.MEASUREUNIT.valueOf(mUnit1);
+        if(BibleGetIO.measureUnit != USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT){
+            System.out.println("Ruler has already changed from initial unit in " + BibleGetIO.measureUnit.name() + " to " + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.name());
+        } else {
+            System.out.println("Ruler unit does not seem to have changed (" + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.name() + " | " + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ")" );
+        }
         //System.out.println("(OptionsFrame: 127) USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR ="+USERPREFS.BOOKCHAPTERSTYLES_TEXTCOLOR);        
         String vnPosition = USERPREFS.VERSENUMBERSTYLES_VALIGN == BGET.VALIGN.NORMAL ? "position: static;" : "position: relative;";
         String vnTop = "";
@@ -193,21 +259,42 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "</style>";
         
         previewDocScript = "<script>"
-            + "var getPixelRatioVals = function(rulerLength,convertToCM){"
+            + "var getPixelRatioVals = function(rulerLength,units){"
             + "let inchesToCM = 2.54,"
+            + "inchesToMM = 25.4,"
+            + "inchesToPoints = 72,"
+            + "inchesToPicas = 6,"
             + "dpr = window.devicePixelRatio,"
             //ppi = ((96 * dpr) / 100),
             //dpi = (96 * ppi),
             + "dpi = 96 * dpr,"
-            + "drawInterval = 0.125;"
-            + "if(convertToCM){"
-            //ppi /= inchesToCM;
+            + "drawInterval = 0.1;"
+            + "switch(units){"
+            + "case 2: " //CM
             + "dpi /= inchesToCM;"
             + "rulerLength *= inchesToCM;"
-            + "drawInterval = 0.25;"
+            + "drawInterval = .25;"
+            + "break;"
+            //+ "case 8: " //INCH
+            //+ "break;"
+            + "case 1: " //MM
+            + "dpi /= inchesToMM;"
+            + "rulerLength *= inchesToMM;"
+            + "drawInterval = 6;"
+            + "break;"
+            + "case 7: " //PICA
+            + "dpi /= inchesToPicas;"
+            + "rulerLength *= inchesToPicas;"
+            + "drawInterval = 1;"
+            + "break;"
+            + "case 6: " //POINT
+            + "dpi /= inchesToPoints;"
+            + "rulerLength *= inchesToPoints;"
+            + "drawInterval = 12;"
+            + "break;"
             + "}"
             + "return {"
-            + "inchesToCM: inchesToCM,"
+            //+ "inchesToCM: inchesToCM,"
             + "dpr: dpr,"
             //ppi: ppi,
             + "dpi: dpi,"
@@ -236,8 +323,8 @@ public class OptionsFrame extends javax.swing.JFrame {
              * @ lftindnt (float) in Inches, to set xPos of triangle for left indent
              * @ rgtindnt (float) in Inches, to set xPos of triangle for right indent
             */
-            + "drawRuler = function(rulerLen, cvtToCM, lftindnt, rgtindnt){"
-            + "var pixelRatioVals = getPixelRatioVals(rulerLen,cvtToCM),"
+            + "drawRuler = function(rulerLen, units, lftindnt, rgtindnt){"
+            + "var pixelRatioVals = getPixelRatioVals(rulerLen,units),"
             + "initialPadding = 35,"
             + "$canvas = jQuery('.previewRuler');"
             + "$canvas.each(function(){"
@@ -261,11 +348,62 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "context.stroke();"
             + "let currentWholeNumber = 0;"
             + "let offset = 2;"
-            + "for(let interval = 0; interval <= pixelRatioVals.rulerLength; interval += pixelRatioVals.drawInterval){"
+            + "let roundDecimal = 10;"
+            + "if(units==2){ roundDecimal = 100; } "
+            + "for(let interval = 0; interval <= pixelRatioVals.rulerLength; interval = (Math.round((interval + pixelRatioVals.drawInterval) * roundDecimal) / roundDecimal)){"
+            /*+ "console.log('interval = '+interval+' | interval == Math.floor(interval): '+(interval == Math.floor(interval) && interval > 0)+' | interval == Math.floor(interval)+0.5: '+(interval == Math.floor(interval)+0.5)+' | interval == Math.floor(interval)+0.25: '+(interval == Math.floor(interval)+0.5)+'');"*/
             + "let xPosA = Math.round(interval*pixelRatioVals.dpi)+0.5;"
             + "if(interval == Math.floor(interval) && interval > 0){"
+            + "switch(units){"
+            + "case 8: " //INCH
             + "if(currentWholeNumber+1 == 10){ offset+=4; }"
             + "context.fillText(++currentWholeNumber,initialPadding+xPosA-offset,14);"
+            + "break;"
+            + "case 2: " //CM
+            + "if(currentWholeNumber+1 == 10){ offset+=4; }"
+            + "context.fillText(++currentWholeNumber,initialPadding+xPosA-offset,14);"
+            + "break;"
+            + "case 1: " //MM
+            + "if(Math.floor(interval) % 6 == 0){"
+            + "if((currentWholeNumber+1)*6 == 12){ offset+=4; }"
+            + "context.fillText(++currentWholeNumber*6,initialPadding+xPosA-offset,14);"
+            + "}"
+            + "else{"
+            + "context.beginPath();"
+            + "context.moveTo(initialPadding+xPosA,10);"
+            + "context.lineTo(initialPadding+xPosA,5);"
+            + "context.closePath();"
+            + "context.stroke();"
+            + "}"
+            + "break;"
+            + "case 7: " //PICA
+            + "if(Math.floor(interval) % 2 == 0){"
+            + "if((currentWholeNumber+1)*2 == 10){ offset+=4; }"
+            + "context.fillText(++currentWholeNumber*2,initialPadding+xPosA-offset,14);"
+            + "}"
+            + "else{"
+            + "context.beginPath();"
+            + "context.moveTo(initialPadding+xPosA,10);"
+            + "context.lineTo(initialPadding+xPosA,5);"
+            + "context.closePath();"
+            + "context.stroke();"
+            + "}"
+            + "break;"
+            + "case 6: " //POINT
+            + "if(Math.floor(interval) % 36 == 0){"
+            + "if((currentWholeNumber+1)*36 == 36){ offset+=4; }"
+            + "else if((currentWholeNumber+1)*36 == 108){ offset +=4; }"
+            + "context.fillText(++currentWholeNumber*36,initialPadding+xPosA-offset,14);"
+            + "}"
+            + "else{"
+            + "context.beginPath();"
+            + "context.moveTo(initialPadding+xPosA,10);"
+            + "context.lineTo(initialPadding+xPosA,5);"
+            + "context.closePath();"
+            + "context.stroke();"
+            + "}"
+            + "break;"
+            + "}"
             + "}"
             + "else if(interval == Math.floor(interval)+0.5){"
             + "context.beginPath();"
@@ -288,12 +426,13 @@ public class OptionsFrame extends javax.swing.JFrame {
             + "});"
             + "};"
             + "jQuery(document).ready(function(){"
-            + "let pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
-            + "let leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
-            + "let rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
-            + "let bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
+            + "let rulerLength = "+rulerLength+";"
+            + "let pixelRatioVals = getPixelRatioVals(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ");"
+            + "let leftindent = " + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT) + " * pixelRatioVals.dpi + 35;"
+            + "let rightindent = " + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT) + " * pixelRatioVals.dpi + 35;"
+            + "let bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
             + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-            + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");"
+            + "drawRuler(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + "," + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT) + "," + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT) + ");"
             + "});"
             + "</script>";
         
@@ -323,6 +462,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         //this.myMessages = BibleGetI18N.getMessages();
         CefSettings settings = new CefSettings();
         settings.windowless_rendering_enabled = OS.isLinux();
+        //settings.log_severity = LogSeverity.LOGSEVERITY_ERROR;
         cefApp = CefApp.getInstance(settings);
         client = cefApp.createClient();
         //String HTMLStrWithStyles = String.format(HTMLStr,s);
@@ -333,11 +473,11 @@ public class OptionsFrame extends javax.swing.JFrame {
         jInternalFrame1.getContentPane().add(browserUI, BorderLayout.CENTER);
     }
 
-    public static OptionsFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
+    public static OptionsFrame getInstance(XController m_xController) throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
     {
         if(instance == null)
         {
-            instance = new OptionsFrame();
+            instance = new OptionsFrame(m_xController);
         }
         return instance;
     }
@@ -370,10 +510,12 @@ public class OptionsFrame extends javax.swing.JFrame {
         jToolBarParagraphIndentLeft = new javax.swing.JToolBar();
         jButtonLeftIndentMore = new javax.swing.JButton();
         jButtonLeftIndentLess = new javax.swing.JButton();
+        jLabelLeftIndent = new javax.swing.JLabel();
         jPanelParagraphIndentRight = new javax.swing.JPanel();
         jToolBarParagraphIndentRight = new javax.swing.JToolBar();
         jButtonRightIndentMore = new javax.swing.JButton();
         jButtonRightIndentLess = new javax.swing.JButton();
+        jLabelRightIndent = new javax.swing.JLabel();
         jPanelParagraphLineHeight = new javax.swing.JPanel();
         jToolBarParagraphLineHeight = new javax.swing.JToolBar();
         jComboBoxParagraphLineHeight = new javax.swing.JComboBox();
@@ -609,6 +751,9 @@ public class OptionsFrame extends javax.swing.JFrame {
         });
         jToolBarParagraphIndentLeft.add(jButtonLeftIndentLess);
 
+        jLabelLeftIndent.setText(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT + BibleGetIO.measureUnit.name());
+        jToolBarParagraphIndentLeft.add(jLabelLeftIndent);
+
         javax.swing.GroupLayout jPanelParagraphIndentLeftLayout = new javax.swing.GroupLayout(jPanelParagraphIndentLeft);
         jPanelParagraphIndentLeft.setLayout(jPanelParagraphIndentLeftLayout);
         jPanelParagraphIndentLeftLayout.setHorizontalGroup(
@@ -653,6 +798,9 @@ public class OptionsFrame extends javax.swing.JFrame {
             }
         });
         jToolBarParagraphIndentRight.add(jButtonRightIndentLess);
+
+        jLabelRightIndent.setText(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT + BibleGetIO.measureUnit.name());
+        jToolBarParagraphIndentRight.add(jLabelRightIndent);
 
         javax.swing.GroupLayout jPanelParagraphIndentRightLayout = new javax.swing.GroupLayout(jPanelParagraphIndentRight);
         jPanelParagraphIndentRight.setLayout(jPanelParagraphIndentRightLayout);
@@ -2189,41 +2337,85 @@ public class OptionsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jToggleButtonBibleVersionBoldItemStateChanged
 
     private void jButtonRightIndentLessMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonRightIndentLessMouseClicked
-        if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT>=1){USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT -= 1;}
-
-        if(biblegetDB.setIntOption("PARAGRAPHSTYLES_RIGHTINDENT", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)){
-            //System.out.println("PARAGRAPHSTYLES_RIGHTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT);
+        boolean redraw = false;
+        switch(BibleGetIO.measureUnit){
+            case MM:
+                if( USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > 0 ){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT -= stepIndentMM; redraw = true; }
+                break;
+            case CM:
+                if( USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > 0 ){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT -= stepIndentCM; redraw = true; }
+                break;
+            case INCH:
+                if( USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > 0 ){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT -= stepIndentINCH; redraw = true; }
+                break;
+            case POINT:
+                if( USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > 0 ){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT -= stepIndentPoints; redraw = true; }
+                break;
+            case PICA:
+                if( USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > 0 ){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT -= stepIndentPicas; redraw = true; }
+                break;        
         }
-        else{
-            //System.out.println("Error updating PARAGRAPHSTYLES_RIGHTINDENT in database");
-        }
+        
+        if( redraw ){
 
-        String jScript = "pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
-        + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
-        + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
-        + "bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
-        + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-        + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
-        browser.executeJavaScript(jScript, browser.getURL(),0);
+            jLabelRightIndent.setText(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT + BibleGetIO.measureUnit.name());
+            String jScript = "rulerLength = "+rulerLength+";"
+            + "pixelRatioVals = getPixelRatioVals(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ");"
+            + "leftindent = " + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT) + " * pixelRatioVals.dpi + 35;"
+            + "rightindent = " + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT) + " * pixelRatioVals.dpi + 35;"
+            + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
+            + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
+            + "drawRuler(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + "," + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT) + "," + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT) + ");";
+            browser.executeJavaScript(jScript, browser.getURL(),0);
+
+            if(biblegetDB.setDoubleOption("PARAGRAPHSTYLES_RIGHTINDENT", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)){
+                //System.out.println("PARAGRAPHSTYLES_RIGHTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT);
+            }
+            else{
+                //System.out.println("Error updating PARAGRAPHSTYLES_RIGHTINDENT in database");
+            }
+        }
     }//GEN-LAST:event_jButtonRightIndentLessMouseClicked
 
     private void jButtonRightIndentMoreMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonRightIndentMoreMouseClicked
-        if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT<5){USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT += 1;}
-
-        if(biblegetDB.setIntOption("PARAGRAPHSTYLES_RIGHTINDENT", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)){
-            //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
+        boolean redraw = false;
+        switch(BibleGetIO.measureUnit){
+            case MM:
+                if( USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < maxIndentMM ){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT += stepIndentMM; redraw = true; }
+                break;
+            case CM:
+                if( USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < maxIndentCM ){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT += stepIndentCM; redraw = true; }
+                break;
+            case INCH:
+                if( USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < maxIndentINCH ){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT += stepIndentINCH; redraw = true; }
+                break;
+            case POINT:
+                if( USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < maxIndentPoints ){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT += stepIndentPoints; redraw = true; }
+                break;
+            case PICA:
+                if( USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < maxIndentPicas ){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT += stepIndentPicas; redraw = true; }
+                break;        
         }
-        else{
-            //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
-        }
+        
+        if( redraw ){
 
-        String jScript = "pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
-        + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
-        + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
-        + "bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
-        + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-        + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
-        browser.executeJavaScript(jScript, browser.getURL(),0);
+            jLabelRightIndent.setText(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT + BibleGetIO.measureUnit.name());
+            String jScript = "rulerLength = "+rulerLength+";"
+            + "pixelRatioVals = getPixelRatioVals(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ");"
+            + "leftindent = " + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT) + " * pixelRatioVals.dpi + 35;"
+            + "rightindent = " + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT) + " * pixelRatioVals.dpi + 35;"
+            + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
+            + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
+            + "drawRuler(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + "," + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT) + "," + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT) + ");";
+            browser.executeJavaScript(jScript, browser.getURL(),0);
+
+            if(biblegetDB.setDoubleOption("PARAGRAPHSTYLES_RIGHTINDENT", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)){
+                //System.out.println("PARAGRAPHSTYLES_RIGHTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT);
+            }
+            else{
+                //System.out.println("Error updating PARAGRAPHSTYLES_RIGHTINDENT in database");
+            }
+        }
     }//GEN-LAST:event_jButtonRightIndentMoreMouseClicked
 
     private void jComboBoxParagraphFontFamilyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxParagraphFontFamilyItemStateChanged
@@ -2273,42 +2465,85 @@ public class OptionsFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jComboBoxParagraphLineHeightItemStateChanged
 
     private void jButtonLeftIndentLessMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonLeftIndentLessMouseClicked
-        if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT>=1){USERPREFS.PARAGRAPHSTYLES_LEFTINDENT -= 1;}
-
-        if(biblegetDB.setIntOption("PARAGRAPHSTYLES_LEFTINDENT", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)){
-            //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
+        boolean redraw = false;
+        switch(BibleGetIO.measureUnit){
+            case MM:
+                if( USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > 0 ){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT -= stepIndentMM; redraw = true; }
+                break;
+            case CM:
+                if( USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > 0 ){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT -= stepIndentCM; redraw = true; }
+                break;
+            case INCH:
+                if( USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > 0 ){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT -= stepIndentINCH; redraw = true; }
+                break;
+            case POINT:
+                if( USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > 0 ){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT -= stepIndentPoints; redraw = true; }
+                break;
+            case PICA:
+                if( USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > 0 ){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT -= stepIndentPicas; redraw = true; }
+                break;        
         }
-        else{
-            //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
-        }
+        
+        if( redraw ){
 
-        String jScript = "pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
-        + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
-        + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
-        + "bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
-        + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-        + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
-        browser.executeJavaScript(jScript, browser.getURL(),0);
+            jLabelLeftIndent.setText(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT + BibleGetIO.measureUnit.name());
+            String jScript = "rulerLength = "+rulerLength+";"
+            + "pixelRatioVals = getPixelRatioVals(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ");"
+            + "leftindent = " + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT) + " * pixelRatioVals.dpi + 35;"
+            + "rightindent = " + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT) + " * pixelRatioVals.dpi + 35;"
+            + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
+            + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
+            + "drawRuler(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + "," + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT) + "," + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT) + ");";
+            browser.executeJavaScript(jScript, browser.getURL(),0);
+            
+            if(biblegetDB.setDoubleOption("PARAGRAPHSTYLES_LEFTINDENT", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)){
+                //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
+            }
+            else{
+                //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
+            }
+        }
     }//GEN-LAST:event_jButtonLeftIndentLessMouseClicked
 
     private void jButtonLeftIndentMoreMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonLeftIndentMoreMouseClicked
-        if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT<5){USERPREFS.PARAGRAPHSTYLES_LEFTINDENT += 1;}
-
-        if(biblegetDB.setIntOption("PARAGRAPHSTYLES_LEFTINDENT", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)){
-            //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
+        boolean redraw = false;
+        switch(BibleGetIO.measureUnit){
+            case MM:
+                if( USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < maxIndentMM ){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT += stepIndentMM; redraw = true; }
+                break;
+            case CM:
+                if( USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < maxIndentCM ){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT += stepIndentCM; redraw = true; }
+                break;
+            case INCH:
+                if( USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < maxIndentINCH ){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT += stepIndentINCH; redraw = true; }
+                break;
+            case POINT:
+                if( USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < maxIndentPoints ){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT += stepIndentPoints; redraw = true; }
+                break;
+            case PICA:
+                if( USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < maxIndentPicas ){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT += stepIndentPicas; redraw = true; }
+                break;        
         }
-        else{
-            //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
+
+        if( redraw ){
+
+            jLabelLeftIndent.setText(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT + BibleGetIO.measureUnit.name());
+            String jScript = "rulerLength = "+rulerLength+";"
+            + "pixelRatioVals = getPixelRatioVals(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ");"
+            + "leftindent = " + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT) + " * pixelRatioVals.dpi + 35;"
+            + "rightindent = " + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT) + " * pixelRatioVals.dpi + 35;"
+            + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
+            + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
+            + "drawRuler(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + "," + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT) + "," + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT) + ");";
+            browser.executeJavaScript(jScript, browser.getURL(),0);
+            
+            if(biblegetDB.setDoubleOption("PARAGRAPHSTYLES_LEFTINDENT", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)){
+                //System.out.println("PARAGRAPHSTYLES_LEFTINDENT was successfully updated in database to value "+USERPREFS.PARAGRAPHSTYLES_LEFTINDENT);
+            }
+            else{
+                //System.out.println("Error updating PARAGRAPHSTYLES_LEFTINDENT in database");
+            }
         }
-
-        String jScript = "pixelRatioVals = getPixelRatioVals(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + ");"
-        + "leftindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + " * pixelRatioVals.dpi + 35;"
-        + "rightindent = " + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + " * pixelRatioVals.dpi + 35;"
-        + "bestWidth = 7 * 96 * window.devicePixelRatio + (35*2);"
-        + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
-        + "drawRuler(7," + (USERPREFS.PARAGRAPHSTYLES_INTERFACEINCM ? "true" : "false") + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT)) + "," + String.format(Locale.ROOT, "%.1f", Double.valueOf(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT)) + ");";
-        browser.executeJavaScript(jScript, browser.getURL(),0);
-
     }//GEN-LAST:event_jButtonLeftIndentMoreMouseClicked
 
     private void jToggleButtonParagraphJustifyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButtonParagraphJustifyItemStateChanged
@@ -2781,7 +3016,7 @@ public class OptionsFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
             try {
-                new OptionsFrame().setVisible(true);
+                new OptionsFrame(instance.m_xController).setVisible(true);
             } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
                 Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
             } catch (Exception ex) {
@@ -2839,6 +3074,8 @@ public class OptionsFrame extends javax.swing.JFrame {
     private javax.swing.JComboBox jComboBoxVerseTextFontSize;
     private javax.swing.JInternalFrame jInternalFrame1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabelLeftIndent;
+    private javax.swing.JLabel jLabelRightIndent;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanelBibleVersion;
@@ -2923,7 +3160,270 @@ public class OptionsFrame extends javax.swing.JFrame {
 
     @Override
     public void setVisible(final boolean visible) {
-      // make sure that frame is marked as not disposed if it is asked to be visible
+        XViewSettingsSupplier xViewSettings = (XViewSettingsSupplier) UnoRuntime.queryInterface(XViewSettingsSupplier.class,m_xController);
+        XPropertySet viewSettings=xViewSettings.getViewSettings();
+        try {
+            System.out.println("I got the HorizontalRulerMetric property, here is the type :" + AnyConverter.getType(viewSettings.getPropertyValue("HorizontalRulerMetric")));
+        } catch (UnknownPropertyException | WrappedTargetException ex) {
+            Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            System.out.println("And here is the value: " + AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric")));
+        } catch (UnknownPropertyException | WrappedTargetException | IllegalArgumentException ex) {
+            Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        int mUnit1;
+        try {
+            mUnit1 = AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric"));
+            if(BibleGetIO.measureUnit != BGET.MEASUREUNIT.valueOf(mUnit1)){
+                USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT = BGET.MEASUREUNIT.valueOf(mUnit1);
+                switch(BibleGetIO.measureUnit){
+                    case MM:
+                        switch(USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT){
+                            case CM:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= MM2CM;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentCM ) * stepIndentCM;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentCM){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentCM; }
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= MM2CM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentCM ) * stepIndentCM;
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentCM){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentCM; }
+                                break;
+                            case INCH:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= MM2Inches;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentINCH ) * stepIndentINCH;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= MM2Inches;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentINCH ) * stepIndentINCH;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentINCH){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentINCH; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentINCH){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentINCH; }
+                                break;
+                            case POINT:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= MM2Points;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentPoints ) * stepIndentPoints;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= MM2Points;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentPoints ) * stepIndentPoints;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentPoints){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentPoints; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentPoints){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentPoints; }
+                                break;
+                            case PICA:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= MM2Picas;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentPicas ) * stepIndentPicas;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= MM2Picas;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentPicas ) * stepIndentPicas;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentPicas){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentPicas; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentPicas){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentPicas; }
+                                break;
+                        }
+                        break;
+                    case CM:
+                        switch(BGET.MEASUREUNIT.valueOf(mUnit1)){
+                            case MM:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= CM2MM;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentMM ) * stepIndentMM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= CM2MM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentMM ) * stepIndentMM;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentMM){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentMM; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentMM){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentMM; }
+                                break;
+                            case INCH:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= CM2Inches;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentINCH ) * stepIndentINCH;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= CM2Inches;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentINCH ) * stepIndentINCH;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentINCH){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentINCH; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentINCH){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentINCH; }
+                                break;
+                            case POINT:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= CM2Points;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentPoints ) * stepIndentPoints;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= CM2Points;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentPoints ) * stepIndentPoints;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentPoints){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentPoints; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentPoints){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentPoints; }
+                                break;
+                            case PICA:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= CM2Picas;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentPicas ) * stepIndentPicas;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= CM2Picas;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentPicas ) * stepIndentPicas;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentPicas){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentPicas; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentPicas){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentPicas; }
+                                break;
+                        }
+                        break;
+                    case INCH:    
+                        switch(BGET.MEASUREUNIT.valueOf(mUnit1)){
+                            case CM:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= Inches2CM;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentCM ) * stepIndentCM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= Inches2CM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentCM ) * stepIndentCM;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentCM){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentCM; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentCM){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentCM; }
+                                break;
+                            case MM:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= Inches2MM;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentMM ) * stepIndentMM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= Inches2MM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentMM ) * stepIndentMM;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentMM){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentMM; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentMM){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentMM; }
+                                break;
+                            case POINT:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= Inches2Points;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentPoints ) * stepIndentPoints;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= Inches2Points;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentPoints ) * stepIndentPoints;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentPoints){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentPoints; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentPoints){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentPoints; }
+                                break;
+                            case PICA:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= Inches2Picas;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentPicas ) * stepIndentPicas;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= Inches2Picas;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentPicas ) * stepIndentPicas;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentPicas){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentPicas; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentPicas){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentPicas; }
+                                break;
+                        }
+                        break;
+                    case POINT:
+                        switch(BGET.MEASUREUNIT.valueOf(mUnit1)){
+                            case MM:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= Points2MM;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentMM ) * stepIndentMM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= Points2MM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentMM ) * stepIndentMM;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentMM){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentMM; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentMM){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentMM; }
+                                break;
+                            case CM:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= Points2CM;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentCM ) * stepIndentCM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= Points2CM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentCM ) * stepIndentCM;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentCM){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentCM; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentCM){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentCM; }
+                                break;
+                            case INCH:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= Points2Inches;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentINCH ) * stepIndentINCH;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= Points2Inches;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentINCH ) * stepIndentINCH;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentINCH){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentINCH; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentINCH){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentINCH; }
+                                break;
+                            case PICA:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= Points2Picas;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentPicas ) * stepIndentPicas;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= Points2Picas;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentPicas ) * stepIndentPicas;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentPicas){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentPicas; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentPicas){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentPicas; }
+                                break;
+                        }
+                        break;
+                    case PICA:
+                        switch(BGET.MEASUREUNIT.valueOf(mUnit1)){
+                            case MM:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= Picas2MM;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentMM ) * stepIndentMM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= Picas2MM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentMM ) * stepIndentMM;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentMM){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentMM; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentMM){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentMM; }
+                                break;
+                            case CM:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= Picas2CM;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentCM ) * stepIndentCM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= Picas2CM;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentCM ) * stepIndentCM;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentCM){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentCM; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentCM){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentCM; }
+                                break;
+                            case INCH:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= Picas2Inches;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentINCH ) * stepIndentINCH;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= Picas2Inches;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentINCH ) * stepIndentINCH;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentINCH){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentINCH; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentINCH){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentINCH; }
+                                break;
+                            case POINT:
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT *= Picas2Points;
+                                USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT / stepIndentPoints ) * stepIndentPoints;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT *= Picas2Points;
+                                USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = Math.round(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT / stepIndentPoints ) * stepIndentPoints;
+                                if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT > maxIndentPoints){ USERPREFS.PARAGRAPHSTYLES_LEFTINDENT = maxIndentPoints; }
+                                if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT < 0.0){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = 0.0; }
+                                else if(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT > maxIndentPoints){ USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT = maxIndentPoints; }
+                                break;
+                        }
+                        break;
+                }
+
+                //value has changed
+                String jScript = "rulerLength = "+rulerLength+";"
+                + "pixelRatioVals = getPixelRatioVals(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ");"
+                + "leftindent = " + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT) + " * pixelRatioVals.dpi + 35;"
+                + "rightindent = " + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT) + " * pixelRatioVals.dpi + 35;"
+                + "bestWidth = rulerLength * 96 * window.devicePixelRatio + (35*2);"
+                + "$('.bibleQuote').css({\"width\":bestWidth+\"px\",\"padding-left\":leftindent+\"px\",\"padding-right\":rightindent+\"px\"});"
+                + "drawRuler(rulerLength," + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + "," + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_LEFTINDENT) + "," + String.format(Locale.ROOT, "%.1f", USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT) + ");";
+                browser.executeJavaScript(jScript, browser.getURL(),0);
+                
+                jLabelLeftIndent.setText(USERPREFS.PARAGRAPHSTYLES_LEFTINDENT + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.name());
+                jLabelRightIndent.setText(USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.name());
+                
+                System.out.println("Ruler switched from " + BibleGetIO.measureUnit.name() + "|" + BibleGetIO.measureUnit.getValue() + " to " + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.name() + "|" + USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT.getValue() + ".");
+                //System.out.println("rulerLength = "+rulerLength);
+                BibleGetIO.measureUnit = USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT;
+            } else {
+                System.out.println("While making the preferences window visible, we detected that the ruler units have not changed. No need to redraw the ruler as far as I can tell.");
+            }
+        } catch (UnknownPropertyException | WrappedTargetException | IllegalArgumentException ex) {
+            Logger.getLogger(OptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        // make sure that frame is marked as not disposed if it is asked to be visible
       if (visible) {
           //setDisposed(false);
       }

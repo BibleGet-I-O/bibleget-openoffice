@@ -302,8 +302,8 @@ public final class BibleGetFrame extends javax.swing.JFrame {
                 //JOptionPane.showMessageDialog(null, "All is proceeding nicely", "progress info", JOptionPane.INFORMATION_MESSAGE);
                 myResponse = myHTTPCaller.sendGet(myInputContent,versionsSelcd);
                 if(myResponse != null){
-                    BibleGetJSON myJSON = new BibleGetJSON(m_xController);
-                    myJSON.JSONParse(myResponse);
+                    BibleGetDocInject myJSON = new BibleGetDocInject(m_xController);
+                    myJSON.InsertTextAtCurrentCursor(myResponse);
                     this.setVisible(false);
                 }
                 else{

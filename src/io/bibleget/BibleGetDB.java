@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
@@ -31,6 +30,7 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.JsonValue;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
@@ -74,12 +74,12 @@ public class BibleGetDB {
         
         final String optionsTableSchema = "CREATE TABLE OPTIONS ("
                 + "PARAGRAPHSTYLES_LINEHEIGHT INT, "
-                + "PARAGRAPHSTYLES_LEFTINDENT INT, "
-                + "PARAGRAPHSTYLES_RIGHTINDENT INT, "
+                + "PARAGRAPHSTYLES_LEFTINDENT DOUBLE, "
+                + "PARAGRAPHSTYLES_RIGHTINDENT DOUBLE, "
                 + "PARAGRAPHSTYLES_FONTFAMILY VARCHAR(50), "
                 + "PARAGRAPHSTYLES_ALIGNMENT INT, "
                 + "PARAGRAPHSTYLES_NOVERSIONFORMATTING BOOLEAN, "
-                + "PARAGRAPHSTYLES_INTERFACEINCM BOOLEAN, "
+                + "PARAGRAPHSTYLES_MEASUREUNIT INT, "
                 + "BIBLEVERSIONSTYLES_BOLD BOOLEAN, "
                 + "BIBLEVERSIONSTYLES_ITALIC BOOLEAN, "
                 + "BIBLEVERSIONSTYLES_UNDERLINE BOOLEAN, "
@@ -132,7 +132,7 @@ public class BibleGetDB {
                 + "PARAGRAPHSTYLES_FONTFAMILY, "
                 + "PARAGRAPHSTYLES_ALIGNMENT, "
                 + "PARAGRAPHSTYLES_NOVERSIONFORMATTING, "
-                + "PARAGRAPHSTYLES_INTERFACEINCM, "
+                + "PARAGRAPHSTYLES_MEASUREUNIT, "
                 + "BIBLEVERSIONSTYLES_BOLD, "
                 + "BIBLEVERSIONSTYLES_ITALIC, "
                 + "BIBLEVERSIONSTYLES_UNDERLINE, "
@@ -177,7 +177,7 @@ public class BibleGetDB {
                 + "LAYOUTPREFS_VERSENUMBER_SHOW, "
                 + "PREFERREDVERSIONS"
                 + ") VALUES ("
-                + "150,0,0,'"+defaultFont+"'," + BGET.ALIGN.JUSTIFY.getValue() + ",false," + (BibleGetIO.measureUnit==BGET.MEASUREUNIT.CM?"true":"false") + ","            //PARAGRAPH STYLES
+                + "150,0.0,0.0,'"+defaultFont+"'," + BGET.ALIGN.JUSTIFY.getValue() + ",false," + (BibleGetIO.measureUnit.getValue()) + ","            //PARAGRAPH STYLES
                 + "true,false,false,false,'#0000FF','#FFFFFF',14," + BGET.VALIGN.NORMAL.getValue() + ","    //BIBLE VERSION STYLES
                 + "true,false,false,false,'#AA0000','#FFFFFF',12," + BGET.VALIGN.NORMAL.getValue() + ","    //BOOK CHAPTER STYLES
                 + "false,false,false,false,'#AA0000','#FFFFFF',10," + BGET.VALIGN.SUPERSCRIPT.getValue() + ","    //VERSENUMBER STYLES
@@ -492,23 +492,40 @@ public class BibleGetDB {
                 colNames.add(cols.getString("COLUMN_NAME"));
                 int dType = cols.getInt("DATA_TYPE");
                 switch(dType){
-                    case Types.VARCHAR:
-                        colDataTypes.add(String.class); break;
-                    case Types.INTEGER:
-                        colDataTypes.add(Integer.class); break;
-                    case Types.FLOAT:
-                        colDataTypes.add(Float.class); break;
-                    case Types.DOUBLE:
-                    case Types.REAL:
-                        colDataTypes.add(Double.class); break;
-                    case Types.DATE:
-                    case Types.TIME:
-                    case Types.TIMESTAMP:
-                        colDataTypes.add(java.sql.Date.class); break;
+                    case Types.BIGINT:
+                        colDataTypes.add(java.lang.Long.class); break;
+                    case Types.BLOB:
+                        colDataTypes.add(java.sql.Blob.class); break;
                     case Types.BOOLEAN:
-                        colDataTypes.add(Boolean.class); break;
+                        colDataTypes.add(java.lang.Boolean.class); break;
+                    case Types.CHAR:
+                        colDataTypes.add(java.lang.String.class); break;
+                    case Types.CLOB:
+                        colDataTypes.add(java.sql.Clob.class); break;
+                    case Types.DATE:
+                        colDataTypes.add(java.sql.Date.class); break;
+                    case Types.DECIMAL:
+                        colDataTypes.add(java.math.BigDecimal.class); break;
+                    case Types.DOUBLE:
+                        colDataTypes.add(java.lang.Double.class); break;
+                    case Types.FLOAT:
+                        colDataTypes.add(java.lang.Float.class); break;
+                    case Types.INTEGER:
+                        colDataTypes.add(java.lang.Integer.class); break;
+                    case Types.NUMERIC:
+                        colDataTypes.add(java.math.BigDecimal.class); break;
+                    case Types.REAL:
+                        colDataTypes.add(java.lang.Float.class); break;
+                    case Types.SMALLINT:
+                        colDataTypes.add(java.lang.Short.class); break;
+                    case Types.VARCHAR:
+                        colDataTypes.add(java.lang.String.class); break;
+                    case Types.TIME:
+                        colDataTypes.add(java.sql.Time.class); break;
+                    case Types.TIMESTAMP:
+                        colDataTypes.add(java.sql.Timestamp.class); break;
                     default:
-                        colDataTypes.add(String.class); break;
+                        colDataTypes.add(java.lang.String.class); break;
                 }
             }
             cols.close();
@@ -533,12 +550,20 @@ public class BibleGetDB {
                         while(itColNames.hasNext() && itDataTypes.hasNext()){
                             String colName = (String) itColNames.next();
                             Class dataType = (Class) itDataTypes.next();
-                            if(dataType==String.class){ 
-                                thisRow.add(colName, rsOps.getString(colName)); 
-                                //System.out.println("BibleGetDB.java: "+colName+" has a string datatype, value is "+rsOps.getString(colName));
-                            }
-                            if(dataType==Integer.class){ thisRow.add(colName, rsOps.getInt(colName)); }
-                            if(dataType==Boolean.class){ thisRow.add(colName, rsOps.getBoolean(colName)); }
+                            if(dataType==java.lang.Long.class){ thisRow.add(colName, rsOps.getLong(colName)); }
+                            if(dataType==java.sql.Blob.class){ thisRow.add(colName, (JsonValue) rsOps.getBlob(colName)); }
+                            if(dataType==java.lang.Boolean.class){ thisRow.add(colName, rsOps.getBoolean(colName)); }
+                            if(dataType==java.lang.String.class){ thisRow.add(colName, rsOps.getString(colName)); }
+                            if(dataType==java.sql.Clob.class){ thisRow.add(colName, (JsonValue) rsOps.getClob(colName)); }
+                            if(dataType==java.sql.Date.class){ thisRow.add(colName, (JsonValue) rsOps.getDate(colName)); }
+                            if(dataType==java.math.BigDecimal.class){ thisRow.add(colName, rsOps.getBigDecimal(colName)); }
+                            if(dataType==java.lang.Double.class){ thisRow.add(colName, rsOps.getDouble(colName)); }
+                            if(dataType==java.lang.Float.class){ thisRow.add(colName, rsOps.getFloat(colName)); }
+                            if(dataType==java.lang.Integer.class){ thisRow.add(colName, rsOps.getInt(colName)); }
+                            if(dataType==java.lang.Short.class){ thisRow.add(colName, rsOps.getShort(colName)); }
+                            if(dataType==java.sql.Time.class){ thisRow.add(colName, (JsonValue) rsOps.getTime(colName)); }
+                            if(dataType==java.sql.Timestamp.class){ thisRow.add(colName, (JsonValue) rsOps.getTimestamp(colName)); }
+                            
                             //System.out.println(colName + " <" + dataType + ">");
                         }
                         JsonObject currentRow = thisRow.build();
@@ -575,10 +600,19 @@ public class BibleGetDB {
                         String sqlexec = "SELECT "+option+" FROM OPTIONS";
                         try (ResultSet rsOps = stmt.executeQuery(sqlexec)) {
                             while (rsOps.next()) {
-                                //System.out.println(BibleGetDB.class.getName()+" [304]: retrieved a value from DB, about to return it to calling function" );
-                                if(dataType==String.class){ returnObj = rsOps.getString(option); }
-                                if(dataType==Integer.class){ returnObj = rsOps.getInt(option); }
-                                if(dataType==Boolean.class){ returnObj = rsOps.getBoolean(option); }
+                                if(dataType==java.lang.Long.class){ returnObj = rsOps.getLong(option); }
+                                if(dataType==java.sql.Blob.class){ returnObj = rsOps.getBlob(option); }
+                                if(dataType==java.lang.Boolean.class){ returnObj = rsOps.getBoolean(option); }
+                                if(dataType==java.lang.String.class){ returnObj = rsOps.getString(option); }
+                                if(dataType==java.sql.Clob.class){ returnObj = rsOps.getClob(option); }
+                                if(dataType==java.sql.Date.class){ returnObj = rsOps.getDate(option); }
+                                if(dataType==java.math.BigDecimal.class){ returnObj = rsOps.getBigDecimal(option); }
+                                if(dataType==java.lang.Double.class){ returnObj = rsOps.getDouble(option); }
+                                if(dataType==java.lang.Float.class){ returnObj = rsOps.getFloat(option); }
+                                if(dataType==java.lang.Integer.class){ returnObj = rsOps.getInt(option); }
+                                if(dataType==java.lang.Short.class){ returnObj = rsOps.getShort(option); }
+                                if(dataType==java.sql.Time.class){ returnObj = rsOps.getTime(option); }
+                                if(dataType==java.sql.Timestamp.class){ returnObj = rsOps.getTimestamp(option); }
                             }
                             rsOps.close();
                         }
@@ -600,21 +634,21 @@ public class BibleGetDB {
         dataOption = StringUtils.upperCase(dataOption);
         String metaDataStr = "";
         if(dataOption.startsWith("BIBLEBOOKS") || dataOption.equals("LANGUAGES") || dataOption.equals("VERSIONS") || dataOption.endsWith("IDX")){
-            System.out.println("getMetaData received a valid request for "+dataOption);
+            //System.out.println("getMetaData received a valid request for "+dataOption);
             if(instance.connect()){
                 if(instance.conn == null){
                     System.out.println("What is going on here? Why is connection null?");
                 }else{
-                    System.out.println("getMetaData has connected to the database...");
+                    //System.out.println("getMetaData has connected to the database...");
                 }
                 String sqlexec = "SELECT "+dataOption+" FROM METADATA WHERE ID=0";
                 try(Statement stmt = instance.conn.createStatement()){
                     try (ResultSet rsOps = stmt.executeQuery(sqlexec)) {
-                        System.out.println("query seems to have been successful...");
-                        ResultSetMetaData rsMD = rsOps.getMetaData();
-                        int cols = rsMD.getColumnCount();
-                        String colnm = rsMD.getColumnName(cols);
-                        System.out.println("there are "+Integer.toString(cols)+" columns in this resultset and name is: "+colnm+"(requested "+dataOption+")");
+                        //System.out.println("query seems to have been successful...");
+                        //ResultSetMetaData rsMD = rsOps.getMetaData();
+                        //int cols = rsMD.getColumnCount();
+                        //String colnm = rsMD.getColumnName(cols);
+                        //System.out.println("there are "+Integer.toString(cols)+" columns in this resultset and name is: "+colnm+"(requested "+dataOption+")");
                         while(rsOps.next()){
                             metaDataStr = rsOps.getString(dataOption);
                         }
@@ -641,34 +675,71 @@ public class BibleGetDB {
                 colNames.add(colname);
                 colDataTypes.add(Integer.class);
             }
-            try {
-                Statement stmt = instance.conn.createStatement();
+            try (Statement stmt = instance.conn.createStatement()) {
                 String sqlexec = "UPDATE OPTIONS SET "+colname+" = "+value+"";
                 boolean rowsUpdated = stmt.execute(sqlexec);
                 if(rowsUpdated==false) {
                     count = stmt.getUpdateCount();
-                        if(count==-1){
-                            //System.out.println("The result is a ResultSet object or there are no more results."); 
+                    if(count==-1){
+                        //System.out.println("The result is a ResultSet object or there are no more results."); 
+                    }
+                    else{
+                        //should have affected only one row
+                        if(count==1){ 
+                            stmt.close();
+                            instance.disconnect();
+                            return true; 
                         }
-                        else{
-                            //should have affected only one row
-                            if(count==1){ 
-                                stmt.close();
-                                instance.disconnect();
-                                return true; 
-                            }
-                        }
+                    }
                 }
                 else{
                     //returns true only when returning a resultset; should not be the case here
                 }
-                stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         return false;
     }
+
+    public boolean setDoubleOption(String colname, Double value) {
+        int count;
+        colname = colname.toUpperCase();
+        if(instance.connect()){
+            if(!colNames.contains(colname)){
+                boolean result = addColumn(colname,"DOUBLE");
+                if(result==false){ return false; }
+                //System.out.println("Added "+colname+" column of type INT to OPTIONS table");
+                colNames.add(colname);
+                colDataTypes.add(Double.class);
+            }
+            try (Statement stmt = instance.conn.createStatement()) {
+                String sqlexec = "UPDATE OPTIONS SET "+colname+" = "+value+"";
+                boolean rowsUpdated = stmt.execute(sqlexec);
+                if(rowsUpdated==false) {
+                    count = stmt.getUpdateCount();
+                    if(count==-1){
+                        //System.out.println("The result is a ResultSet object or there are no more results."); 
+                    }
+                    else{
+                        //should have affected only one row
+                        if(count==1){ 
+                            stmt.close();
+                            instance.disconnect();
+                            return true; 
+                        }
+                    }
+                }
+                else{
+                    //returns true only when returning a resultset; should not be the case here
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(BibleGetDB.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return false;
+    }
+
     
     public boolean setStringOption(String colname, String value) {
         int count;

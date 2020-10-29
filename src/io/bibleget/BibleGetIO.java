@@ -1,6 +1,8 @@
 package io.bibleget;
 
 import com.sun.star.beans.PropertyValue;
+import com.sun.star.beans.UnknownPropertyException;
+import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.deployment.PackageInformationProvider;
 import com.sun.star.deployment.XPackageInformationProvider;
@@ -10,11 +12,12 @@ import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.lib.uno.helper.Factory;
 import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.registry.XRegistryKey;
+import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
+import com.sun.star.view.XViewSettingsSupplier;
 import java.awt.Desktop;
-import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -220,7 +223,7 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.myOptionFrame.setVisible(true);
                     }
                     else{
-                        BibleGetIO.myOptionFrame = OptionsFrame.getInstance();
+                        BibleGetIO.myOptionFrame = OptionsFrame.getInstance(instance.m_xController);
                         BibleGetIO.myOptionFrame.setVisible(true);
                     }
                 } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
@@ -440,6 +443,7 @@ public final class BibleGetIO extends WeakBase
                 instance.m_xFrame = (com.sun.star.frame.XFrame)UnoRuntime.queryInterface(
                 com.sun.star.frame.XFrame.class, object[0]);
                 instance.m_xController = instance.m_xFrame.getController();
+                
                 try {
                     XMultiComponentFactory xMultiComponentFactory = instance.m_xContext.getServiceManager(); 
                     Object oProvider = 
@@ -466,8 +470,8 @@ public final class BibleGetIO extends WeakBase
                     String[] elNames = xNameAccess1.getElementNames();
                     //xNameAccess1.getElementType();
                     System.out.println("elNames = " + Arrays.toString(elNames));
-                    System.out.println(xNameAccess1.getByName("MeasureUnit").toString());
-                    System.out.println(xNameAccess1.getElementType().getTypeName());
+                    //System.out.println(xNameAccess1.getByName("MeasureUnit").toString());
+                    System.out.println(AnyConverter.toInt(xNameAccess1.getByName("MeasureUnit")));
                     /*
                         MM = 1
                         CM = 2
@@ -475,8 +479,28 @@ public final class BibleGetIO extends WeakBase
                         PICA = 7
                         POINT = 6
                     */
-                    int mUnit = Integer.parseInt(xNameAccess1.getByName("MeasureUnit").toString());
+                    int mUnit = AnyConverter.toInt(xNameAccess1.getByName("MeasureUnit"));
                     BibleGetIO.measureUnit = BGET.MEASUREUNIT.valueOf(mUnit);
+                    try {
+                        XViewSettingsSupplier xViewSettings = (XViewSettingsSupplier) UnoRuntime.queryInterface(XViewSettingsSupplier.class,instance.m_xController);
+                        XPropertySet viewSettings=xViewSettings.getViewSettings();
+                        System.out.println("I got the HorizontalRulerMetric property, here is the type :" + AnyConverter.getType(viewSettings.getPropertyValue("HorizontalRulerMetric")));
+                        System.out.println("And here is the value: " + AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric")));
+                        int mUnit1 = AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric"));
+                        if(mUnit1 != mUnit){
+                            //the ruler seems to have changed somehow?
+                            BibleGetIO.measureUnit = BGET.MEASUREUNIT.valueOf(mUnit1);
+                        }
+                        //Change listener does not seem to ever fire? Perhaps related to these bugs:
+                        //https://bz.apache.org/ooo/show_bug.cgi?id=61522
+                        //https://bz.apache.org/ooo/show_bug.cgi?id=121263
+                        //XPropertyChangeListener xl = new RulerListener();
+                        //viewSettings.addPropertyChangeListener("HorizontalRulerMetric", xl);
+                    } catch (UnknownPropertyException ex) {
+                        System.out.println(ex);
+                    } catch (IllegalArgumentException | Exception ex) {
+                        System.out.println(ex);
+                    }
                     
                     String mylcl;
                     mylcl = xNameAccess.getByName("UILocale").toString();
@@ -509,7 +533,7 @@ public final class BibleGetIO extends WeakBase
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.bibleGetAbout"); 
                         BibleGetIO.bibleGetAbout =  BibleGetAbout.getInstance();
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.myOptionFrame"); 
-                        BibleGetIO.myOptionFrame = OptionsFrame.getInstance();
+                        BibleGetIO.myOptionFrame = OptionsFrame.getInstance(instance.m_xController);
                     }
                     else{ 
                         System.out.println("Sorry, no database instance here."); 
@@ -520,6 +544,7 @@ public final class BibleGetIO extends WeakBase
                 } catch (java.lang.Exception ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                
             }
             else{
                 //System.out.println("instance already initialized...");        
@@ -542,4 +567,6 @@ public final class BibleGetIO extends WeakBase
     public static void main(String args[]) {
     }
     */
+    
+    
 }

@@ -100,8 +100,8 @@ public class BibleGetSelection {
                                 myResponse = myHTTPCaller.sendGet(myInputContent,versions);
                                 if(myResponse != null){
                                     xTextRange.setString("");
-                                    BibleGetJSON myJSON = new BibleGetJSON(m_xController);
-                                    myJSON.JSONParse(myResponse);
+                                    BibleGetDocInject myJSON = new BibleGetDocInject(m_xController);
+                                    myJSON.InsertTextAtCurrentCursor(myResponse);
                                 }
                                 else{
                                     JOptionPane.showMessageDialog(null,__("There was a problem communicating with the BibleGet server. Please try again."),"ERROR >> SERVER CONNECTIVITY ISSUE",JOptionPane.ERROR_MESSAGE);
