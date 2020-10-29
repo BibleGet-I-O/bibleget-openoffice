@@ -41,9 +41,6 @@ import javax.swing.JList;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
 import javax.swing.plaf.InternalFrameUI;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
-import org.cef.CefApp;
-import org.cef.CefClient;
-import org.cef.CefSettings;
 import org.cef.OS;
 import org.cef.browser.CefBrowser;
 
@@ -59,8 +56,6 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         
     private final FontFamilyListCellRenderer FFLCRenderer;
     private final DefaultComboBoxModel fontFamilies;
-    private static CefApp cefApp;
-    private static CefClient client;
     private final CefBrowser browser;
     private final Component browserUI;
     private final String previewDocument;
@@ -436,7 +431,7 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
             + "});"
             + "</script>";
         
-        previewDocument = "<html><head><meta charset=\"utf-8\">" + previewDocStylesheet
+        previewDocument = "<!DOCTYPE html><head><meta charset=\"utf-8\">" + previewDocStylesheet
             + "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>" 
             + previewDocScript 
             + "</head><body>"
@@ -461,17 +456,12 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
                         
         //this.myMessages = BGetI18N.getMessages();
         //String HTMLStrWithStyles = String.format(HTMLStr,s);
-        
-        CefSettings settings = new CefSettings();
-        settings.windowless_rendering_enabled = OS.isLinux();
-        //settings.log_severity = LogSeverity.LOGSEVERITY_ERROR;
-        cefApp = CefApp.getInstance(settings);
-        client = cefApp.createClient();
-        browser = client.createBrowser( DataUri.create("text/html",previewDocument), OS.isLinux(), false);
+        browser = BibleGetIO.client.createBrowser( DataUri.create("text/html",previewDocument), OS.isLinux(), false);
         browserUI = browser.getUIComponent();
                 
         initComponents();
         jInternalFrame1.getContentPane().add(browserUI, BorderLayout.CENTER);
+        //browser.loadURL(DataUri.create("text/html",previewDocument));
     }
 
     public static BibleGetOptionsFrame getInstance(XController m_xController) throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
@@ -641,8 +631,9 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         setSize(new java.awt.Dimension(1300, 1000));
 
         jPanelParagraph.setBorder(javax.swing.BorderFactory.createTitledBorder(null, __("Paragraph"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 12))); // NOI18N
+        jPanelParagraph.setMinimumSize(new java.awt.Dimension(42, 69));
         jPanelParagraph.setName("Paragraph"); // NOI18N
-        jPanelParagraph.setPreferredSize(new java.awt.Dimension(774, 90));
+        jPanelParagraph.setPreferredSize(new java.awt.Dimension(774, 95));
         jPanelParagraph.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 0));
 
         jPanelParagraphAlignment.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1), __("Alignment")));
@@ -896,7 +887,7 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
 
         jPanelBibleVersion.setBorder(javax.swing.BorderFactory.createTitledBorder(null, __("Bible Version"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 12))); // NOI18N
         jPanelBibleVersion.setMinimumSize(new java.awt.Dimension(625, 35));
-        jPanelBibleVersion.setPreferredSize(new java.awt.Dimension(910, 35));
+        jPanelBibleVersion.setPreferredSize(new java.awt.Dimension(910, 38));
         jPanelBibleVersion.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 0));
 
         jToolBar8.setFloatable(false);
@@ -988,6 +979,9 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBibleVersionAlignLeft.setSelected(USERPREFS.LAYOUTPREFS_BIBLEVERSION_ALIGNMENT==BGET.ALIGN.LEFT);
         jToggleButtonBibleVersionAlignLeft.setFocusable(false);
         jToggleButtonBibleVersionAlignLeft.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButtonBibleVersionAlignLeft.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jToggleButtonBibleVersionAlignLeft.setMaximumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBibleVersionAlignLeft.setMinimumSize(new java.awt.Dimension(37, 37));
         jToggleButtonBibleVersionAlignLeft.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToggleButtonBibleVersionAlignLeft.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1001,6 +995,7 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBibleVersionAlignCenter.setSelected(USERPREFS.LAYOUTPREFS_BIBLEVERSION_ALIGNMENT==BGET.ALIGN.CENTER);
         jToggleButtonBibleVersionAlignCenter.setFocusable(false);
         jToggleButtonBibleVersionAlignCenter.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButtonBibleVersionAlignCenter.setMargin(new java.awt.Insets(4, 4, 4, 4));
         jToggleButtonBibleVersionAlignCenter.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToggleButtonBibleVersionAlignCenter.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1014,6 +1009,7 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBibleVersionAlignRight.setSelected(USERPREFS.LAYOUTPREFS_BIBLEVERSION_ALIGNMENT==BGET.ALIGN.RIGHT);
         jToggleButtonBibleVersionAlignRight.setFocusable(false);
         jToggleButtonBibleVersionAlignRight.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButtonBibleVersionAlignRight.setMargin(new java.awt.Insets(4, 4, 4, 4));
         jToggleButtonBibleVersionAlignRight.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToggleButtonBibleVersionAlignRight.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1029,9 +1025,10 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBibleVersionWrapNone.setText("NONE");
         jToggleButtonBibleVersionWrapNone.setFocusable(false);
         jToggleButtonBibleVersionWrapNone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBibleVersionWrapNone.setMaximumSize(new java.awt.Dimension(55, 31));
-        jToggleButtonBibleVersionWrapNone.setMinimumSize(new java.awt.Dimension(55, 31));
-        jToggleButtonBibleVersionWrapNone.setPreferredSize(new java.awt.Dimension(55, 31));
+        jToggleButtonBibleVersionWrapNone.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jToggleButtonBibleVersionWrapNone.setMaximumSize(new java.awt.Dimension(55, 37));
+        jToggleButtonBibleVersionWrapNone.setMinimumSize(new java.awt.Dimension(55, 37));
+        jToggleButtonBibleVersionWrapNone.setPreferredSize(new java.awt.Dimension(55, 37));
         jToggleButtonBibleVersionWrapNone.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 jToggleButtonBibleVersionWrapNoneItemStateChanged(evt);
@@ -1045,9 +1042,10 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBibleVersionWrapParentheses.setText("()");
         jToggleButtonBibleVersionWrapParentheses.setFocusable(false);
         jToggleButtonBibleVersionWrapParentheses.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBibleVersionWrapParentheses.setMaximumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBibleVersionWrapParentheses.setMinimumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBibleVersionWrapParentheses.setPreferredSize(new java.awt.Dimension(31, 31));
+        jToggleButtonBibleVersionWrapParentheses.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jToggleButtonBibleVersionWrapParentheses.setMaximumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBibleVersionWrapParentheses.setMinimumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBibleVersionWrapParentheses.setPreferredSize(new java.awt.Dimension(37, 37));
         jToggleButtonBibleVersionWrapParentheses.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 jToggleButtonBibleVersionWrapParenthesesItemStateChanged(evt);
@@ -1061,9 +1059,10 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBibleVersionWrapBrackets.setText("[]");
         jToggleButtonBibleVersionWrapBrackets.setFocusable(false);
         jToggleButtonBibleVersionWrapBrackets.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBibleVersionWrapBrackets.setMaximumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBibleVersionWrapBrackets.setMinimumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBibleVersionWrapBrackets.setPreferredSize(new java.awt.Dimension(31, 31));
+        jToggleButtonBibleVersionWrapBrackets.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jToggleButtonBibleVersionWrapBrackets.setMaximumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBibleVersionWrapBrackets.setMinimumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBibleVersionWrapBrackets.setPreferredSize(new java.awt.Dimension(37, 37));
         jToggleButtonBibleVersionWrapBrackets.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 jToggleButtonBibleVersionWrapBracketsItemStateChanged(evt);
@@ -1077,9 +1076,10 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBibleVersionVAlignTop.setSelected(USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION==BGET.POS.TOP);
         jToggleButtonBibleVersionVAlignTop.setFocusable(false);
         jToggleButtonBibleVersionVAlignTop.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBibleVersionVAlignTop.setMaximumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBibleVersionVAlignTop.setMinimumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBibleVersionVAlignTop.setPreferredSize(new java.awt.Dimension(31, 31));
+        jToggleButtonBibleVersionVAlignTop.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jToggleButtonBibleVersionVAlignTop.setMaximumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBibleVersionVAlignTop.setMinimumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBibleVersionVAlignTop.setPreferredSize(new java.awt.Dimension(37, 37));
         jToggleButtonBibleVersionVAlignTop.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToggleButtonBibleVersionVAlignTop.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1093,8 +1093,9 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBibleVersionVAlignBottom.setSelected(USERPREFS.LAYOUTPREFS_BIBLEVERSION_POSITION==BGET.POS.BOTTOM);
         jToggleButtonBibleVersionVAlignBottom.setFocusable(false);
         jToggleButtonBibleVersionVAlignBottom.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBibleVersionVAlignBottom.setMaximumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBibleVersionVAlignBottom.setMinimumSize(new java.awt.Dimension(31, 31));
+        jToggleButtonBibleVersionVAlignBottom.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jToggleButtonBibleVersionVAlignBottom.setMaximumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBibleVersionVAlignBottom.setMinimumSize(new java.awt.Dimension(37, 37));
         jToggleButtonBibleVersionVAlignBottom.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToggleButtonBibleVersionVAlignBottom.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1229,6 +1230,7 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterAlignLeft.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT==BGET.ALIGN.LEFT);
         jToggleButtonBookChapterAlignLeft.setFocusable(false);
         jToggleButtonBookChapterAlignLeft.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButtonBookChapterAlignLeft.setMargin(new java.awt.Insets(4, 4, 4, 4));
         jToggleButtonBookChapterAlignLeft.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToggleButtonBookChapterAlignLeft.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1242,6 +1244,7 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterAlignCenter.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT==BGET.ALIGN.CENTER);
         jToggleButtonBookChapterAlignCenter.setFocusable(false);
         jToggleButtonBookChapterAlignCenter.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButtonBookChapterAlignCenter.setMargin(new java.awt.Insets(4, 4, 4, 4));
         jToggleButtonBookChapterAlignCenter.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToggleButtonBookChapterAlignCenter.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1255,6 +1258,7 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterAlignRight.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_ALIGNMENT==BGET.ALIGN.RIGHT);
         jToggleButtonBookChapterAlignRight.setFocusable(false);
         jToggleButtonBookChapterAlignRight.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButtonBookChapterAlignRight.setMargin(new java.awt.Insets(4, 4, 4, 4));
         jToggleButtonBookChapterAlignRight.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToggleButtonBookChapterAlignRight.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1270,9 +1274,10 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterWrapNone.setText("NONE");
         jToggleButtonBookChapterWrapNone.setFocusable(false);
         jToggleButtonBookChapterWrapNone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBookChapterWrapNone.setMaximumSize(new java.awt.Dimension(55, 31));
-        jToggleButtonBookChapterWrapNone.setMinimumSize(new java.awt.Dimension(55, 31));
-        jToggleButtonBookChapterWrapNone.setPreferredSize(new java.awt.Dimension(55, 31));
+        jToggleButtonBookChapterWrapNone.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jToggleButtonBookChapterWrapNone.setMaximumSize(new java.awt.Dimension(55, 37));
+        jToggleButtonBookChapterWrapNone.setMinimumSize(new java.awt.Dimension(55, 37));
+        jToggleButtonBookChapterWrapNone.setPreferredSize(new java.awt.Dimension(55, 37));
         jToggleButtonBookChapterWrapNone.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 jToggleButtonBookChapterWrapNoneItemStateChanged(evt);
@@ -1286,9 +1291,10 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterWrapParentheses.setText("()");
         jToggleButtonBookChapterWrapParentheses.setFocusable(false);
         jToggleButtonBookChapterWrapParentheses.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBookChapterWrapParentheses.setMaximumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBookChapterWrapParentheses.setMinimumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBookChapterWrapParentheses.setPreferredSize(new java.awt.Dimension(31, 31));
+        jToggleButtonBookChapterWrapParentheses.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jToggleButtonBookChapterWrapParentheses.setMaximumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBookChapterWrapParentheses.setMinimumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBookChapterWrapParentheses.setPreferredSize(new java.awt.Dimension(37, 37));
         jToggleButtonBookChapterWrapParentheses.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 jToggleButtonBookChapterWrapParenthesesItemStateChanged(evt);
@@ -1302,9 +1308,10 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterWrapBrackets.setText("[]");
         jToggleButtonBookChapterWrapBrackets.setFocusable(false);
         jToggleButtonBookChapterWrapBrackets.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBookChapterWrapBrackets.setMaximumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBookChapterWrapBrackets.setMinimumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBookChapterWrapBrackets.setPreferredSize(new java.awt.Dimension(31, 31));
+        jToggleButtonBookChapterWrapBrackets.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jToggleButtonBookChapterWrapBrackets.setMaximumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBookChapterWrapBrackets.setMinimumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBookChapterWrapBrackets.setPreferredSize(new java.awt.Dimension(37, 37));
         jToggleButtonBookChapterWrapBrackets.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 jToggleButtonBookChapterWrapBracketsItemStateChanged(evt);
@@ -1318,8 +1325,9 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterVAlignTop.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.TOP);
         jToggleButtonBookChapterVAlignTop.setFocusable(false);
         jToggleButtonBookChapterVAlignTop.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBookChapterVAlignTop.setMaximumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBookChapterVAlignTop.setMinimumSize(new java.awt.Dimension(31, 31));
+        jToggleButtonBookChapterVAlignTop.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jToggleButtonBookChapterVAlignTop.setMaximumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBookChapterVAlignTop.setMinimumSize(new java.awt.Dimension(37, 37));
         jToggleButtonBookChapterVAlignTop.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToggleButtonBookChapterVAlignTop.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1333,8 +1341,9 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterVAlignBottom.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOM);
         jToggleButtonBookChapterVAlignBottom.setFocusable(false);
         jToggleButtonBookChapterVAlignBottom.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBookChapterVAlignBottom.setMaximumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBookChapterVAlignBottom.setMinimumSize(new java.awt.Dimension(31, 31));
+        jToggleButtonBookChapterVAlignBottom.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jToggleButtonBookChapterVAlignBottom.setMaximumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBookChapterVAlignBottom.setMinimumSize(new java.awt.Dimension(37, 37));
         jToggleButtonBookChapterVAlignBottom.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToggleButtonBookChapterVAlignBottom.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1348,8 +1357,9 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonBookChapterVAlignBottominline.setSelected(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_POSITION==BGET.POS.BOTTOMINLINE);
         jToggleButtonBookChapterVAlignBottominline.setFocusable(false);
         jToggleButtonBookChapterVAlignBottominline.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jToggleButtonBookChapterVAlignBottominline.setMaximumSize(new java.awt.Dimension(31, 31));
-        jToggleButtonBookChapterVAlignBottominline.setMinimumSize(new java.awt.Dimension(31, 31));
+        jToggleButtonBookChapterVAlignBottominline.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        jToggleButtonBookChapterVAlignBottominline.setMaximumSize(new java.awt.Dimension(37, 37));
+        jToggleButtonBookChapterVAlignBottominline.setMinimumSize(new java.awt.Dimension(37, 37));
         jToggleButtonBookChapterVAlignBottominline.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToggleButtonBookChapterVAlignBottominline.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1431,7 +1441,7 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
 
         jPanelVerseNumber.setBorder(javax.swing.BorderFactory.createTitledBorder(null, __("Verse Number"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 12))); // NOI18N
         jPanelVerseNumber.setMinimumSize(new java.awt.Dimension(449, 35));
-        jPanelVerseNumber.setPreferredSize(new java.awt.Dimension(910, 35));
+        jPanelVerseNumber.setPreferredSize(new java.awt.Dimension(910, 38));
         jPanelVerseNumber.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 0));
 
         jToolBar3.setFloatable(false);
@@ -1572,8 +1582,8 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jPanel3.add(jPanelVerseNumber);
 
         jPanelVerseText.setBorder(javax.swing.BorderFactory.createTitledBorder(null, __("Verse Text"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 12))); // NOI18N
-        jPanelVerseText.setMinimumSize(new java.awt.Dimension(412, 35));
-        jPanelVerseText.setPreferredSize(new java.awt.Dimension(910, 35));
+        jPanelVerseText.setMinimumSize(new java.awt.Dimension(412, 25));
+        jPanelVerseText.setPreferredSize(new java.awt.Dimension(910, 28));
         jPanelVerseText.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 0));
 
         jToolBar4.setFloatable(false);
@@ -3161,6 +3171,7 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
 
     @Override
     public void setVisible(final boolean visible) {
+        //browser.loadURL(DataUri.create("text/html",previewDocument));
         XViewSettingsSupplier xViewSettings = (XViewSettingsSupplier) UnoRuntime.queryInterface(XViewSettingsSupplier.class,m_xController);
         XPropertySet viewSettings=xViewSettings.getViewSettings();
         try {

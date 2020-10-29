@@ -31,6 +31,10 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
+import org.cef.CefApp;
+import org.cef.CefClient;
+import org.cef.CefSettings;
+import org.cef.OS;
 
 public final class BibleGetIO extends WeakBase
    implements com.sun.star.frame.XDispatchProvider,
@@ -59,11 +63,15 @@ public final class BibleGetIO extends WeakBase
     private static BibleGetSelection quoteFromSelection;
     private static DBHelper biblegetDB;
     private static BibleGetAboutFrame bibleGetAbout;
+    private static BibleGetSearchFrame bibleGetSearch;
     
     private static String myLocale;
     private static Locale uiLocale;
     //public ResourceBundle myMessages;
     public static BGET.MEASUREUNIT measureUnit;
+
+    private static CefApp cefApp;
+    public static CefClient client;
     
     private static BibleGetIO instance;
     
@@ -135,6 +143,8 @@ public final class BibleGetIO extends WeakBase
             if ( aURL.Path.compareTo("Help") == 0 )
                 return this;
             if ( aURL.Path.compareTo("Contribute") == 0 )
+                return this;
+            if ( aURL.Path.compareTo("Search") == 0 )
                 return this;
         }
         return null;
@@ -294,6 +304,27 @@ public final class BibleGetIO extends WeakBase
                 } catch (MalformedURLException ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException | URISyntaxException ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                return;
+            }
+            if ( aURL.Path.compareTo("Search") == 0 )
+            {
+                try {
+                    // add your own code here
+                    if(BibleGetIO.bibleGetSearch != null ){
+                        //System.out.println("We already have an options windows, now making it visible");
+                        BibleGetIO.bibleGetSearch.setVisible(true);
+                    }
+                    else{
+                        //make sure we also have the database initialized first
+                        //BibleGetIO.biblegetDB = DBHelper.getInstance();                        
+                        BibleGetIO.bibleGetSearch = BibleGetSearchFrame.getInstance();
+                        BibleGetIO.bibleGetSearch.setVisible(true);
+                    }
+                } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.lang.Exception ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
@@ -521,6 +552,13 @@ public final class BibleGetIO extends WeakBase
                     BibleGetIO.uiLocale = new Locale(BibleGetIO.myLocale);
                     Locale.setDefault(BibleGetIO.uiLocale);
                     //instance.myMessages = BibleGetI18N.getMessages();
+                    
+                    CefSettings settings = new CefSettings();
+                    settings.windowless_rendering_enabled = OS.isLinux();
+                    //settings.log_severity = LogSeverity.LOGSEVERITY_ERROR;
+                    cefApp = CefApp.getInstance(settings);
+                    client = cefApp.createClient();
+                    
                     BibleGetIO.biblegetDB = DBHelper.getInstance();
                     if(BibleGetIO.biblegetDB != null){ 
                         //System.out.println("BibleGetIO main class : We have an instance of database!"); 
@@ -534,6 +572,7 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.bibleGetAbout =  BibleGetAboutFrame.getInstance();
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.myOptionFrame"); 
                         BibleGetIO.myOptionFrame = BibleGetOptionsFrame.getInstance(instance.m_xController);
+                        BibleGetIO.bibleGetSearch = BibleGetSearchFrame.getInstance();
                     }
                     else{ 
                         System.out.println("Sorry, no database instance here."); 

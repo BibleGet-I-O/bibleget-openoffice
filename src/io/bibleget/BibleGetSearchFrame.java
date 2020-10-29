@@ -15,19 +15,47 @@
  */
 package io.bibleget;
 
+import com.sun.star.frame.XController;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFrame;
+import org.cef.OS;
+import org.cef.browser.CefBrowser;
+
 /**
  *
  * @author johnrdorazio
  */
 public class BibleGetSearchFrame extends javax.swing.JFrame {
-
+    
+    private final CefBrowser browser;
+    private final Component browserUI;
+    private static BibleGetSearchFrame instance;
+    
     /**
      * Creates new form BibleGetSearchFrame
      */
     public BibleGetSearchFrame() {
+        browser = BibleGetIO.client.createBrowser( DataUri.create("text/html","<!DOCTYPE html><head><meta charset=\"utf-8\"><script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script></head><body><h1>Initializing preview area...</h1></body>"), OS.isLinux(), false);
+        browserUI = browser.getUIComponent();
         initComponents();
+        jInternalFramePreviewArea.getContentPane().add(browserUI, BorderLayout.CENTER);
     }
 
+    public static BibleGetSearchFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
+    {
+        if(instance == null)
+        {
+            instance = new BibleGetSearchFrame();
+        }
+        return instance;
+    }
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -37,20 +65,33 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        jPanelSettingsArea = new javax.swing.JPanel();
+        jInternalFramePreviewArea = new javax.swing.JInternalFrame();
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setName("searchFrame"); // NOI18N
+        setPreferredSize(new java.awt.Dimension(900, 500));
+
+        jPanelSettingsArea.setPreferredSize(new java.awt.Dimension(300, 500));
+
+        javax.swing.GroupLayout jPanelSettingsAreaLayout = new javax.swing.GroupLayout(jPanelSettingsArea);
+        jPanelSettingsArea.setLayout(jPanelSettingsAreaLayout);
+        jPanelSettingsAreaLayout.setHorizontalGroup(
+            jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 300, Short.MAX_VALUE)
         );
+        jPanelSettingsAreaLayout.setVerticalGroup(
+            jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 500, Short.MAX_VALUE)
+        );
+
+        getContentPane().add(jPanelSettingsArea, java.awt.BorderLayout.WEST);
+
+        jInternalFramePreviewArea.setVisible(true);
+        getContentPane().add(jInternalFramePreviewArea, java.awt.BorderLayout.CENTER);
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     /**
@@ -69,25 +110,59 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(BibleGetSearchFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(BibleGetSearchFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(BibleGetSearchFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(BibleGetSearchFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
+        
+        //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
+        java.awt.EventQueue.invokeLater(() -> {
+            try {
                 new BibleGetSearchFrame().setVisible(true);
+            } catch (Exception ex) {
+                Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JInternalFrame jInternalFramePreviewArea;
+    private javax.swing.JPanel jPanelSettingsArea;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void setVisible(final boolean visible) {
+        // make sure that frame is marked as not disposed if it is asked to be visible
+        if (visible) {
+            //setDisposed(false);
+        }
+        // let's handle visibility...
+        if (!visible || !isVisible()) { // have to check this condition simply because super.setVisible(true) invokes toFront if frame was already visible
+            super.setVisible(visible);
+        }
+        // ...and bring frame to the front.. in a strange and weird way
+        if (visible) {
+            int state = super.getExtendedState();
+            state &= ~JFrame.ICONIFIED;
+            super.setExtendedState(state);
+            super.setAlwaysOnTop(true);
+            super.toFront();
+            super.requestFocus();
+            super.setAlwaysOnTop(false);
+        }
+    }    
+
+    @Override
+    public void toFront() {
+        super.setVisible(true);
+        int state = super.getExtendedState();
+        state &= ~JFrame.ICONIFIED;
+        super.setExtendedState(state);
+        super.setAlwaysOnTop(true);
+        super.toFront();
+        super.requestFocus();
+        super.setAlwaysOnTop(false);
+    }   
 }

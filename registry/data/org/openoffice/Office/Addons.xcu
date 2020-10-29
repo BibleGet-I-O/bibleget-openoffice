@@ -65,10 +65,32 @@
           </node>
           <node oor:name="m3" oor:op="replace">
             <prop oor:name="URL" oor:type="xs:string">
+              <value>io.bibleget.biblegetio:Search</value>
+            </prop>
+            <prop oor:name="ImageIdentifier" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value>com.sun.star.text.TextDocument</value>
+            </prop>
+            <prop oor:name="Title" oor:type="xs:string">
+              <value/>
+              <value xml:lang="en">Search for verses by keyword</value>
+              <value xml:lang="es">Busca versículos por palabra clave</value>
+              <value xml:lang="it">Cerca versetti per parola chiave</value>
+              <value xml:lang="fr">Recherche des versets par mot-clé</value>
+              <value xml:lang="de">Suche Bibelverse nach Stichwort</value>
+            </prop>
+          </node>          
+          <node oor:name="m4" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
               <value>private:separator</value>
             </prop>
           </node>
-          <node oor:name="m4" oor:op="replace">
+          <node oor:name="m5" oor:op="replace">
             <prop oor:name="URL" oor:type="xs:string">
               <value>io.bibleget.biblegetio:Options</value>
             </prop>
@@ -90,7 +112,7 @@
               <value xml:lang="de">Einstellungen</value>
             </prop>
           </node>
-          <node oor:name="m5" oor:op="replace">
+          <node oor:name="m6" oor:op="replace">
             <prop oor:name="URL" oor:type="xs:string">
               <value>io.bibleget.biblegetio:Help</value>
             </prop>
@@ -112,12 +134,12 @@
               <value xml:lang="de">Hilfe</value>
             </prop>
           </node>
-          <node oor:name="m6" oor:op="replace">
+          <node oor:name="m7" oor:op="replace">
             <prop oor:name="URL" oor:type="xs:string">
               <value>private:separator</value>
             </prop>
           </node>
-          <node oor:name="m7" oor:op="replace">
+          <node oor:name="m8" oor:op="replace">
             <prop oor:name="URL" oor:type="xs:string">
               <value>io.bibleget.biblegetio:SendFeedback</value>
             </prop>
@@ -139,7 +161,7 @@
               <value xml:lang="de">Feedback schicken</value>
             </prop>
           </node>
-          <node oor:name="m8" oor:op="replace">
+          <node oor:name="m9" oor:op="replace">
             <prop oor:name="URL" oor:type="xs:string">
               <value>io.bibleget.biblegetio:Contribute</value>
             </prop>
@@ -161,7 +183,7 @@
               <value xml:lang="de">Beitrag leisten</value>
             </prop>
           </node>
-          <node oor:name="m9" oor:op="replace">
+          <node oor:name="m10" oor:op="replace">
             <prop oor:name="URL" oor:type="xs:string">
               <value>io.bibleget.biblegetio:About</value>
             </prop>
@@ -242,10 +264,32 @@
             </node>
             <node oor:name="m3" oor:op="replace">
               <prop oor:name="URL" oor:type="xs:string">
-                <value>private:separator</value>
+                <value>io.bibleget.biblegetio:Search</value>
+              </prop>
+              <prop oor:name="ImageIdentifier" oor:type="xs:string">
+                <value/>
+              </prop>
+              <prop oor:name="Target" oor:type="xs:string">
+                <value>_self</value>
+              </prop>
+              <prop oor:name="Context" oor:type="xs:string">
+                <value>com.sun.star.text.TextDocument</value>
+              </prop>
+              <prop oor:name="Title" oor:type="xs:string">
+                <value/>
+                <value xml:lang="en">Search for verses by keyword</value>
+                <value xml:lang="es">Busca versículos por palabra clave</value>
+                <value xml:lang="it">Cerca versetti per parola chiave</value>
+                <value xml:lang="fr">Recherche des versets par mot-clé</value>
+                <value xml:lang="de">Suche Bibelverse nach Stichwort</value>
               </prop>
             </node>
             <node oor:name="m4" oor:op="replace">
+              <prop oor:name="URL" oor:type="xs:string">
+                <value>private:separator</value>
+              </prop>
+            </node>
+            <node oor:name="m5" oor:op="replace">
               <prop oor:name="URL" oor:type="xs:string">
                 <value>io.bibleget.biblegetio:Options</value>
               </prop>
@@ -267,7 +311,7 @@
                 <value xml:lang="de">Einstellungen</value>
               </prop>
             </node>
-            <node oor:name="m5" oor:op="replace">
+            <node oor:name="m6" oor:op="replace">
               <prop oor:name="URL" oor:type="xs:string">
                 <value>io.bibleget.biblegetio:Help</value>
               </prop>
@@ -289,12 +333,12 @@
                 <value xml:lang="de">Hilfe</value>
               </prop>
             </node>
-            <node oor:name="m6" oor:op="replace">
+            <node oor:name="m7" oor:op="replace">
               <prop oor:name="URL" oor:type="xs:string">
                 <value>private:separator</value>
               </prop>
             </node>
-            <node oor:name="m7" oor:op="replace">
+            <node oor:name="m8" oor:op="replace">
               <prop oor:name="URL" oor:type="xs:string">
                 <value>io.bibleget.biblegetio:SendFeedback</value>
               </prop>
@@ -316,7 +360,7 @@
                 <value xml:lang="de">Feedback schicken</value>
               </prop>
             </node>
-            <node oor:name="m8" oor:op="replace">
+            <node oor:name="m9" oor:op="replace">
               <prop oor:name="URL" oor:type="xs:string">
                 <value>io.bibleget.biblegetio:Contribute</value>
               </prop>
@@ -338,7 +382,7 @@
                 <value xml:lang="de">Beitrag leisten</value>
               </prop>
             </node>
-            <node oor:name="m9" oor:op="replace">
+            <node oor:name="m10" oor:op="replace">
               <prop oor:name="URL" oor:type="xs:string">
                 <value>io.bibleget.biblegetio:About</value>
               </prop>
@@ -370,10 +414,10 @@
         </prop>
         <node oor:name="UserDefinedImages">
           <prop oor:name="ImageSmallURL">
-            <value>%origin%/../../../../../images/quotefromselection-small.bmp</value>
+            <value>%origin%/../../../../../images/quotefromselection-small.png</value>
           </prop>
           <prop oor:name="ImageBigURL">
-            <value>%origin%/../../../../../images/quotefromselection-small.bmp</value>
+            <value>%origin%/../../../../../images/quotefromselection.png</value>
           </prop>
         </node>
       </node>
@@ -383,10 +427,10 @@
         </prop>
         <node oor:name="UserDefinedImages">
           <prop oor:name="ImageSmallURL">
-            <value>%origin%/../../../../../images/preferences-small.bmp</value>
+            <value>%origin%/../../../../../images/preferences-small.png</value>
           </prop>
           <prop oor:name="ImageBigURL">
-            <value>%origin%/../../../../../images/preferences-small.bmp</value>
+            <value>%origin%/../../../../../images/preferences.png</value>
           </prop>
         </node>
       </node>
@@ -396,10 +440,10 @@
         </prop>
         <node oor:name="UserDefinedImages">
           <prop oor:name="ImageSmallURL">
-            <value>%origin%/../../../../../images/info-small.bmp</value>
+            <value>%origin%/../../../../../images/info-small.png</value>
           </prop>
           <prop oor:name="ImageBigURL">
-            <value>%origin%/../../../../../images/info-small.bmp</value>
+            <value>%origin%/../../../../../images/info.png</value>
           </prop>
         </node>
       </node>
@@ -409,10 +453,10 @@
         </prop>
         <node oor:name="UserDefinedImages">
           <prop oor:name="ImageSmallURL">
-            <value>%origin%/../../../../../images/quotefrominput-small.bmp</value>
+            <value>%origin%/../../../../../images/quotefrominput-small.png</value>
           </prop>
           <prop oor:name="ImageBigURL">
-            <value>%origin%/../../../../../images/quotefrominput-small.bmp</value>
+            <value>%origin%/../../../../../images/quotefrominput.png</value>
           </prop>
         </node>
       </node>
@@ -422,10 +466,10 @@
         </prop>
         <node oor:name="UserDefinedImages">
           <prop oor:name="ImageSmallURL">
-            <value>%origin%/../../../../../images/email-small.bmp</value>
+            <value>%origin%/../../../../../images/email-small.png</value>
           </prop>
           <prop oor:name="ImageBigURL">
-            <value>%origin%/../../../../../images/email-large.bmp</value>
+            <value>%origin%/../../../../../images/email.png</value>
           </prop>
         </node>
       </node>
@@ -435,10 +479,10 @@
         </prop>
         <node oor:name="UserDefinedImages">
           <prop oor:name="ImageSmallURL">
-            <value>%origin%/../../../../../images/help-small.bmp</value>
+            <value>%origin%/../../../../../images/help-small.png</value>
           </prop>
           <prop oor:name="ImageBigURL">
-            <value>%origin%/../../../../../images/help-small.bmp</value>
+            <value>%origin%/../../../../../images/help.png</value>
           </prop>
         </node>
       </node>
@@ -448,13 +492,26 @@
         </prop>
         <node oor:name="UserDefinedImages">
           <prop oor:name="ImageSmallURL">
-            <value>%origin%/../../../../../images/paypal-small.bmp</value>
+            <value>%origin%/../../../../../images/paypal-small.png</value>
           </prop>
           <prop oor:name="ImageBigURL">
-            <value>%origin%/../../../../../images/paypal-large.bmp</value>
+            <value>%origin%/../../../../../images/paypal.png</value>
           </prop>
         </node>
       </node>
+      <node oor:name="io.bibleget.biblegetio.search.images" oor:op="replace">
+        <prop oor:name="URL" oor:type="xs:string">
+          <value>io.bibleget.biblegetio:Search</value>
+        </prop>
+        <node oor:name="UserDefinedImages">
+          <prop oor:name="ImageSmallURL">
+            <value>%origin%/../../../../../images/search-small.png</value>
+          </prop>
+          <prop oor:name="ImageBigURL">
+            <value>%origin%/../../../../../images/search.png</value>
+          </prop>
+        </node>
       </node>
+    </node>
   </node>
 </oor:component-data>
