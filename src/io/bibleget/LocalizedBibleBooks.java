@@ -81,11 +81,14 @@ public class LocalizedBibleBooks {
                     bibleBooksInCurLang = bibleBooksArr.getJsonArray(curLangIdx);
                     bookName = bibleBooksInCurLang.getString(0);
                     bookAbbrev = bibleBooksInCurLang.getString(1);
-                    if(bookName.contains("|")){
-                        bookName = bookName.split("|")[0].trim();
-                    }
+                    System.out.println("bookAbbrev = " + bookAbbrev + ", bookName = " + bookName);
                     if(bookAbbrev.contains("|")){
-                        bookAbbrev = bookAbbrev.split("|")[0].trim();
+                        String[] bookAbbrevArr = bookAbbrev.split("\\|");
+                        bookAbbrev = bookAbbrevArr[0].trim();
+                    }
+                    if(bookName.contains("|")){
+                        String[] bookNameArr = bookName.split("\\|");
+                        bookName = bookNameArr[0].trim();
                     }
                     System.out.println("book at index " + i + " = " + bookAbbrev + " :: " + bookName);
                     BookAbbreviations.put(i, bookAbbrev);

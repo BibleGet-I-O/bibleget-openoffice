@@ -82,6 +82,7 @@ public class BGetDocInject {
             System.out.println("USERPREFS is not null at least.");
         }
         this.L10NBibleBooks = LocalizedBibleBooks.getInstance();
+        
         this.m_xController = xController;
         if (xController != null) {
             m_xModel = (XModel) xController.getModel();
