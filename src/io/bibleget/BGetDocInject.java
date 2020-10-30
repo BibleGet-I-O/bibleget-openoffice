@@ -324,6 +324,8 @@ public class BGetDocInject {
                         bkChStr = L10NBibleBooks.GetBookByIndex(currentBookUnivIdx - 1).Abbrev + " " + currentChapter;
                         break;
                 }
+                System.out.println(bkChStr);
+                
                 if(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FULLQUERY){
                     String patternStr = "^[1-3]{0,1}((\\p{L}\\p{M}*)+)[1-9][0-9]{0,2}";
                     Pattern pattern = Pattern.compile(patternStr);
@@ -336,6 +338,8 @@ public class BGetDocInject {
                         bkChStr += matcher2.replaceFirst("");
                     }
                 }
+                System.out.println("bkChStr after fullQuery regex = " + bkChStr);
+                
                 switch(USERPREFS.LAYOUTPREFS_BOOKCHAPTER_WRAP){
                     case PARENTHESES:
                         bkChStr = "(" + bkChStr + ")";
