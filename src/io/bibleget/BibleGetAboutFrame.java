@@ -104,7 +104,7 @@ public class BibleGetAboutFrame extends javax.swing.JFrame {
 
     private void prepareDynamicInformation() throws ClassNotFoundException, SQLException, Exception {
         bibleGetDB = DBHelper.getInstance();
-        jList1 = new VersionsSelect();
+        jList1 = new VersionsSelect(false);
         jList1.setFont(new java.awt.Font("Tahoma",0,14));
         versionLangs = jList1.getVersionLangs();
         versionCount = jList1.getVersionCount();

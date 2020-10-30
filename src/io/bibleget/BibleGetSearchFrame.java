@@ -15,34 +15,21 @@
  */
 package io.bibleget;
 
-import ca.odell.glazedlists.BasicEventList;
-import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.SeparatorList;
-import ca.odell.glazedlists.swing.DefaultEventListModel;
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Locale;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.swing.DefaultListSelectionModel;
 import javax.swing.JFrame;
 import javax.swing.ListSelectionModel;
-//import javax.swing.SwingWorker;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+//import javax.swing.SwingWorker;
 import org.cef.OS;
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefFrame;
@@ -58,18 +45,24 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     private final CefBrowser browser;
     private final Component browserUI;
     private static BibleGetSearchFrame instance;
+        
+    private VersionsSelect jListBibleVersions;
     
-    private static DBHelper biblegetDB;
-    private SeparatorList<BibleVersion> versionsByLang;
-    private EventList<BibleVersion> bibleVersions;
-    private boolean[] enabledFlags;
-    private int[] indices;    
     /**
      * Creates new form BibleGetSearchFrame
      */
     public BibleGetSearchFrame() {
         
-        //SwingWorker swingWorker = new SwingWorker();
+        try {
+            jListBibleVersions = new VersionsSelect(true);
+            jListBibleVersions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            ListSelectionModel listSelectionModel = jListBibleVersions.getSelectionModel();
+            listSelectionModel.addListSelectionListener(new SharedListSelectionHandler());
+        } catch (SQLException ex) {
+            Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         String htmlStr = "<!DOCTYPE html>"
                 + "<head><meta charset=\"utf-8\">"
@@ -105,73 +98,9 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         browser = BibleGetIO.client.createBrowser( DataUri.create("text/html",htmlStr), OS.isLinux(), false);
         browserUI = browser.getUIComponent();
         
-        try {
-            prepareDynamicInformation();
-        } catch (SQLException ex) {
-            Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (Exception ex) {
-            Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
         initComponents();
         jInternalFramePreviewArea.getContentPane().add(browserUI, BorderLayout.CENTER);
-    }
-    
-    private void prepareDynamicInformation() throws ClassNotFoundException, SQLException, Exception{
-        biblegetDB = DBHelper.getInstance();
-        String bibleVersionsStr = biblegetDB.getMetaData("VERSIONS");
-        System.out.println(this.getClass().getSimpleName() + " -> prepareDynamicInformation -> bibleVersionsStr = " + bibleVersionsStr);
-        if(null == bibleVersionsStr){
-            System.out.println("We have a problem Watson!");
-        } else{
-            JsonReader jsonReader = Json.createReader(new StringReader(bibleVersionsStr));
-            JsonObject bibleVersionsObj = jsonReader.readObject();
-            Set<String> versionsabbrev = bibleVersionsObj.keySet();
-            bibleVersions = new BasicEventList<>();
-            if(!versionsabbrev.isEmpty()){
-                for(String s:versionsabbrev) {
-                    String versionStr = bibleVersionsObj.getString(s); //store these in an array
-                    String[] array; 
-                    array = versionStr.split("\\|");
-                    bibleVersions.add(new BibleVersion(s,array[0],array[1],StringUtils.capitalize(new Locale(array[2]).getDisplayLanguage())));
-                }
-            }
-
-            List<String> preferredVersions = new ArrayList<>();
-            String retVal = (String)biblegetDB.getOption("PREFERREDVERSIONS");
-            if(null==retVal){
-                //System.out.println("Attempt to retrieve PREFERREDVERSIONS from the Database resulted in null value");
-            }
-            else{
-                //System.out.println("Retrieved PREFERREDVERSIONS from the Database. Value is:"+retVal);
-                String[] favoriteVersions = StringUtils.split(retVal,',');
-                preferredVersions = Arrays.asList(favoriteVersions).subList(0, 1) ;
-            }
-            if(preferredVersions.size() < 1){
-                preferredVersions.add("NVBSE");
-            }
-            List<Integer> preferredVersionsIndices = new ArrayList<>();
-
-            versionsByLang = new SeparatorList<>(bibleVersions, new VersionComparator(),1, 1000);        
-            int listLength = versionsByLang.size();
-            enabledFlags = new boolean[listLength];        
-            ListIterator itr = versionsByLang.listIterator();
-            while(itr.hasNext()){
-                int idx = itr.nextIndex();
-                Object next = itr.next();
-                enabledFlags[idx] = !(next.getClass().getSimpleName().equals("GroupSeparator"));
-                if(next.getClass().getSimpleName().equals("BibleVersion")){
-                    BibleVersion thisBibleVersion = (BibleVersion)next;
-                    if(preferredVersions.contains(thisBibleVersion.getAbbrev())){
-                        preferredVersionsIndices.add(idx);
-                    }
-                }
-            }
-            indices = ArrayUtils.toPrimitive(preferredVersionsIndices.toArray(new Integer[preferredVersionsIndices.size()]));
-            //System.out.println("value of indices array: "+Arrays.toString(indices));
-        }
-    
-    }
-    
+    }    
 
     public static BibleGetSearchFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
     {
@@ -196,7 +125,6 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jProgressBar1 = new javax.swing.JProgressBar();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<>();
         jLabel2 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jTextField1 = new javax.swing.JTextField();
@@ -218,11 +146,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
 
         jProgressBar1.setStringPainted(true);
 
-        jList1.setModel(new DefaultEventListModel(versionsByLang));
-        jList1.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        jList1.setCellRenderer(new VersionCellRenderer());
-        jList1.setSelectionModel(new DisabledItemSelectionModel());
-        jScrollPane1.setViewportView(jList1);
+        jScrollPane1.setViewportView(jListBibleVersions);
 
         jLabel2.setText("Bible version to search from");
 
@@ -361,7 +285,6 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JList<String> jList1;
     private javax.swing.JPanel jPanelSettingsArea;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
@@ -369,82 +292,6 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField2;
     // End of variables declaration//GEN-END:variables
 
-
-    private class DisabledItemSelectionModel extends DefaultListSelectionModel {
-
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public void setSelectionInterval(int index0, int index1) {
-            if(index0 < index1){
-                for (int i = index0; i <= index1; i++){
-                    if(enabledFlags[i]){
-                        super.addSelectionInterval(i, i);
-                    }
-                }
-            }
-            else if(index1 < index0){
-                for (int i = index1; i <= index0; i++){
-                    if(enabledFlags[i]){
-                        super.addSelectionInterval(i, i);
-                    }
-                }
-            }
-            else if(index0 == index1){
-                if(enabledFlags[index0]){ super.setSelectionInterval(index0,index0); }                
-            }
-        }
-
-        @Override
-        public void addSelectionInterval(int index0, int index1) {
-            if(index0 < index1){
-                for (int i = index0; i <= index1; i++){
-                    if(enabledFlags[i]){
-                        super.addSelectionInterval(i, i);
-                    }
-                }
-            }
-            else if(index1 < index0){
-                for (int i = index1; i <= index0; i++){
-                    if(enabledFlags[i]){
-                        super.addSelectionInterval(i, i);
-                    }
-                }
-            }
-            else if(index0 == index1){
-                if(enabledFlags[index0]){ super.addSelectionInterval(index0,index0); }
-            }
-        }        
-        
-    }
-    
-    private class SharedListSelectionHandler implements ListSelectionListener {
-        @Override
-        public void valueChanged(ListSelectionEvent e) {
-            ListSelectionModel lsm = (ListSelectionModel)e.getSource();
-            /*
-            int firstIndex = e.getFirstIndex();
-            int lastIndex = e.getLastIndex();
-            boolean isAdjusting = e.getValueIsAdjusting();
-            */
-            List<String> selectedVersions = new ArrayList<>();
-            if (lsm.isSelectionEmpty()) {
-            } else {
-                // Find out which indexes are selected.
-                int minIndex = lsm.getMinSelectionIndex();
-                int maxIndex = lsm.getMaxSelectionIndex();
-                for (int i = minIndex; i <= maxIndex; i++) {
-                    if (lsm.isSelectedIndex(i)) {
-                        String abbrev = versionsByLang.get(i).getAbbrev();
-                        selectedVersions.add(abbrev);
-                    }
-                }
-            }
-            String versionsSelcd = StringUtils.join(selectedVersions.toArray(), ',');
-        }
-    }
-
-    
     
     @Override
     public void setVisible(final boolean visible) {
@@ -480,6 +327,36 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         super.setAlwaysOnTop(false);
     }
 
+    private class SharedListSelectionHandler implements ListSelectionListener {
+        @Override
+        public void valueChanged(ListSelectionEvent e) {
+            ListSelectionModel lsm = (ListSelectionModel)e.getSource();
+            /*
+            int firstIndex = e.getFirstIndex();
+            int lastIndex = e.getLastIndex();
+            boolean isAdjusting = e.getValueIsAdjusting();
+            */
+            @SuppressWarnings("unchecked")
+            SeparatorList<BibleVersion> versionsByLang = jListBibleVersions.getVersionsByLangList();
+            List<String> selectedVersions = new ArrayList<>();
+            if (lsm.isSelectionEmpty()) {
+            } else {
+                // Find out which indexes are selected.
+                int minIndex = lsm.getMinSelectionIndex();
+                int maxIndex = lsm.getMaxSelectionIndex();
+                for (int i = minIndex; i <= maxIndex; i++) {
+                    if (lsm.isSelectedIndex(i)) {
+                        String abbrev = versionsByLang.get(i).getAbbrev();
+                        selectedVersions.add(abbrev);
+                    }
+                }
+            }
+            String versionsSelcd = StringUtils.join(selectedVersions.toArray(), ',');
+            jLabel2.setText("Bible version to search from: " + versionsSelcd);
+        }
+    }
+    
+    
     public class MessageRouterHandler extends CefMessageRouterHandlerAdapter {
         @Override
         public boolean onQuery(CefBrowser browser, CefFrame frame, long query_id, String request, boolean persistent, CefQueryCallback callback) {

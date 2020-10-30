@@ -137,7 +137,7 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
             }
             List<Integer> preferredVersionsIndices = new ArrayList<>();
 
-            versionsByLang = new SeparatorList<>(bibleVersions, new VersionComparator(),1, 1000);        
+            versionsByLang = new SeparatorList<>(bibleVersions, new VersionComparator(),1, 1000);
             int listLength = versionsByLang.size();
             enabledFlags = new boolean[listLength];        
             ListIterator itr = versionsByLang.listIterator();
@@ -158,9 +158,10 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
     
     }
     
+    @SuppressWarnings("unchecked")
     public void updateDynamicInformation() throws ClassNotFoundException, SQLException, Exception{
         prepareDynamicInformation();
-        jList1.setModel(new DefaultEventListModel<>(versionsByLang));
+        jList1.setModel(new DefaultEventListModel(versionsByLang));
         jList1.setCellRenderer(new VersionCellRenderer());
         jList1.setSelectionModel(new DisabledItemSelectionModel());
         ListSelectionModel listSelectionModel = jList1.getSelectionModel();
@@ -184,7 +185,7 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList();
+        jList1 = new javax.swing.JList<BibleVersion>();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jProgressBar1 = new javax.swing.JProgressBar();

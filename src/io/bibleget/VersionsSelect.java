@@ -9,23 +9,20 @@ import ca.odell.glazedlists.BasicEventList;
 import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.SeparatorList;
 import ca.odell.glazedlists.swing.DefaultEventListModel;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
 import java.io.StringReader;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Set;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListSelectionModel;
-import javax.swing.JLabel;
-import javax.swing.JList;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -41,7 +38,8 @@ public class VersionsSelect extends javax.swing.JList {
    
     private static DBHelper biblegetDB;
         
-    public VersionsSelect() throws ClassNotFoundException, SQLException, Exception
+    @SuppressWarnings("unchecked")
+    public VersionsSelect(boolean loadPreferred) throws ClassNotFoundException, SQLException, Exception
     {       
         biblegetDB = DBHelper.getInstance();
         String bibleVersionsStr = biblegetDB.getMetaData("VERSIONS");
@@ -64,6 +62,21 @@ public class VersionsSelect extends javax.swing.JList {
                 });
             }
 
+            List<String> preferredVersions = new ArrayList<>();
+            String retVal = (String)biblegetDB.getOption("PREFERREDVERSIONS");
+            if(null==retVal){
+                //System.out.println("Attempt to retrieve PREFERREDVERSIONS from the Database resulted in null value");
+            }
+            else{
+                //System.out.println("Retrieved PREFERREDVERSIONS from the Database. Value is:"+retVal);
+                String[] favoriteVersions = StringUtils.split(retVal,',');
+                preferredVersions = Arrays.asList(favoriteVersions);
+            }
+            if(preferredVersions.isEmpty()){
+                preferredVersions.add("NVBSE");
+            }
+            List<Integer> preferredVersionsIndices = new ArrayList<>();            
+            
             versionsByLang = new SeparatorList<>(bibleVersions, new VersionComparator(),1, 1000);
 
             int listLength = versionsByLang.size();
@@ -80,11 +93,22 @@ public class VersionsSelect extends javax.swing.JList {
                 else{
                     versionLangs++;
                 }
+                if(next.getClass().getSimpleName().equals("BibleVersion")){
+                    BibleVersion thisBibleVersion = (BibleVersion)next;
+                    if(preferredVersions.contains(thisBibleVersion.getAbbrev())){
+                        preferredVersionsIndices.add(idx);
+                    }
+                }
             }
+            int[] indices;
+            indices = ArrayUtils.toPrimitive(preferredVersionsIndices.toArray(new Integer[preferredVersionsIndices.size()]));
 
             this.setModel(new DefaultEventListModel<>(versionsByLang));
             this.setCellRenderer(new VersionCellRenderer());
             this.setSelectionModel(new DisabledItemSelectionModel());
+            if(loadPreferred){
+                this.setSelectedIndices(indices);
+            }
         }
     }
             
@@ -108,32 +132,6 @@ public class VersionsSelect extends javax.swing.JList {
             return o1.getLang().compareTo(o2.getLang());
         }            
         
-    }
-
-    private static class VersionCellRenderer extends DefaultListCellRenderer{
-        
-        @Override
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-
-            if (value instanceof SeparatorList.Separator) {
-                SeparatorList.Separator separator = (SeparatorList.Separator) value;
-                BibleVersion bibleversion = (BibleVersion)separator.getGroup().get(0);
-                String lbl = "-- " + bibleversion.getLang() + " --";
-                label.setText(lbl);
-                label.setFont(label.getFont().deriveFont(Font.BOLD));
-                label.setBackground(Color.decode("#999999"));
-                //label.setForeground(Color.BLACK);
-                label.setBorder(BorderFactory.createEmptyBorder(0,5,0,0));
-                //label.setEnabled(false);
-            } else {
-                label.setFont(label.getFont().deriveFont(Font.PLAIN));
-                label.setBorder(BorderFactory.createEmptyBorder(0,15,0,0));
-                
-            }
-            
-            return label;
-        }
     }
 
     private class DisabledItemSelectionModel extends DefaultListSelectionModel {

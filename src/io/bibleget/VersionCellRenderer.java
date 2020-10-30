@@ -40,13 +40,16 @@ public class VersionCellRenderer extends DefaultListCellRenderer {
             label.setText(lbl);
             label.setFont(label.getFont().deriveFont(Font.BOLD));
             label.setForeground(Color.WHITE);
-            label.setBackground(Color.decode("#999999"));
+            label.setBackground(Color.decode("#000099"));
             //label.setForeground(Color.BLACK);
             label.setBorder(BorderFactory.createEmptyBorder(0,5,0,0));
             //label.setEnabled(false);
         } else {
             label.setFont(label.getFont().deriveFont(Font.PLAIN));
             label.setBorder(BorderFactory.createEmptyBorder(0,15,0,0));
+            if(isSelected){
+                label.setBackground(Color.CYAN);
+            }
         }
 
         return label;

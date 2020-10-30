@@ -136,6 +136,7 @@
             </Property>
           </Properties>
           <AuxValues>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JList&lt;BibleVersion&gt;()"/>
             <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="ListSelectionModel listSelectionModel = jList1.getSelectionModel();&#xd;&#xa;listSelectionModel.addListSelectionListener(new SharedListSelectionHandler());&#xd;&#xa;jList1.setSelectedIndices(indices);&#xd;&#xa;"/>
           </AuxValues>
         </Component>
