@@ -410,32 +410,34 @@ public class BGetDocInject {
                 int currentSpaceAfter = AnyConverter.toInt(xPropertySet.getPropertyValue("ParaBottomMargin"));
                 Pattern pattern1 = Pattern.compile("(.*?)<((speaker|sm|i|pr|po)[f|l|s|i|3]{0,1}[f|l]{0,1})>(.*?)</\\2>",Pattern.UNICODE_CHARACTER_CLASS);
                 Matcher matcher1 = pattern1.matcher(currentText);
-                //int iteration = 0;
                 
+                int matchCount = 0;
+                
+                //the following will be available from Java 9, we however are stuck with Java 8 for now, at least on Windows :
+                //System.out.println("For the verse text <" + currentText + ">, there seem to be " + matcher1.results().count() + " NABRE formatting tags");
+                System.out.println("For the verse text <" + currentText + "> we have the following NABRE formatting tag matches: ");
                 while(matcher1.find()){
-//                    System.out.print("Iteration ");
-//                    System.out.println(++iteration);
-//                    System.out.println("group1:"+matcher1.group(1));
-//                    System.out.println("group2:"+matcher1.group(2));
-//                    System.out.println("group3:"+matcher1.group(3));
-//                    System.out.println("group4:"+matcher1.group(4));
+                    //System.out.print("Iteration ");
+                    //System.out.println(++matchCount);
+                    //System.out.println("group1:"+matcher1.group(1));
+                    //System.out.println("group2:"+matcher1.group(2));
+                    //System.out.println("group3:"+matcher1.group(3));
+                    //System.out.println("group4:"+matcher1.group(4));
                     if(matcher1.group(1) != null && matcher1.group(1).isEmpty() == false)
                     {
                         normalText = true;
                         m_xText.insertString(xTextRange, matcher1.group(1), false);
                         remainingText = remainingText.replaceFirst(matcher1.group(1), "");
+                        //System.out.println("iteration " + matchCount + ": remainingText after removing initial normalText = " + remainingText);
                     }
-                    if(matcher1.group(4) != null && matcher1.group(4).isEmpty() == false)
+                    if(matcher1.group(4) != null && matcher1.group(4).isEmpty() == false) //TAG contents
                     {
-                        String matchedTag = matcher1.group(2);
-                        String formattingTagContents = matcher1.group(4);
+                        String matchedTag = matcher1.group(2); // TAG name
+                        String formattingTagContents = matcher1.group(4); //TAG contents
                         
                         //check for nested speaker tags!
                         boolean nestedTag = false;
                         NestedTagObj nestedTagObj = null;
-                        //String speakerTagBefore = "";
-                        //String speakerTagContents = "";
-                        //String speakerTagAfter = "";
                         
                         if(formattingTagContents.matches("(?su).*<[/]{0,1}(?:speaker|sm|i|pr|po)[f|l|s|i]{0,1}[f|l]{0,1}>.*")){
                             nestedTag = true;
@@ -597,7 +599,11 @@ public class BGetDocInject {
                                 }
                                 xPropertySet.setPropertyValue("CharBackColor", USERPREFS.VERSETEXTSTYLES_BGCOLOR.getRGB() & ~0xFF000000);
                         }
-                        remainingText = remainingText.replaceFirst("<"+matcher1.group(2)+">"+matcher1.group(4)+"</"+matcher1.group(2)+">", "");
+                        //System.out.println("iteration " + matchCount + ": remainingText before removing detected tag = " + remainingText);
+                        //System.out.println("text to remove = " + "<"+matcher1.group(2)+">"+matcher1.group(4)+"</"+matcher1.group(2)+">");
+                        remainingText = remainingText.replaceFirst(Pattern.quote("<"+matcher1.group(2)+">"+matcher1.group(4)+"</"+matcher1.group(2)+">"), "");
+                        //System.out.println("iteration " + matchCount + ": remainingText after removing detected tag = " + remainingText);
+                        //System.out.println("");
                     }
                 }
                 xPropertySet.setPropertyValue("ParaBottomMargin", currentSpaceAfter);
@@ -606,6 +612,7 @@ public class BGetDocInject {
 //                System.out.println();
                 if(remainingText.isEmpty() == false)
                 {
+                    System.out.println("After all iterations we seem to still have some normal text left over: " + remainingText);
                     m_xText.insertString(xTextRange, remainingText, false);
                 }
                 /*
@@ -719,8 +726,15 @@ public class BGetDocInject {
         }
         
         if(nestedTagObj.After.isEmpty() == false){
-            setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
-            m_xText.insertString(xTextRange, nestedTagObj.After, false);
+            if(nestedTagObj.After.matches("(?su).*<[/]{0,1}(?:speaker|sm|i|pr|po)[f|l|s|i]{0,1}[f|l]{0,1}>.*")){
+                NestedTagObj nestedTagObj1 = new NestedTagObj(nestedTagObj.After);
+                insertNestedTag(nestedTagObj1,m_xText,xTextRange,xPropertySet);
+            } else {
+                setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);
+                m_xText.insertString(xTextRange, nestedTagObj.After, false);
+            }
+
+
         }
         
         setTextStyles(xPropertySet, BGET.PARAGRAPHTYPE.VERSETEXT);

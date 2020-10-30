@@ -408,6 +408,19 @@
       </node>
     </node>
     <node oor:name="Images">
+      <node oor:name="io.bibleget.biblegetio.quotefrominputprompt.images" oor:op="replace">
+        <prop oor:name="URL" oor:type="xs:string">
+          <value>io.bibleget.biblegetio:QuoteFromInputPrompt</value>
+        </prop>
+        <node oor:name="UserDefinedImages">
+          <prop oor:name="ImageSmallURL">
+            <value>%origin%/../../../../../images/quotefrominput-small.png</value>
+          </prop>
+          <prop oor:name="ImageBigURL">
+            <value>%origin%/../../../../../images/quotefrominput.png</value>
+          </prop>
+        </node>
+      </node>
       <node oor:name="io.bibleget.biblegetio.quotefromselection.images" oor:op="replace">
         <prop oor:name="URL" oor:type="xs:string">
           <value>io.bibleget.biblegetio:QuoteFromSelection</value>
@@ -421,6 +434,19 @@
           </prop>
         </node>
       </node>
+      <node oor:name="io.bibleget.biblegetio.search.images" oor:op="replace">
+        <prop oor:name="URL" oor:type="xs:string">
+          <value>io.bibleget.biblegetio:Search</value>
+        </prop>
+        <node oor:name="UserDefinedImages">
+          <prop oor:name="ImageSmallURL">
+            <value>%origin%/../../../../../images/search-small.png</value>
+          </prop>
+          <prop oor:name="ImageBigURL">
+            <value>%origin%/../../../../../images/search.png</value>
+          </prop>
+        </node>
+      </node>
       <node oor:name="io.bibleget.biblegetio.options.images" oor:op="replace">
         <prop oor:name="URL" oor:type="xs:string">
           <value>io.bibleget.biblegetio:Options</value>
@@ -431,32 +457,6 @@
           </prop>
           <prop oor:name="ImageBigURL">
             <value>%origin%/../../../../../images/preferences.png</value>
-          </prop>
-        </node>
-      </node>
-      <node oor:name="io.bibleget.biblegetio.about.images" oor:op="replace">
-        <prop oor:name="URL" oor:type="xs:string">
-          <value>io.bibleget.biblegetio:About</value>
-        </prop>
-        <node oor:name="UserDefinedImages">
-          <prop oor:name="ImageSmallURL">
-            <value>%origin%/../../../../../images/info-small.png</value>
-          </prop>
-          <prop oor:name="ImageBigURL">
-            <value>%origin%/../../../../../images/info.png</value>
-          </prop>
-        </node>
-      </node>
-      <node oor:name="io.bibleget.biblegetio.quotefrominputprompt.images" oor:op="replace">
-        <prop oor:name="URL" oor:type="xs:string">
-          <value>io.bibleget.biblegetio:QuoteFromInputPrompt</value>
-        </prop>
-        <node oor:name="UserDefinedImages">
-          <prop oor:name="ImageSmallURL">
-            <value>%origin%/../../../../../images/quotefrominput-small.png</value>
-          </prop>
-          <prop oor:name="ImageBigURL">
-            <value>%origin%/../../../../../images/quotefrominput.png</value>
           </prop>
         </node>
       </node>
@@ -499,16 +499,16 @@
           </prop>
         </node>
       </node>
-      <node oor:name="io.bibleget.biblegetio.search.images" oor:op="replace">
+      <node oor:name="io.bibleget.biblegetio.about.images" oor:op="replace">
         <prop oor:name="URL" oor:type="xs:string">
-          <value>io.bibleget.biblegetio:Search</value>
+          <value>io.bibleget.biblegetio:About</value>
         </prop>
         <node oor:name="UserDefinedImages">
           <prop oor:name="ImageSmallURL">
-            <value>%origin%/../../../../../images/search-small.png</value>
+            <value>%origin%/../../../../../images/info-small.png</value>
           </prop>
           <prop oor:name="ImageBigURL">
-            <value>%origin%/../../../../../images/search.png</value>
+            <value>%origin%/../../../../../images/info.png</value>
           </prop>
         </node>
       </node>
