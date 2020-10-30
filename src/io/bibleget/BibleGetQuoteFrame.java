@@ -15,16 +15,12 @@ import com.sun.star.frame.XController;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.WrappedTargetException;
 import static io.bibleget.BGetI18N.__;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
 import java.awt.HeadlessException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
@@ -34,18 +30,16 @@ import java.util.logging.Logger;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import javax.swing.SwingWorker;
 
 /**
  *
@@ -67,6 +61,10 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
     private boolean[] enabledFlags;
     private int[] indices;
 
+    private Task_Force tf;
+    private List<String> selectedVersions;
+    private String versionsSelcd;
+    private String myInputContent;
     
     private static BibleGetQuoteFrame instance;
     
@@ -189,6 +187,7 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
         jList1 = new javax.swing.JList();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
+        jProgressBar1 = new javax.swing.JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(__("Insert quote from input window"));
@@ -230,6 +229,8 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
             }
         });
 
+        jProgressBar1.setStringPainted(true);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -247,6 +248,10 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
                     .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(57, 57, 57))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -265,14 +270,16 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
                     .addComponent(jButton2))
-                .addGap(39, 39, 39))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
-        List<String> selectedVersions = new ArrayList<>();
+        selectedVersions = new ArrayList<>();
         if (jList1.isSelectionEmpty()) {
             JOptionPane.showMessageDialog(null, __("You must select at least one version in order to make a request."), "ERROR >> NO VERSIONS SELECTED", JOptionPane.ERROR_MESSAGE);
             return;
@@ -287,40 +294,14 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
                 }
             }
         }
-        String versionsSelcd = StringUtils.join(selectedVersions.toArray(), ',');
+        versionsSelcd = StringUtils.join(selectedVersions.toArray(), ',');
 
         
-        String myInputContent = jTextField1.getText();
+        myInputContent = jTextField1.getText();
         myInputContent = StringUtils.deleteWhitespace(myInputContent);
-        //System.out.println("You typed : "+myInputContent);
-        
-        HTTPCaller myHTTPCaller = new HTTPCaller();
-        String myResponse;
-        try {
-            Boolean querycheck = myHTTPCaller.integrityCheck(myInputContent,selectedVersions);
-            if(querycheck){
-                //JOptionPane.showMessageDialog(null, "All is proceeding nicely", "progress info", JOptionPane.INFORMATION_MESSAGE);
-                myResponse = myHTTPCaller.sendGet(myInputContent,versionsSelcd);
-                if(myResponse != null){
-                    BGetDocInject myJSON = new BGetDocInject(m_xController);
-                    myJSON.InsertTextAtCurrentCursor(myResponse);
-                    this.setVisible(false);
-                }
-                else{
-                    JOptionPane.showMessageDialog(null,__("There was a problem communicating with the BibleGet server. Please try again."),"ERROR >> SERVER CONNECTIVITY ISSUE",JOptionPane.ERROR_MESSAGE);
-                }
-            }
-            else{
-                String[] errorMessages = myHTTPCaller.getErrorMessages();
-                String errorDialog = StringUtils.join(errorMessages,"\n\n");
-                JOptionPane.showMessageDialog(null, errorDialog, "ERROR >> MALFORMED QUERYSTRING", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (HeadlessException | ClassNotFoundException | UnknownPropertyException | PropertyVetoException | IllegalArgumentException | WrappedTargetException | UnsupportedEncodingException | SQLException ex) {
-            Logger.getLogger(BibleGetQuoteFrame.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (Exception ex) {
-            Logger.getLogger(BibleGetQuoteFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-            
+        System.out.println("You typed : "+myInputContent);
+        tf = new Task_Force(jProgressBar1);
+        tf.execute();            
     }//GEN-LAST:event_jButton1MouseClicked
 
     private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
@@ -328,41 +309,7 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
         setVisible(false);
     }//GEN-LAST:event_jButton2MouseClicked
     
-    
-    private static class VersionComparator implements Comparator<BibleVersion> {
 
-        @Override
-        public int compare(BibleVersion o1, BibleVersion o2) {
-            return o1.getLang().compareTo(o2.getLang());
-        }            
-        
-    }
-
-    private static class VersionCellRenderer extends DefaultListCellRenderer{
-        
-        @Override
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-
-            if (value instanceof SeparatorList.Separator) {
-                SeparatorList.Separator separator = (SeparatorList.Separator) value;
-                BibleVersion bibleversion = (BibleVersion)separator.getGroup().get(0);
-                String lbl = "-- " + bibleversion.getLang() + " --";
-                label.setText(lbl);
-                label.setFont(label.getFont().deriveFont(Font.BOLD));
-                label.setBackground(Color.decode("#999999"));
-                //label.setForeground(Color.BLACK);
-                label.setBorder(BorderFactory.createEmptyBorder(0,5,0,0));
-                //label.setEnabled(false);
-            } else {
-                label.setFont(label.getFont().deriveFont(Font.PLAIN));
-                label.setBorder(BorderFactory.createEmptyBorder(0,15,0,0));
-                
-            }
-            
-            return label;
-        }
-    }
 
     private class DisabledItemSelectionModel extends DefaultListSelectionModel {
 
@@ -452,6 +399,7 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
       }
       // let's handle visibility...
       if (!visible || !isVisible()) { // have to check this condition simply because super.setVisible(true) invokes toFront if frame was already visible
+          jProgressBar1.setValue(0);
           super.setVisible(visible);
       }
       // ...and bring frame to the front.. in a strange and weird way
@@ -514,6 +462,56 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
         });
     }
 
+    private class Task_Force extends SwingWorker<Void, Integer> {
+        JProgressBar jProgressBar;
+        public Task_Force(JProgressBar jpb){
+            this.jProgressBar = jpb;
+        }
+
+        @Override
+        protected void process(List<Integer> chunks) {
+            int i = chunks.get(chunks.size()-1);
+            jProgressBar.setValue(i); // The last value in this array is all we care about.
+            //System.out.println(i);            
+        }
+        
+        @Override
+        protected Void doInBackground() throws Exception {
+            System.out.println("background work started");
+            publish(15);
+            HTTPCaller myHTTPCaller = new HTTPCaller();
+            String myResponse;
+            try {
+                Boolean querycheck = myHTTPCaller.integrityCheck(myInputContent,selectedVersions);
+                if(querycheck){
+                    //JOptionPane.showMessageDialog(null, "All is proceeding nicely", "progress info", JOptionPane.INFORMATION_MESSAGE);
+                    publish(30);
+
+                    myResponse = myHTTPCaller.sendGet(myInputContent,versionsSelcd);
+                    if(myResponse != null){
+                        publish(40);
+                        BGetDocInject myJSON = new BGetDocInject(m_xController,null);
+                        myJSON.InsertTextAtCurrentCursor(myResponse);
+                        instance.setVisible(false);
+                    }
+                    else{
+                        JOptionPane.showMessageDialog(null,__("There was a problem communicating with the BibleGet server. Please try again."),"ERROR >> SERVER CONNECTIVITY ISSUE",JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+                else{
+                    String[] errorMessages = myHTTPCaller.getErrorMessages();
+                    String errorDialog = StringUtils.join(errorMessages,"\n\n");
+                    JOptionPane.showMessageDialog(null, errorDialog, "ERROR >> MALFORMED QUERYSTRING", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (HeadlessException | ClassNotFoundException | UnknownPropertyException | PropertyVetoException | IllegalArgumentException | WrappedTargetException | UnsupportedEncodingException | SQLException ex) {
+                Logger.getLogger(BibleGetQuoteFrame.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
+                Logger.getLogger(BibleGetQuoteFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            return null;
+        }
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
@@ -521,6 +519,7 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JList jList1;
+    private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables

@@ -71,7 +71,12 @@ public class BibleIndexes {
         for(String version:selectedVersions) {
             int idx = VersionIndexes.get(version).book_num().indexOf(book);
             //System.out.println("corresponding book index in VersionIndexes for version "+version+", book "+Integer.toString(book)+" is "+Integer.toString(idx));
-            if(VersionIndexes.get(version).verse_limit(idx).get(chapter-1) < verse){ flag = false; }
+            try{
+                if(VersionIndexes.get(version).verse_limit(idx).get(chapter-1) < verse){ flag = false; }
+            } catch(IndexOutOfBoundsException ex){
+                System.out.println(BibleIndexes.class.getSimpleName() + ": " + ex);
+            }
+            
         }
         return flag;
     }

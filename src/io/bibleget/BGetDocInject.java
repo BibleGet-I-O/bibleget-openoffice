@@ -39,6 +39,7 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.swing.JProgressBar;
 
 /**
  *
@@ -66,13 +67,16 @@ public class BGetDocInject {
     private final Double pofIndent;
     private final Double poiIndent;
     
+    private JProgressBar jProgressBar1;
+    
    /**
      *
      * @param xController
      * @throws java.lang.ClassNotFoundException
      * @throws java.sql.SQLException
      */
-    public BGetDocInject(XController xController) throws ClassNotFoundException, SQLException, Exception{
+    public BGetDocInject(XController xController,JProgressBar jProgressBar) throws ClassNotFoundException, SQLException, Exception{
+        jProgressBar1 = jProgressBar;
         USERPREFS = Preferences.getInstance();
         if(USERPREFS != null){
             System.out.println("USERPREFS is not null at least.");
@@ -85,36 +89,36 @@ public class BGetDocInject {
             XTextViewCursorSupplier xViewCursorSupplier = (XTextViewCursorSupplier) UnoRuntime.queryInterface(XTextViewCursorSupplier.class,m_xController);
             m_xViewCursor = xViewCursorSupplier.getViewCursor();
         }
-            /**
-            * Left / right indents are calculated according to current ruler units
-            *      FROM http://www.openoffice.org/api/docs/common/ref/com/sun/star/style/ParagraphProperties.html :
-            *          ParaLeftMargin and ParaRightMargin properties determine the left/right margin of the paragraph in 100th mm.
-            *      In order to have a precise indent, convert the userpref value from the current unit to mm and then multiply by 100
-            */
-            switch(USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT){
-                case CM:
-                    leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * CM2MM) * 100;
-                    rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * CM2MM) * 100;
-                    break;
-                case MM:
-                    leftMarginIn100thMM = USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * 100;
-                    rightMarginIn100thMM = USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * 100;
-                    break;
-                case INCH:
-                    leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Inches2MM) * 100;
-                    rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Inches2MM) * 100;
-                    break;
-                case POINT:
-                    leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Points2MM) * 100;
-                    rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Points2MM) * 100;
-                    break;
-                case PICA:
-                    leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Picas2MM) * 100;
-                    rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Picas2MM) * 100;
-                    break;
-            }
-            pofIndent = leftMarginIn100thMM + 500.0;
-            poiIndent = leftMarginIn100thMM + 1000.0;
+        /**
+        * Left / right indents are calculated according to current ruler units
+        *      FROM http://www.openoffice.org/api/docs/common/ref/com/sun/star/style/ParagraphProperties.html :
+        *          ParaLeftMargin and ParaRightMargin properties determine the left/right margin of the paragraph in 100th mm.
+        *      In order to have a precise indent, convert the userpref value from the current unit to mm and then multiply by 100
+        */
+        switch(USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT){
+            case CM:
+                leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * CM2MM) * 100;
+                rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * CM2MM) * 100;
+                break;
+            case MM:
+                leftMarginIn100thMM = USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * 100;
+                rightMarginIn100thMM = USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * 100;
+                break;
+            case INCH:
+                leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Inches2MM) * 100;
+                rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Inches2MM) * 100;
+                break;
+            case POINT:
+                leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Points2MM) * 100;
+                rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Points2MM) * 100;
+                break;
+            case PICA:
+                leftMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_LEFTINDENT * Picas2MM) * 100;
+                rightMarginIn100thMM = (USERPREFS.PARAGRAPHSTYLES_RIGHTINDENT * Picas2MM) * 100;
+                break;
+        }
+        pofIndent = leftMarginIn100thMM + 500.0;
+        poiIndent = leftMarginIn100thMM + 1000.0;
     }
     
     public void InsertTextAtCurrentCursor(String jsonString) throws UnknownPropertyException, PropertyVetoException, com.sun.star.lang.IllegalArgumentException, com.sun.star.lang.WrappedTargetException
@@ -190,8 +194,13 @@ public class BGetDocInject {
         boolean normalText = false;
         
         Iterator pIterator = arrayJson.iterator();
+        int iterCount = arrayJson.size();
+        int currentIteration = 0;
+        
+        
         while (pIterator.hasNext())
         {
+            if(jProgressBar1 != null){ jProgressBar1.setValue(BGetDocInject.remap(++currentIteration,0,iterCount,40,100)); }
             JsonObject currentJson = (JsonObject) pIterator.next();
             currentBook = currentJson.getString("book");
             currentBookAbbrev = currentJson.getString("bookabbrev");
@@ -785,7 +794,7 @@ public class BGetDocInject {
                 if(USERPREFS.BIBLEVERSIONSTYLES_BOLD){
                     xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
                 } else {
-                    xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+                    xPropertySet.setPropertyValue("CharWeight", FontWeight.NORMAL);
                 }
                 if(USERPREFS.BIBLEVERSIONSTYLES_ITALIC){
                     xPropertySet.setPropertyValue("CharPosture", FontSlant.ITALIC);
@@ -809,7 +818,7 @@ public class BGetDocInject {
                 if(USERPREFS.BOOKCHAPTERSTYLES_BOLD){
                     xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
                 } else {
-                    xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+                    xPropertySet.setPropertyValue("CharWeight", FontWeight.NORMAL);
                 }
                 if(USERPREFS.BOOKCHAPTERSTYLES_ITALIC){
                     xPropertySet.setPropertyValue("CharPosture", FontSlant.ITALIC);
@@ -833,7 +842,7 @@ public class BGetDocInject {
                 if(USERPREFS.VERSENUMBERSTYLES_BOLD){
                     xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
                 } else {
-                    xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+                    xPropertySet.setPropertyValue("CharWeight", FontWeight.NORMAL);
                 }
                 if(USERPREFS.VERSENUMBERSTYLES_ITALIC){
                     xPropertySet.setPropertyValue("CharPosture", FontSlant.ITALIC);
@@ -869,7 +878,7 @@ public class BGetDocInject {
                 if(USERPREFS.VERSETEXTSTYLES_BOLD){
                     xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
                 } else {
-                    xPropertySet.setPropertyValue("CharWeight", FontWeight.BOLD);
+                    xPropertySet.setPropertyValue("CharWeight", FontWeight.NORMAL);
                 }
                 if(USERPREFS.VERSETEXTSTYLES_ITALIC){
                     xPropertySet.setPropertyValue("CharPosture", FontSlant.ITALIC);
@@ -891,6 +900,24 @@ public class BGetDocInject {
         }
         
         
+    }
+
+    static public final int remap(int value,
+                                int start1, int stop1,
+                                int start2, int stop2) {
+        float outgoing = start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
+        String badness = null;
+        if (outgoing != outgoing) {
+          badness = "NaN (not a number)";
+
+        } else if (outgoing == Float.NEGATIVE_INFINITY ||
+                   outgoing == Float.POSITIVE_INFINITY) {
+          badness = "infinity";
+        }
+        if (badness != null) {
+            System.out.println("map badness = " + badness);
+        }
+        return Math.round(outgoing);
     }
     
 }

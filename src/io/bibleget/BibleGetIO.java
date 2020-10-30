@@ -35,6 +35,7 @@ import org.cef.CefApp;
 import org.cef.CefClient;
 import org.cef.CefSettings;
 import org.cef.OS;
+import org.cef.browser.CefMessageRouter;
 
 public final class BibleGetIO extends WeakBase
    implements com.sun.star.frame.XDispatchProvider,
@@ -558,6 +559,7 @@ public final class BibleGetIO extends WeakBase
                     //settings.log_severity = LogSeverity.LOGSEVERITY_ERROR;
                     cefApp = CefApp.getInstance(settings);
                     client = cefApp.createClient();
+                    CefMessageRouter msgRouter = CefMessageRouter.create();
                     
                     BibleGetIO.biblegetDB = DBHelper.getInstance();
                     if(BibleGetIO.biblegetDB != null){ 
@@ -573,6 +575,8 @@ public final class BibleGetIO extends WeakBase
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.myOptionFrame"); 
                         BibleGetIO.myOptionFrame = BibleGetOptionsFrame.getInstance(instance.m_xController);
                         BibleGetIO.bibleGetSearch = BibleGetSearchFrame.getInstance();
+                        msgRouter.addHandler(BibleGetIO.bibleGetSearch.new MessageRouterHandler(), true);
+                        client.addMessageRouter(msgRouter);
                     }
                     else{ 
                         System.out.println("Sorry, no database instance here."); 

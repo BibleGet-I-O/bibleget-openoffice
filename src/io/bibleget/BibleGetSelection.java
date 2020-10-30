@@ -100,7 +100,7 @@ public class BibleGetSelection {
                                 myResponse = myHTTPCaller.sendGet(myInputContent,versions);
                                 if(myResponse != null){
                                     xTextRange.setString("");
-                                    BGetDocInject myJSON = new BGetDocInject(m_xController);
+                                    BGetDocInject myJSON = new BGetDocInject(m_xController,null);
                                     myJSON.InsertTextAtCurrentCursor(myResponse);
                                 }
                                 else{
