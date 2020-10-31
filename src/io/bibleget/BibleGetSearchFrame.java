@@ -103,9 +103,9 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
             + "<style type=\"text/css\">"
             + "html,body { margin: 0; padding: 0; }"
-            + "body { border: 1px solid Black; }"
+            //+ "body { border: 1px solid Black; }"
             + "#bibleGetSearchResultsTableContainer {"
-            + "	   border: 1px solid #963;"
+            + "	 border: 1px solid #963;"
             + "}"
             + ""
             + "#bibleGetSearchResultsTableContainer table {"
@@ -113,18 +113,17 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             + "}"
             + ""
             + "#bibleGetSearchResultsTableContainer th, td { padding: 8px 16px; }"
-            + ""
             + "#bibleGetSearchResultsTableContainer thead th {"
-            //+ "	position: fixed;"
-            //+ " top: 0;"
-            + "	background: #C96;"
-            + "	border-left: 1px solid #EB8;"
-            + "	border-right: 1px solid #B74;"
-            + "	border-top: 1px solid #EB8;"
-            + "	font-weight: normal;"
-            + "	text-align: center;"
-            + "    color: White;"
-            + "    font-weight: bold;"
+            + "	 position: sticky;"
+            + "  top: 0;"
+            + "	 background: #C96;"
+            + "	 border-left: 1px solid #EB8;"
+            + "	 border-right: 1px solid #B74;"
+            + "	 border-top: 1px solid #EB8;"
+            + "	 font-weight: normal;"
+            + "	 text-align: center;"
+            + "  color: White;"
+            + "  font-weight: bold;"
             + "}"
             + ""
             + "#bibleGetSearchResultsTableContainer tbody td {"
@@ -458,8 +457,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                         versenumber = currentJson.getString("verse");
                         versetext = currentJson.getString("text");
                         resultJsonStr = currentJson.toString();
-                        System.out.println("versetext before unidentified regex = " + versetext);
-                        //The following regex removes all NABRE formatting tags
+                        //The following regex removes all NABRE formatting tags from the verse text that is displayed in the table
                         versetext = versetext.replaceAll("<(?:[^>=]|='[^']*'|=\"[^\"]*\"|=[^'\"][^\\s>]*)*>","");
                         System.out.println("versetext before AddMark = " + versetext);
                         versetext = AddMark(versetext, searchTerm);
@@ -490,10 +488,13 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
 
     private String AddMark(String verseText, String searchTerm){
         String pattern = "(?i)\\b(\\w*)(" + searchTerm + ")(\\w*)\\b";
-        String normalizedPattern = "(?i)\\b(\\w*)(" + stripDiacritics(searchTerm) + ")(\\w*)\\b";
         String replacement = "<a class=\"submark\">$1</a><a class=\"mark\">$2</a><a class=\"submark\">$3</a>";
         verseText = verseText.replaceAll(pattern, replacement);
-        verseText = verseText.replaceAll(normalizedPattern, replacement);
+        if(Normalizer.normalize(searchTerm, Form.NFD).matches(".*\\P{M}\\p{M}.*")){
+            System.out.println("found diacritical markings in "+searchTerm);
+            String normalizedPattern = "(?i)\\b(\\w*)(" + stripDiacritics(searchTerm) + ")(\\w*)\\b";
+            verseText = verseText.replaceAll(normalizedPattern, replacement);
+        }
         return verseText;
     }
     
