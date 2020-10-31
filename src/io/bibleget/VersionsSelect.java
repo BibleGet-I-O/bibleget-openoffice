@@ -9,6 +9,9 @@ import ca.odell.glazedlists.BasicEventList;
 import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.SeparatorList;
 import ca.odell.glazedlists.swing.DefaultEventListModel;
+import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.StringReader;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -21,6 +24,7 @@ import java.util.Set;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListSelectionModel;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +39,9 @@ public class VersionsSelect extends javax.swing.JList {
     private final boolean[] enabledFlags;
     private int versionLangs = 0;
     private int versionCount = 0;
-   
+    private VersionCellRenderer renderer;
+    private int mHoveredJListIndex = -1;
+    
     private static DBHelper biblegetDB;
         
     @SuppressWarnings("unchecked")
@@ -104,10 +110,14 @@ public class VersionsSelect extends javax.swing.JList {
             indices = ArrayUtils.toPrimitive(preferredVersionsIndices.toArray(new Integer[preferredVersionsIndices.size()]));
 
             this.setModel(new DefaultEventListModel<>(versionsByLang));
-            this.setCellRenderer(new VersionCellRenderer());
+            this.renderer = new VersionCellRenderer();
+            this.setCellRenderer(renderer);
+            MouseAdapter mAdapter = new HoverMouseHandler(renderer);
+            
             this.setSelectionModel(new DisabledItemSelectionModel());
             if(loadPreferred){
                 this.setSelectedIndices(indices);
+                this.addMouseMotionListener(mAdapter);
             }
         }
     }
@@ -179,6 +189,36 @@ public class VersionsSelect extends javax.swing.JList {
                 if(enabledFlags[index0]){ super.addSelectionInterval(index0,index0); }
             }
         }        
+        
+    }
+    
+    private class HoverMouseHandler extends MouseAdapter {
+        private final VersionCellRenderer renderer;
+        private int hoverIndex = -1;
+        
+        public HoverMouseHandler(VersionCellRenderer renderer){
+            this.renderer = renderer;
+        }
+        
+        @Override
+        public void mouseExited(MouseEvent e) {
+          setHoverIndex(-1);
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+          int index = VersionsSelect.this.locationToIndex(e.getPoint());
+          setHoverIndex(VersionsSelect.this.getCellBounds(index, index).contains(e.getPoint())
+                  ? index : -1);
+        }
+
+        private void setHoverIndex(int index) {
+          if (hoverIndex == index) return;
+          hoverIndex = index;
+          renderer.setHoverIndex(index);
+          VersionsSelect.this.repaint();
+        }
+        
         
     }
 

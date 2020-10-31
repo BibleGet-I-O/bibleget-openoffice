@@ -29,6 +29,9 @@ import javax.swing.JList;
  * @author johnrdorazio
  */
 public class VersionCellRenderer extends DefaultListCellRenderer {
+    
+    private int hoverIndex = -1;
+    
     @Override
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
@@ -49,9 +52,17 @@ public class VersionCellRenderer extends DefaultListCellRenderer {
             label.setBorder(BorderFactory.createEmptyBorder(0,15,0,0));
             if(isSelected){
                 label.setBackground(Color.CYAN);
+            } else {
+                if(index == hoverIndex){
+                    label.setBackground(Color.YELLOW);
+                }
             }
         }
 
         return label;
-    }    
+    }
+    
+    public void setHoverIndex(int idx){
+        this.hoverIndex = idx;
+    }
 }

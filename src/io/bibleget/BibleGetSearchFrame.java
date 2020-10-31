@@ -19,6 +19,9 @@ import ca.odell.glazedlists.SeparatorList;
 import static io.bibleget.BGetI18N.__;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
@@ -29,7 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -41,6 +43,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import org.apache.commons.lang3.StringUtils;
 //import javax.swing.SwingWorker;
 import org.cef.OS;
@@ -60,6 +63,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     private static BibleGetSearchFrame instance;
         
     private VersionsSelect jListBibleVersions;
+    private int mHoveredJListIndex = -1;
     
     private String previewDocumentHead;
     private String previewDocumentBodyOpen;
@@ -68,6 +72,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     
     JTable table;
     DefaultTableModel model;
+    TableRowSorter sorter;
     
     private String selectedVersion;
     
@@ -83,6 +88,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             jListBibleVersions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             ListSelectionModel listSelectionModel = jListBibleVersions.getSelectionModel();
             listSelectionModel.addListSelectionListener(new SharedListSelectionHandler());
+
         } catch (SQLException ex) {
             Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
@@ -440,6 +446,8 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 int numResults = resultsJArray.size();
                 table = new JTable(new DefaultTableModel(new Object[]{"IDX", "BOOK", "CHAPTER", "VERSE", "VERSETEXT", "SEARCHTERM", "JSONSTR"}, numResults));
                 model = (DefaultTableModel) table.getModel();
+                sorter = new TableRowSorter<>(model);
+                table.setRowSorter(sorter);
                 
                 jInternalFramePreviewArea.setTitle("Search results: " + numResults + " verses found containing the term \"" + searchTerm + "\" in version \"" + versionSearched + "\"");
                 
@@ -462,6 +470,8 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                         System.out.println("versetext after AddMark = " + versetext);
                         System.out.println("IDX="+resultCounter+",BOOK="+book+",CHAPTER="+chapter+",VERSE="+versenumber+",VERSETEXT="+versenumber+",SEARCHTERM="+searchTerm+",JSONSTR="+resultJsonStr);
                         if(null != model){
+                            //is it better to add them directly to the model, or gather them in a Vector and then add the Vector to the model?
+                            //see for example https://stackoverflow.com/a/22718808/394921
                             model.addRow(new Object[]{resultCounter, book, chapter, versenumber, versetext, searchTerm, resultJsonStr});
                         } else {
                             System.out.println("Table model is null! now why is that?");
