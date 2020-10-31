@@ -19,7 +19,6 @@ import ca.odell.glazedlists.SeparatorList;
 import static io.bibleget.BGetI18N.__;
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.StringReader;
@@ -63,7 +62,6 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     private static BibleGetSearchFrame instance;
         
     private VersionsSelect jListBibleVersions;
-    private int mHoveredJListIndex = -1;
     
     private String previewDocumentHead;
     private String previewDocumentBodyOpen;
@@ -228,6 +226,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         browserUI = browser.getUIComponent();
         
         initComponents();
+        
         jInternalFramePreviewArea.getContentPane().add(browserUI, BorderLayout.CENTER);
         
         try {
@@ -239,6 +238,9 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         } catch (Exception ex) {
             Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        MouseAdapter mAdapter = new HoverMouseHandler(jListBibleVersions);
+        jListBibleVersions.addMouseMotionListener(mAdapter);
     }    
 
     public static BibleGetSearchFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
@@ -641,6 +643,37 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             
             return false;
         }   
+    }
+
+    private class HoverMouseHandler extends MouseAdapter {
+        private final VersionsSelect list;
+        private final VersionCellRenderer renderer;
+        private int hoverIndex = -1;
+        
+        public HoverMouseHandler(VersionsSelect list){
+            this.list = list;
+            this.renderer = list.getRenderer();
+        }
+        
+        @Override
+        public void mouseExited(MouseEvent e) {
+          setHoverIndex(-1);
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+          int index = list.locationToIndex(e.getPoint());
+          setHoverIndex(list.getCellBounds(index, index).contains(e.getPoint())
+                  ? index : -1);
+        }
+
+        private void setHoverIndex(int index) {
+          if (hoverIndex == index) return;
+          hoverIndex = index;
+          renderer.setHoverIndex(index);
+          list.repaint();
+        }
+
     }
     
 }
