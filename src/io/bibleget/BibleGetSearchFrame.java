@@ -86,7 +86,6 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             jListBibleVersions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             ListSelectionModel listSelectionModel = jListBibleVersions.getSelectionModel();
             listSelectionModel.addListSelectionListener(new SharedListSelectionHandler());
-
         } catch (SQLException ex) {
             Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
@@ -239,7 +238,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        MouseAdapter mAdapter = new HoverMouseHandler(jListBibleVersions);
+        MouseAdapter mAdapter = new VersionsHoverHandler(jListBibleVersions);
         jListBibleVersions.addMouseMotionListener(mAdapter);
     }    
 
@@ -643,37 +642,6 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             
             return false;
         }   
-    }
-
-    private class HoverMouseHandler extends MouseAdapter {
-        private final VersionsSelect list;
-        private final VersionCellRenderer renderer;
-        private int hoverIndex = -1;
-        
-        public HoverMouseHandler(VersionsSelect list){
-            this.list = list;
-            this.renderer = list.getRenderer();
-        }
-        
-        @Override
-        public void mouseExited(MouseEvent e) {
-          setHoverIndex(-1);
-        }
-
-        @Override
-        public void mouseMoved(MouseEvent e) {
-          int index = list.locationToIndex(e.getPoint());
-          setHoverIndex(list.getCellBounds(index, index).contains(e.getPoint())
-                  ? index : -1);
-        }
-
-        private void setHoverIndex(int index) {
-          if (hoverIndex == index) return;
-          hoverIndex = index;
-          renderer.setHoverIndex(index);
-          list.repaint();
-        }
-
     }
     
 }

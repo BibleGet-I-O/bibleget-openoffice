@@ -16,6 +16,7 @@ import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.WrappedTargetException;
 import static io.bibleget.BGetI18N.__;
 import java.awt.HeadlessException;
+import java.awt.event.MouseAdapter;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
@@ -55,6 +56,7 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
     private final int frameLeft;
     private final int frameTop;
     
+    private VersionsSelect jListBibleVersions;
     private static DBHelper biblegetDB;
     private SeparatorList<BibleVersion> versionsByLang;
     private EventList<BibleVersion> bibleVersions;
@@ -80,9 +82,13 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
         frameHeight = 500;
         frameLeft = (screenWidth / 2) - (frameWidth / 2);
         frameTop = (screenHeight / 2) - (frameHeight / 2);
-        
+
         prepareDynamicInformation();
         initComponents();
+        
+        MouseAdapter mAdapter = new VersionsHoverHandler(jListBibleVersions);
+        jListBibleVersions.addMouseMotionListener(mAdapter);
+
     }
 
     private BibleGetQuoteFrame() {
@@ -155,19 +161,27 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
             indices = ArrayUtils.toPrimitive(preferredVersionsIndices.toArray(new Integer[preferredVersionsIndices.size()]));
             //System.out.println("value of indices array: "+Arrays.toString(indices));
         }
+        
+        try {
+            jListBibleVersions = new VersionsSelect(true);
+            jListBibleVersions.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+            ListSelectionModel listSelectionModel = jListBibleVersions.getSelectionModel();
+            listSelectionModel.addListSelectionListener(new BibleGetQuoteFrame.SharedListSelectionHandler());
+            jListBibleVersions.setSelectedIndices(indices);
+        } catch (SQLException ex) {
+            Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
     
     }
     
     @SuppressWarnings("unchecked")
     public void updateDynamicInformation() throws ClassNotFoundException, SQLException, Exception{
         prepareDynamicInformation();
-        jList1.setModel(new DefaultEventListModel(versionsByLang));
-        jList1.setCellRenderer(new VersionCellRenderer());
-        jList1.setSelectionModel(new DisabledItemSelectionModel());
-        ListSelectionModel listSelectionModel = jList1.getSelectionModel();
-        listSelectionModel.addListSelectionListener(new SharedListSelectionHandler());
-        jList1.setSelectedIndices(indices);
-        jScrollPane2.setViewportView(jList1);
+        jScrollPane2.setViewportView(jListBibleVersions);
+        MouseAdapter mAdapter = new VersionsHoverHandler(jListBibleVersions);
+        jListBibleVersions.addMouseMotionListener(mAdapter);
         jScrollPane2.revalidate();        
     }
     
@@ -185,7 +199,6 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<BibleVersion>();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jProgressBar1 = new javax.swing.JProgressBar();
@@ -207,13 +220,7 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
 
         jLabel4.setText(__("Choose version (or versions)"));
 
-        jList1.setModel(new DefaultEventListModel<>(versionsByLang));
-        jList1.setCellRenderer(new VersionCellRenderer());
-        jList1.setSelectionModel(new DisabledItemSelectionModel());
-        ListSelectionModel listSelectionModel = jList1.getSelectionModel();
-        listSelectionModel.addListSelectionListener(new SharedListSelectionHandler());
-        jList1.setSelectedIndices(indices);
-        jScrollPane2.setViewportView(jList1);
+        jScrollPane2.setViewportView(jListBibleVersions);
 
         jButton1.setText(__("Send query"));
         jButton1.setToolTipText(__("Sends the request to the server and returns the results to the document."));
@@ -281,15 +288,15 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
         selectedVersions = new ArrayList<>();
-        if (jList1.isSelectionEmpty()) {
+        if (jListBibleVersions.isSelectionEmpty()) {
             JOptionPane.showMessageDialog(null, __("You must select at least one version in order to make a request."), "ERROR >> NO VERSIONS SELECTED", JOptionPane.ERROR_MESSAGE);
             return;
         } else {
             // Find out which indexes are selected.
-            int minIndex = jList1.getMinSelectionIndex();
-            int maxIndex = jList1.getMaxSelectionIndex();
+            int minIndex = jListBibleVersions.getMinSelectionIndex();
+            int maxIndex = jListBibleVersions.getMaxSelectionIndex();
             for (int i = minIndex; i <= maxIndex; i++) {
-                if (jList1.isSelectedIndex(i)) {
+                if (jListBibleVersions.isSelectedIndex(i)) {
                     String abbrev = versionsByLang.get(i).getAbbrev();
                     selectedVersions.add(abbrev);
                 }
@@ -309,57 +316,7 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         setVisible(false);
     }//GEN-LAST:event_jButton2MouseClicked
-    
-
-
-    private class DisabledItemSelectionModel extends DefaultListSelectionModel {
-
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public void setSelectionInterval(int index0, int index1) {
-            if(index0 < index1){
-                for (int i = index0; i <= index1; i++){
-                    if(enabledFlags[i]){
-                        super.addSelectionInterval(i, i);
-                    }
-                }
-            }
-            else if(index1 < index0){
-                for (int i = index1; i <= index0; i++){
-                    if(enabledFlags[i]){
-                        super.addSelectionInterval(i, i);
-                    }
-                }
-            }
-            else if(index0 == index1){
-                if(enabledFlags[index0]){ super.setSelectionInterval(index0,index0); }                
-            }
-        }
-
-        @Override
-        public void addSelectionInterval(int index0, int index1) {
-            if(index0 < index1){
-                for (int i = index0; i <= index1; i++){
-                    if(enabledFlags[i]){
-                        super.addSelectionInterval(i, i);
-                    }
-                }
-            }
-            else if(index1 < index0){
-                for (int i = index1; i <= index0; i++){
-                    if(enabledFlags[i]){
-                        super.addSelectionInterval(i, i);
-                    }
-                }
-            }
-            else if(index0 == index1){
-                if(enabledFlags[index0]){ super.addSelectionInterval(index0,index0); }
-            }
-        }        
         
-    }
-    
     private class SharedListSelectionHandler implements ListSelectionListener {
         @Override
         public void valueChanged(ListSelectionEvent e) {
@@ -519,7 +476,6 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JList jList1;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextField jTextField1;
