@@ -20,7 +20,6 @@ import static io.bibleget.BGetI18N.__;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
@@ -106,11 +105,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             + "html,body { margin: 0; padding: 0; }"
             + "body { border: 1px solid Black; }"
             + "#bibleGetSearchResultsTableContainer {"
-            + "	border: 1px solid #963;"
-            + "	overflow-y: auto;"
-            + "    overflow-x: hidden;"
-            + "    max-height: 100vh;"
-            + "    width: 100vh;"
+            + "	   border: 1px solid #963;"
             + "}"
             + ""
             + "#bibleGetSearchResultsTableContainer table {"
