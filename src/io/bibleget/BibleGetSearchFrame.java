@@ -80,9 +80,20 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
      */
     public BibleGetSearchFrame() {
         
+        table = new JTable(new DefaultTableModel());
+        model = (DefaultTableModel) table.getModel();
+        //new Object[]{"IDX", "BOOK", "CHAPTER", "VERSE", "VERSETEXT", "SEARCHTERM", "JSONSTR"}, numResults)
+        model.addColumn("IDX");
+        model.addColumn("BOOK");
+        model.addColumn("CHAPTER");
+        model.addColumn("VERSE");
+        model.addColumn("VERSETEXT");
+        model.addColumn("SEARCHTERM");
+        model.addColumn("JSONSTR");
+        sorter = new TableRowSorter<>(model);
+        table.setRowSorter(sorter);
         try {
-            jListBibleVersions = new VersionsSelect(true);
-            jListBibleVersions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            jListBibleVersions = new VersionsSelect(true, ListSelectionModel.SINGLE_SELECTION);
             ListSelectionModel listSelectionModel = jListBibleVersions.getSelectionModel();
             listSelectionModel.addListSelectionListener(new SharedListSelectionHandler());
         } catch (SQLException ex) {
@@ -103,6 +114,14 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
             + "<style type=\"text/css\">"
             + "html,body { margin: 0; padding: 0; }"
+            + "body, body * {"
+            + "-webkit-touch-callout: none;" +
+            "-webkit-user-select: none;" +
+            " -khtml-user-select: none;" +
+            "   -moz-user-select: none;" +
+            "    -ms-user-select: none;" +
+            "        user-select: none;" +
+            "}"
             //+ "body { border: 1px solid Black; }"
             + "#bibleGetSearchResultsTableContainer {"
             + "	 border: 1px solid #963;"
@@ -439,14 +458,11 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 String resultJsonStr;
                 
                 int numResults = resultsJArray.size();
-                table = new JTable(new DefaultTableModel(new Object[]{"IDX", "BOOK", "CHAPTER", "VERSE", "VERSETEXT", "SEARCHTERM", "JSONSTR"}, numResults));
-                model = (DefaultTableModel) table.getModel();
-                sorter = new TableRowSorter<>(model);
-                table.setRowSorter(sorter);
                 
                 jInternalFramePreviewArea.setTitle("Search results: " + numResults + " verses found containing the term \"" + searchTerm + "\" in version \"" + versionSearched + "\"");
                 
                 if(numResults > 0){
+                    model.setRowCount(0);
                     int resultCounter = 0;
                     Iterator pIterator = resultsJArray.iterator();
                     while (pIterator.hasNext()) {
@@ -459,10 +475,10 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                         resultJsonStr = currentJson.toString();
                         //The following regex removes all NABRE formatting tags from the verse text that is displayed in the table
                         versetext = versetext.replaceAll("<(?:[^>=]|='[^']*'|=\"[^\"]*\"|=[^'\"][^\\s>]*)*>","");
-                        System.out.println("versetext before AddMark = " + versetext);
+                        //System.out.println("versetext before AddMark = " + versetext);
                         versetext = AddMark(versetext, searchTerm);
-                        System.out.println("versetext after AddMark = " + versetext);
-                        System.out.println("IDX="+resultCounter+",BOOK="+book+",CHAPTER="+chapter+",VERSE="+versenumber+",VERSETEXT="+versenumber+",SEARCHTERM="+searchTerm+",JSONSTR="+resultJsonStr);
+                        //System.out.println("versetext after AddMark = " + versetext);
+                        //System.out.println("IDX="+resultCounter+",BOOK="+book+",CHAPTER="+chapter+",VERSE="+versenumber+",VERSETEXT="+versenumber+",SEARCHTERM="+searchTerm+",JSONSTR="+resultJsonStr);
                         if(null != model){
                             //is it better to add them directly to the model, or gather them in a Vector and then add the Vector to the model?
                             //see for example https://stackoverflow.com/a/22718808/394921
@@ -473,6 +489,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                         rowsSearchResultsTable += "<tr><td><a href=\"#\" class=\"button\" id=\"row" + resultCounter + "\">" + __("Select") + "</a></td><td>" + localizedBook.Fullname + " " + chapter + ":" + versenumber + "</td><td>" + versetext + "</td></tr>";
                         resultCounter++;
                     }
+                    System.out.println("model now has " + model.getRowCount() + " rows");
                 } else {
                     rowsSearchResultsTable += "<tr><td></td><td></td><td></td></tr>";
                 }
@@ -491,7 +508,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         String replacement = "<a class=\"submark\">$1</a><a class=\"mark\">$2</a><a class=\"submark\">$3</a>";
         verseText = verseText.replaceAll(pattern, replacement);
         if(Normalizer.normalize(searchTerm, Form.NFD).matches(".*\\P{M}\\p{M}.*")){
-            System.out.println("found diacritical markings in "+searchTerm);
+            //System.out.println("found diacritical markings in "+searchTerm);
             String normalizedPattern = "(?i)\\b(\\w*)(" + stripDiacritics(searchTerm) + ")(\\w*)\\b";
             verseText = verseText.replaceAll(normalizedPattern, replacement);
         }

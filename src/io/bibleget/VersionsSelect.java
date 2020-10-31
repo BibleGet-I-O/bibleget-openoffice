@@ -22,6 +22,7 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.swing.DefaultListSelectionModel;
+import javax.swing.ListSelectionModel;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -40,7 +41,7 @@ public class VersionsSelect extends javax.swing.JList {
     private static DBHelper biblegetDB;
         
     @SuppressWarnings("unchecked")
-    public VersionsSelect(boolean loadPreferred) throws ClassNotFoundException, SQLException, Exception
+    public VersionsSelect(boolean loadPreferred, int listSelectionModel) throws ClassNotFoundException, SQLException, Exception
     {       
         biblegetDB = DBHelper.getInstance();
         String bibleVersionsStr = biblegetDB.getMetaData("VERSIONS");
@@ -108,10 +109,12 @@ public class VersionsSelect extends javax.swing.JList {
             this.renderer = new VersionCellRenderer();
             this.setCellRenderer(renderer);
             
-            
+            this.setSelectionMode(listSelectionModel);
             this.setSelectionModel(new DisabledItemSelectionModel());
-            if(loadPreferred){
+            if(loadPreferred && (listSelectionModel == ListSelectionModel.MULTIPLE_INTERVAL_SELECTION || listSelectionModel == ListSelectionModel.SINGLE_INTERVAL_SELECTION ) ){
                 this.setSelectedIndices(indices);
+            } else if(loadPreferred && (listSelectionModel == ListSelectionModel.SINGLE_SELECTION ) ){
+                this.setSelectedIndex(indices[0]);
             }
         }
     }

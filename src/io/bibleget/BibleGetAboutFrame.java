@@ -23,6 +23,7 @@ import javax.json.JsonReader;
 import javax.json.JsonString;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JFrame;
+import javax.swing.ListSelectionModel;
 import javax.swing.text.Document;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
@@ -105,7 +106,7 @@ public class BibleGetAboutFrame extends javax.swing.JFrame {
 
     private void prepareDynamicInformation() throws ClassNotFoundException, SQLException, Exception {
         bibleGetDB = DBHelper.getInstance();
-        jList1 = new VersionsSelect(false);
+        jList1 = new VersionsSelect(false, ListSelectionModel.SINGLE_SELECTION);
         jList1.setSelectionModel(new DisabledItemSelectionModel());
         jList1.setFont(new java.awt.Font("Tahoma",0,14));
         versionLangs = jList1.getVersionLangs();

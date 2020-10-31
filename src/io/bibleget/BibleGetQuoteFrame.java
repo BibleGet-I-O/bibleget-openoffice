@@ -8,7 +8,6 @@ package io.bibleget;
 import ca.odell.glazedlists.BasicEventList;
 import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.SeparatorList;
-import ca.odell.glazedlists.swing.DefaultEventListModel;
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.frame.XController;
@@ -31,7 +30,6 @@ import java.util.logging.Logger;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-import javax.swing.DefaultListSelectionModel;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
@@ -163,8 +161,7 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
         }
         
         try {
-            jListBibleVersions = new VersionsSelect(true);
-            jListBibleVersions.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+            jListBibleVersions = new VersionsSelect(true, ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
             ListSelectionModel listSelectionModel = jListBibleVersions.getSelectionModel();
             listSelectionModel.addListSelectionListener(new BibleGetQuoteFrame.SharedListSelectionHandler());
             jListBibleVersions.setSelectedIndices(indices);
