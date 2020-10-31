@@ -21,6 +21,7 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonReader;
 import javax.json.JsonString;
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.JFrame;
 import javax.swing.text.Document;
 import javax.swing.text.html.HTMLEditorKit;
@@ -105,7 +106,7 @@ public class BibleGetAboutFrame extends javax.swing.JFrame {
     private void prepareDynamicInformation() throws ClassNotFoundException, SQLException, Exception {
         bibleGetDB = DBHelper.getInstance();
         jList1 = new VersionsSelect(false);
-        jList1.setEnabled(false);
+        jList1.setSelectionModel(new DisabledItemSelectionModel());
         jList1.setFont(new java.awt.Font("Tahoma",0,14));
         versionLangs = jList1.getVersionLangs();
         versionCount = jList1.getVersionCount();
@@ -372,6 +373,18 @@ public class BibleGetAboutFrame extends javax.swing.JFrame {
         });
     }
 
+    private class DisabledItemSelectionModel extends DefaultListSelectionModel {
+        @Override
+        public void setSelectionInterval(int index0, int index1) {
+            super.setSelectionInterval(-1, -1);
+        }
+        
+        @Override
+        public void addSelectionInterval(int index0, int index1) {
+            super.setSelectionInterval(-1, -1);
+        }
+    }    
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
