@@ -19,6 +19,8 @@ import ca.odell.glazedlists.SeparatorList;
 import static io.bibleget.BGetI18N.__;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
@@ -264,6 +266,13 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         return instance;
     }
     
+    private List<Image> setIconImages()
+    {
+        List<Image> images = new ArrayList<>(4);
+        images.add(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/io/bibleget/images/search_x16.png")));
+        images.add(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/io/bibleget/images/search_x32.png")));
+        return images;
+    }
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -293,6 +302,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Search for verses by keyword");
+        setIconImages(setIconImages());
         setName("searchFrame"); // NOI18N
         setPreferredSize(new java.awt.Dimension(1200, 800));
 
