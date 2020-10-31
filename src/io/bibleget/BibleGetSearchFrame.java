@@ -22,11 +22,14 @@ import java.awt.Component;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -426,7 +429,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 String versionSearched = infoObj.getString("version");
                 
                 String rowsSearchResultsTable = "";
-                String previewDocument = "";
+                String previewDocument;
                 
                 int book;
                 int chapter;
@@ -451,9 +454,12 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                         versenumber = currentJson.getString("verse");
                         versetext = currentJson.getString("text");
                         resultJsonStr = currentJson.toString();
-                        //I wrote this in vb.net, I really don't remember what it's doing?
+                        System.out.println("versetext before unidentified regex = " + versetext);
+                        //The following regex removes all NABRE formatting tags
                         versetext = versetext.replaceAll("<(?:[^>=]|='[^']*'|=\"[^\"]*\"|=[^'\"][^\\s>]*)*>","");
+                        System.out.println("versetext before AddMark = " + versetext);
                         versetext = AddMark(versetext, searchTerm);
+                        System.out.println("versetext after AddMark = " + versetext);
                         System.out.println("IDX="+resultCounter+",BOOK="+book+",CHAPTER="+chapter+",VERSE="+versenumber+",VERSETEXT="+versenumber+",SEARCHTERM="+searchTerm+",JSONSTR="+resultJsonStr);
                         if(null != model){
                             model.addRow(new Object[]{resultCounter, book, chapter, versenumber, versetext, searchTerm, resultJsonStr});
@@ -477,25 +483,20 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1MouseClicked
 
     private String AddMark(String verseText, String searchTerm){
-        String pattern = "(?i)(.*)(\b.*?)(" + searchTerm + ")(.*?\b)(.*)";
-        String replacement = "$1<a class=\"submark\">$2</a><a class=\"mark\">$3</a><a class=\"submark\">$4</a>$5";
-        return verseText.replaceAll(pattern, replacement);
+        String pattern = "(?i)\\b(\\w*)(" + searchTerm + ")(\\w*)\\b";
+        String normalizedPattern = "(?i)\\b(\\w*)(" + stripDiacritics(searchTerm) + ")(\\w*)\\b";
+        String replacement = "<a class=\"submark\">$1</a><a class=\"mark\">$2</a><a class=\"submark\">$3</a>";
+        verseText = verseText.replaceAll(pattern, replacement);
+        verseText = verseText.replaceAll(normalizedPattern, replacement);
+        return verseText;
     }
-    /* TODO: I wrote this function in vb.net, I'll see if it's necessary and if there are any other approaches in Java...
-    private static String stripDiacritics(String inText){
-        Dim normalizedString = inText.Normalize(NormalizationForm.FormD)
-        Dim StringBuilder = New StringBuilder()
-        Dim c
-        For Each c In normalizedString
-            Dim UnicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c)
-            If (UnicodeCategory <> UnicodeCategory.NonSpacingMark) Then
-                StringBuilder.Append(c)
-            End If
-        Next
-
-        Return StringBuilder.ToString().Normalize(NormalizationForm.FormC)
+    
+    private String stripDiacritics(String inText){
+        String normalizedString = Normalizer.normalize(inText, Form.NFD);
+        String buildStr = normalizedString.replaceAll("\\p{M}", "");
+        return Normalizer.normalize(buildStr, Form.NFC);
     }
-    */
+    
     
     /**
      * @param args the command line arguments
