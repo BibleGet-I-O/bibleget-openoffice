@@ -491,8 +491,8 @@ public final class BibleGetQuoteFrame extends javax.swing.JFrame {
                     myResponse = myHTTPCaller.sendGet(myInputContent,versionsSelcd);
                     if(myResponse != null){
                         publish(40);
-                        BGetDocInject myJSON = new BGetDocInject(m_xController,null);
-                        myJSON.InsertTextAtCurrentCursor(myResponse);
+                        BGetDocInject jsonResponseToDoc = new BGetDocInject(m_xController,null);
+                        jsonResponseToDoc.InsertTextAtCurrentCursor(myResponse);
                         instance.setVisible(false);
                     }
                     else{

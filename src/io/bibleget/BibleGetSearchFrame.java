@@ -16,18 +16,28 @@
 package io.bibleget;
 
 import ca.odell.glazedlists.SeparatorList;
+import static io.bibleget.BGetI18N.__;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
 import org.apache.commons.lang3.StringUtils;
 //import javax.swing.SwingWorker;
 import org.cef.OS;
@@ -48,6 +58,18 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         
     private VersionsSelect jListBibleVersions;
     
+    private String previewDocumentHead;
+    private String previewDocumentBodyOpen;
+    private String previewDocumentBodyClose;
+    private String spinnerPage;
+    
+    JTable table;
+    DefaultTableModel model;
+    
+    private String selectedVersion;
+    
+    private LocalizedBibleBooks localizedBookNames;
+    
     /**
      * Creates new form BibleGetSearchFrame
      */
@@ -63,6 +85,104 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         } catch (Exception ex) {
             Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        Object selectedValue = jListBibleVersions.getSelectedValue();
+        if(null!=selectedValue){
+            selectedVersion = selectedValue.toString().split("—")[0].trim(); 
+            //System.out.println("selectedVersion = " + selectedVersion);
+        }
+        
+        previewDocumentHead = "<!DOCTYPE html>"
+            + "<head>"
+            + "<meta charset=\"UTF-8\">"
+            + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+            + "<style type=\"text/css\">"
+            + "html,body { margin: 0; padding: 0; }"
+            + "body { border: 1px solid Black; }"
+            + "#bibleGetSearchResultsTableContainer {"
+            + "	border: 1px solid #963;"
+            + "	overflow-y: auto;"
+            + "    overflow-x: hidden;"
+            + "    max-height: 100vh;"
+            + "    width: 100vh;"
+            + "}"
+            + ""
+            + "#bibleGetSearchResultsTableContainer table {"
+            + "  width: 100%;"
+            + "}"
+            + ""
+            + "#bibleGetSearchResultsTableContainer th, td { padding: 8px 16px; }"
+            + ""
+            + "#bibleGetSearchResultsTableContainer thead th {"
+            //+ "	position: fixed;"
+            //+ " top: 0;"
+            + "	background: #C96;"
+            + "	border-left: 1px solid #EB8;"
+            + "	border-right: 1px solid #B74;"
+            + "	border-top: 1px solid #EB8;"
+            + "	font-weight: normal;"
+            + "	text-align: center;"
+            + "    color: White;"
+            + "    font-weight: bold;"
+            + "}"
+            + ""
+            + "#bibleGetSearchResultsTableContainer tbody td {"
+            + "  border-bottom: 1px groove White;"
+            + "  background-color: #EFEFEF;"
+            + "}"
+            + ""
+            + "#bibleGetSearchResultsTableContainer mark {"
+            + "  font-weight: bold;"
+            + "}"
+            + ""
+            + "a.mark { background-color: yellow; font-weight: bold; padding: 2px 4px; }"
+            + "a.submark { background-color: lightyellow; padding: 2px 0px; }"
+            + "a.button { padding: 6px; color: DarkBlue; font-weight: bold; background-color: LightBlue; border: 2px outset Blue; border-radius: 3px; display: inline-block; cursor: pointer; text-decoration: none; }" //box-shadow: 2px 2px 2px 2px DarkBlue; 
+            + "a.button:hover { background-color: #EEF; }"
+            + "</style>"
+            + "</head>";
+
+        previewDocumentBodyOpen = "<body><div id=\"bibleGetSearchResultsTableContainer\">"
+            + "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" class=\"scrollTable\" id=\"SearchResultsTable\">"
+            + "	<thead class=\"fixedHeader\">"
+            + "		<tr class=\"alternateRow\"><th>Action</th><th>Verse Reference</th><th>" + __("Verse Text") + "</th></tr>"
+            + "	</thead>"
+            + "	<tbody class=\"scrollContent\">";
+
+        previewDocumentBodyClose = "</tbody></table></div></body>";
+        
+        spinnerPage = "<!DOCTYPE html"
+                + "<head><meta charset=\"utf-8\">"
+                + "<style>"
+                + "body { background-color: gray; text-align: center; }"
+                + ".lds-dual-ring {" +
+                "  display: inline-block;" +
+                "  width: 80px;" +
+                "  height: 80px;" +
+                "  position: absolute;" +
+                "  top: 50%;" +
+                "  margin-top: -40px;" +
+                "}" +
+                ".lds-dual-ring:after {" +
+                "  content: \" \";" +
+                "  display: block;" +
+                "  width: 64px;" +
+                "  height: 64px;" +
+                "  margin: 8px;" +
+                "  border-radius: 50%;" +
+                "  border: 6px solid #fff;" +
+                "  border-color: #fff transparent #fff transparent;" +
+                "  animation: lds-dual-ring 1.2s linear infinite;" +
+                "}" +
+                "@keyframes lds-dual-ring {" +
+                "  0% {" +
+                "    transform: rotate(0deg);" +
+                "  }" +
+                "  100% {" +
+                "    transform: rotate(360deg);" +
+                "  }" +
+                "}</style></head>"
+                + "<body><div class=\"lds-dual-ring\"></div></body>";
         
         String htmlStr = "<!DOCTYPE html>"
                 + "<head><meta charset=\"utf-8\">"
@@ -100,6 +220,16 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         
         initComponents();
         jInternalFramePreviewArea.getContentPane().add(browserUI, BorderLayout.CENTER);
+        
+        try {
+            localizedBookNames = LocalizedBibleBooks.getInstance();
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }    
 
     public static BibleGetSearchFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
@@ -134,13 +264,16 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         jButton3 = new javax.swing.JButton();
         jTextField2 = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
+        jSeparator1 = new javax.swing.JSeparator();
+        jSeparator2 = new javax.swing.JSeparator();
         jInternalFramePreviewArea = new javax.swing.JInternalFrame();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Search for verses by keyword");
         setName("searchFrame"); // NOI18N
-        setPreferredSize(new java.awt.Dimension(1200, 500));
+        setPreferredSize(new java.awt.Dimension(1200, 800));
 
-        jPanelSettingsArea.setPreferredSize(new java.awt.Dimension(500, 500));
+        jPanelSettingsArea.setPreferredSize(new java.awt.Dimension(400, 500));
 
         jLabel1.setText("waiting for a browser click...");
 
@@ -148,11 +281,16 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
 
         jScrollPane1.setViewportView(jListBibleVersions);
 
-        jLabel2.setText("Bible version to search from");
+        jLabel2.setText("Bible version to search from: " + selectedVersion);
 
         jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/search_x32.png"))); // NOI18N
         jButton1.setText("Search");
         jButton1.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton1MouseClicked(evt);
+            }
+        });
 
         jTextField1.setText("jTextField1");
 
@@ -180,53 +318,63 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             .addGroup(jPanelSettingsAreaLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jSeparator2)
+                    .addComponent(jSeparator1)
                     .addComponent(jScrollPane1)
                     .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelSettingsAreaLayout.createSequentialGroup()
-                        .addGroup(jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jCheckBox1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jTextField1)
+                        .addGroup(jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(jPanelSettingsAreaLayout.createSequentialGroup()
+                                .addGap(10, 10, 10)
+                                .addGroup(jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jCheckBox1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 211, Short.MAX_VALUE)
+                                    .addComponent(jTextField2)))
                             .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jTextField2, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 321, Short.MAX_VALUE))
+                            .addComponent(jTextField1, javax.swing.GroupLayout.Alignment.LEADING))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jButton3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
+                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelSettingsAreaLayout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jButton3)))
                 .addContainerGap())
         );
         jPanelSettingsAreaLayout.setVerticalGroup(
             jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelSettingsAreaLayout.createSequentialGroup()
                 .addGap(18, 18, 18)
-                .addGroup(jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanelSettingsAreaLayout.createSequentialGroup()
-                        .addComponent(jLabel2)
+                        .addGap(14, 14, 14)
+                        .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGroup(jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanelSettingsAreaLayout.createSequentialGroup()
-                                .addGap(14, 14, 14)
-                                .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(5, 5, 5)
-                                .addComponent(jCheckBox1))
-                            .addGroup(jPanelSettingsAreaLayout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(5, 5, 5)
+                        .addComponent(jCheckBox1))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelSettingsAreaLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanelSettingsAreaLayout.createSequentialGroup()
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(18, 18, 18)
+                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -235,6 +383,9 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
 
         getContentPane().add(jPanelSettingsArea, java.awt.BorderLayout.WEST);
 
+        jInternalFramePreviewArea.setTitle("Search results");
+        jInternalFramePreviewArea.setFrameIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/preview.png"))); // NOI18N
+        jInternalFramePreviewArea.setPreferredSize(new java.awt.Dimension(800, 800));
         jInternalFramePreviewArea.setVisible(true);
         getContentPane().add(jInternalFramePreviewArea, java.awt.BorderLayout.CENTER);
 
@@ -242,6 +393,110 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
+        boolean readyToGo = true;
+        String errorMessage = "";
+        if(jListBibleVersions.getSelectedValue() == null){
+            readyToGo = false;
+            errorMessage = "Cannot search for a term if we don't know which Bible version to search from!";
+        } else if(jTextField1.getText().isEmpty()){
+            readyToGo = false;
+            errorMessage = "Cannot search for an empty term!";
+        } else if(jTextField1.getText().length() < 3){
+            readyToGo = false;
+            errorMessage = "Cannot search for such a small term! We need at least 3 characters.";
+        }
+        if(readyToGo){
+            browser.loadURL(DataUri.create("text/html", spinnerPage) );
+            //let's do this
+            String queryString = jTextField1.getText().trim();
+            if(queryString.contains(" ")){
+                queryString = queryString.split(" ")[0];
+            }
+            
+            HTTPCaller httpCaller =  new HTTPCaller();
+            String response = httpCaller.searchRequest(queryString, selectedVersion, jCheckBox1.isSelected());
+            
+            if(null != response){
+                JsonReader jsonReader = Json.createReader(new StringReader(response));
+                JsonObject json = jsonReader.readObject();
+                JsonArray resultsJArray = json.getJsonArray("results");
+                JsonObject infoObj = json.getJsonObject("info");
+                String searchTerm = infoObj.getString("keyword");
+                String versionSearched = infoObj.getString("version");
+                
+                String rowsSearchResultsTable = "";
+                String previewDocument = "";
+                
+                int book;
+                int chapter;
+                String versenumber;
+                String versetext;
+                String resultJsonStr;
+                
+                int numResults = resultsJArray.size();
+                table = new JTable(new DefaultTableModel(new Object[]{"IDX", "BOOK", "CHAPTER", "VERSE", "VERSETEXT", "SEARCHTERM", "JSONSTR"}, numResults));
+                model = (DefaultTableModel) table.getModel();
+                
+                jInternalFramePreviewArea.setTitle("Search results: " + numResults + " verses found containing the term \"" + searchTerm + "\" in version \"" + versionSearched + "\"");
+                
+                if(numResults > 0){
+                    int resultCounter = 0;
+                    Iterator pIterator = resultsJArray.iterator();
+                    while (pIterator.hasNext()) {
+                        JsonObject currentJson = (JsonObject) pIterator.next();
+                        book = Integer.decode(currentJson.getString("univbooknum"));
+                        LocalizedBibleBook localizedBook = localizedBookNames.GetBookByIndex(book - 1);
+                        chapter = Integer.decode(currentJson.getString("chapter"));
+                        versenumber = currentJson.getString("verse");
+                        versetext = currentJson.getString("text");
+                        resultJsonStr = currentJson.toString();
+                        //I wrote this in vb.net, I really don't remember what it's doing?
+                        versetext = versetext.replaceAll("<(?:[^>=]|='[^']*'|=\"[^\"]*\"|=[^'\"][^\\s>]*)*>","");
+                        versetext = AddMark(versetext, searchTerm);
+                        System.out.println("IDX="+resultCounter+",BOOK="+book+",CHAPTER="+chapter+",VERSE="+versenumber+",VERSETEXT="+versenumber+",SEARCHTERM="+searchTerm+",JSONSTR="+resultJsonStr);
+                        if(null != model){
+                            model.addRow(new Object[]{resultCounter, book, chapter, versenumber, versetext, searchTerm, resultJsonStr});
+                        } else {
+                            System.out.println("Table model is null! now why is that?");
+                        }
+                        rowsSearchResultsTable += "<tr><td><a href=\"#\" class=\"button\" id=\"row" + resultCounter + "\">" + __("Select") + "</a></td><td>" + localizedBook.Fullname + " " + chapter + ":" + versenumber + "</td><td>" + versetext + "</td></tr>";
+                        resultCounter++;
+                    }
+                } else {
+                    rowsSearchResultsTable += "<tr><td></td><td></td><td></td></tr>";
+                }
+                
+                previewDocument = previewDocumentHead + previewDocumentBodyOpen + rowsSearchResultsTable + previewDocumentBodyClose;
+                browser.loadURL(DataUri.create("text/html",previewDocument));
+            }
+            
+        } else {
+            JOptionPane.showMessageDialog(null, errorMessage, "Warning!", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }//GEN-LAST:event_jButton1MouseClicked
+
+    private String AddMark(String verseText, String searchTerm){
+        String pattern = "(?i)(.*)(\b.*?)(" + searchTerm + ")(.*?\b)(.*)";
+        String replacement = "$1<a class=\"submark\">$2</a><a class=\"mark\">$3</a><a class=\"submark\">$4</a>$5";
+        return verseText.replaceAll(pattern, replacement);
+    }
+    /* TODO: I wrote this function in vb.net, I'll see if it's necessary and if there are any other approaches in Java...
+    private static String stripDiacritics(String inText){
+        Dim normalizedString = inText.Normalize(NormalizationForm.FormD)
+        Dim StringBuilder = New StringBuilder()
+        Dim c
+        For Each c In normalizedString
+            Dim UnicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c)
+            If (UnicodeCategory <> UnicodeCategory.NonSpacingMark) Then
+                StringBuilder.Append(c)
+            End If
+        Next
+
+        Return StringBuilder.ToString().Normalize(NormalizationForm.FormC)
+    }
+    */
+    
     /**
      * @param args the command line arguments
      */
@@ -288,6 +543,8 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanelSettingsArea;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JSeparator jSeparator2;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     // End of variables declaration//GEN-END:variables
@@ -352,6 +609,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 }
             }
             String versionsSelcd = StringUtils.join(selectedVersions.toArray(), ',');
+            selectedVersion = versionsSelcd;
             jLabel2.setText("Bible version to search from: " + versionsSelcd);
         }
     }

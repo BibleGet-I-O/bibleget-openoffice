@@ -88,6 +88,25 @@ public class HTTPCaller {
         return null;
     }
     
+    public String searchRequest(String searchTerm,String version, boolean exactMatch){
+        try {
+            version = URLEncoder.encode(version,"utf-8");
+            searchTerm = URLEncoder.encode(searchTerm,"utf-8");
+        } catch(UnsupportedEncodingException ex){
+            Logger.getLogger(HTTPCaller.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        String url = "https://query.bibleget.io/search.php?query=keywordsearch&keyword=" + searchTerm + "&version=" + version + "&return=json&appid=openoffice&pluginversion="+BibleGetIO.PLUGINVERSION + (exactMatch ? "&exactmatch=true" : "");
+        if(counter < 1){
+            if(installCert()){
+                counter++;
+                return getResponse(url);
+            }
+        }else{
+            return getResponse(url);
+        }
+        return null;        
+    }
+    
     /**
      *
      * @param query
