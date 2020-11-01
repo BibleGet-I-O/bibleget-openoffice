@@ -200,9 +200,36 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             + ""
             + "a.mark { background-color: yellow; font-weight: bold; padding: 2px 4px; }"
             + "a.submark { background-color: lightyellow; padding: 2px 0px; }"
-            + "a.button { padding: 6px; color: DarkBlue; font-weight: bold; background-color: LightBlue; border: 2px outset Blue; border-radius: 3px; display: inline-block; cursor: pointer; text-decoration: none; }" //box-shadow: 2px 2px 2px 2px DarkBlue; 
-            + "a.button:hover { background-color: #EEF; }"
+            + "#bibleGetSearchResultsTableContainer table span.button { padding: 6px; color: DarkBlue; font-weight: bold; background-color: LightBlue; border: 2px outset Blue; border-radius: 3px; display: inline-block; cursor: pointer; text-decoration: none; }" //box-shadow: 2px 2px 2px 2px DarkBlue; 
+            + "#bibleGetSearchResultsTableContainer table span.button:hover { background-color: #EEF; }"
+            + "#bibleGetSearchResultsTableContainer table span.button.rowinserted { color: Grey; background-color: LightGrey; border: 2px outset DarkGray; cursor: not-allowed; }" //box-shadow: 2px 2px 2px 2px DarkBlue; 
+            + "#bibleGetSearchResultsTableContainer table span.button:hover { background-color: LightGrey; }"
             + "</style>"
+            + "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>"
+            + "<script>(function($){"
+            + "  $(document).ready(function(){"
+            + "    $(document).on('click', '#bibleGetSearchResultsTableContainer table span.button', function(){"
+            + "        if($(this).hasClass('rowinserted') === false){ "
+            + "          let idx = parseInt($(this).attr('id').replace('row',''));"
+            + "          console.log('Insert button for IDX '+idx+' was clicked...');"
+            + "          cefQuery({"
+            + "            request: 'INSERT:'+idx,"
+            + "            onSuccess: function(response){"
+            + "              if(response.startsWith('INJECTIONCOMPLETE:') ){"
+            + "                let row = 'row'+response.replace('INJECTIONCOMPLETE:','');"
+            + "                $('#'+row).text('INSERTED').addClass('rowinserted');"
+            + "              }"
+            //+ "              document.getElementById('response').innerHTML = '<b>Response</b>: '+response;"
+            + "            },"
+            + "            onFailure: function(error_code, error_message) {"
+            + "              console.log('Error code: '+error_code+', Message: '+error_message);"
+            //+ "              document.getElementById('error').innerHTML = '<b>Error code:</b> '+error_code+'<br /><b>Message:</b> '+error_message;"
+            + "            }"
+            + "          });"
+            + "        }"
+            + "    });"
+            + "  }); "
+            + "})(jQuery);</script>"
             + "</head>";
 
         previewDocumentBodyOpen = "<body><div id=\"bibleGetSearchResultsTableContainer\">"
@@ -427,7 +454,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                         } else {
                             System.out.println("Table model is null! now why is that?");
                         }
-                        rowsSearchResultsTable += "<tr><td><a href=\"#\" class=\"button\" id=\"row" + resultCounter + "\">" + __("Select") + "</a></td><td>" + localizedBook.Fullname + " " + chapter + ":" + versenumber + "</td><td>" + versetext + "</td></tr>";
+                        rowsSearchResultsTable += "<tr><td><span class=\"button\" id=\"row" + resultCounter + "\">" + __("Select") + "</span></td><td>" + localizedBook.Fullname + " " + chapter + ":" + versenumber + "</td><td>" + versetext + "</td></tr>";
                         resultCounter++;
                         int remappedVal = BibleGetIO.remap(resultCounter, 0, numResults, 0, 60);
                         System.out.println("resultCounter = " + resultCounter + ", remappedVal = " + remappedVal);
@@ -467,12 +494,12 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         jProgressBar1 = new javax.swing.JProgressBar();
         jScrollPane1 = new javax.swing.JScrollPane();
         jLabel2 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        jButtonSearch = new javax.swing.JButton();
         jTextField1 = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         jCheckBox1 = new javax.swing.JCheckBox();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
+        jButtonFilter = new javax.swing.JButton();
+        jButtonSort = new javax.swing.JButton();
         jTextFieldFilterForTerm = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
@@ -496,12 +523,12 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
 
         jLabel2.setText("Bible version to search from: " + selectedVersion);
 
-        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/search_x32.png"))); // NOI18N
-        jButton1.setText("Search");
-        jButton1.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton1MouseClicked(evt);
+        jButtonSearch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/search_x32.png"))); // NOI18N
+        jButtonSearch.setText("Search");
+        jButtonSearch.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jButtonSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonSearchActionPerformed(evt);
             }
         });
 
@@ -511,22 +538,22 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
 
         jCheckBox1.setText("only exact matches");
 
-        jButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/filter.png"))); // NOI18N
-        jButton2.setText("Apply filter");
-        jButton2.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jButton2.setIconTextGap(10);
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        jButtonFilter.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/filter.png"))); // NOI18N
+        jButtonFilter.setText("Apply filter");
+        jButtonFilter.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jButtonFilter.setIconTextGap(10);
+        jButtonFilter.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                jButtonFilterActionPerformed(evt);
             }
         });
 
-        jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/Sort.png"))); // NOI18N
-        jButton3.setText("Order by reference");
-        jButton3.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        jButtonSort.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/Sort.png"))); // NOI18N
+        jButtonSort.setText("Order by reference");
+        jButtonSort.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jButtonSort.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                jButtonSortActionPerformed(evt);
             }
         });
 
@@ -560,11 +587,11 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                             .addComponent(jTextField1, javax.swing.GroupLayout.Alignment.LEADING))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
-                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(jButtonFilter, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
+                            .addComponent(jButtonSearch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelSettingsAreaLayout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton3)))
+                        .addComponent(jButtonSort)))
                 .addContainerGap())
         );
         jPanelSettingsAreaLayout.setVerticalGroup(
@@ -584,7 +611,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                         .addComponent(jCheckBox1))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelSettingsAreaLayout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jButtonSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -593,11 +620,11 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextFieldFilterForTerm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButtonFilter, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jButtonSort, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 478, Short.MAX_VALUE)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -618,34 +645,13 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
-        boolean readyToGo = true;
-        String errorMessage = "";
-        if(jListBibleVersions.getSelectedValue() == null){
-            readyToGo = false;
-            errorMessage = "Cannot search for a term if we don't know which Bible version to search from!";
-        } else if(jTextField1.getText().isEmpty()){
-            readyToGo = false;
-            errorMessage = "Cannot search for an empty term!";
-        } else if(jTextField1.getText().length() < 3){
-            readyToGo = false;
-            errorMessage = "Cannot search for such a small term! We need at least 3 characters.";
-        }
-        if(readyToGo){
-            Task_Force tf = new BibleGetSearchFrame.Task_Force(jProgressBar1);
-            tf.execute();
-        } else {
-            JOptionPane.showMessageDialog(null, errorMessage, "Warning!", JOptionPane.WARNING_MESSAGE);
-        }
-    }//GEN-LAST:event_jButton1MouseClicked
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        if("Apply filter".equals(jButton2.getText())) {  //__("Apply filter") Then
+    private void jButtonFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFilterActionPerformed
+        if("Apply filter".equals(jButtonFilter.getText())) {  //__("Apply filter") Then
             if(jTextFieldFilterForTerm.getText().isEmpty() ){
                 JOptionPane.showMessageDialog(null, "Filter term cannot be empty!", "Warning!", JOptionPane.WARNING_MESSAGE);
             } else {
-                jButton2.setText("Remove filter"); // __("Remove filter")
-                jButton2.setIcon(removeFilter);
+                jButtonFilter.setText("Remove filter"); // __("Remove filter")
+                jButtonFilter.setIcon(removeFilter);
                 String filterTerm = jTextFieldFilterForTerm.getText().trim();
                 if(filterTerm.contains(" ")){
                     filterTerm = filterTerm.split(" ")[0];
@@ -676,17 +682,17 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 //System.out.println("Value at column 4 row 0 = " + model.getValueAt(table.convertRowIndexToModel(0), 4) );
             }
         } else {
-            jButton2.setText("Apply filter");// __("Apply filter")
-            jButton2.setIcon(filter);
+            jButtonFilter.setText("Apply filter");// __("Apply filter")
+            jButtonFilter.setIcon(filter);
             //searchResultsDT.DefaultView.RowFilter = ""
             jTextFieldFilterForTerm.setText("");
             sorter.setRowFilter(null);
         }
         refreshSearchResults();
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_jButtonFilterActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        if("Order by reference".equals(jButton3.getText())){ //__("Order by Reference") Then
+    private void jButtonSortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSortActionPerformed
+        if("Order by reference".equals(jButtonSort.getText())){ //__("Order by Reference") Then
             //searchResultsDT.DefaultView.Sort = "BOOK ASC,CHAPTER ASC,VERSE ASC"
             List <RowSorter.SortKey> sortKeys = new ArrayList<>();
             sortKeys.add(new RowSorter.SortKey(1, SortOrder.ASCENDING));
@@ -694,7 +700,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             sortKeys.add(new RowSorter.SortKey(3, SortOrder.ASCENDING));
             sorter.setSortKeys(sortKeys);
             sorter.sort();
-            jButton3.setText("Order by importance");
+            jButtonSort.setText("Order by importance");
             //System.out.println("Value at column 4 row 35 = " + model.getValueAt(table.convertRowIndexToModel(35), 4) ); //versetext of first row
         } else {
             //searchResultsDT.DefaultView.Sort = "IDX ASC"
@@ -702,11 +708,36 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
             sorter.setSortKeys(sortKeys);
             sorter.sort();
-            jButton3.setText("Order by reference");
+            jButtonSort.setText("Order by reference");
             //System.out.println("Value at column 4 row 35 = " + model.getValueAt(table.convertRowIndexToModel(35), 4) ); //versetext of first row
         }
         refreshSearchResults();
-    }//GEN-LAST:event_jButton3ActionPerformed
+    }//GEN-LAST:event_jButtonSortActionPerformed
+
+    private void jButtonSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSearchActionPerformed
+        boolean readyToGo = true;
+        String errorMessage = "";
+        if(jListBibleVersions.getSelectedValue() == null){
+            readyToGo = false;
+            errorMessage = "Cannot search for a term if we don't know which Bible version to search from!";
+        } else if(jTextField1.getText().isEmpty()){
+            readyToGo = false;
+            errorMessage = "Cannot search for an empty term!";
+        } else if(jTextField1.getText().length() < 3){
+            readyToGo = false;
+            errorMessage = "Cannot search for such a small term! We need at least 3 characters.";
+        }
+        if(readyToGo){
+            jButtonFilter.setText("Apply filter");
+            jButtonFilter.setIcon(filter);
+            jTextFieldFilterForTerm.setText("");
+            jButtonSort.setText("Order by reference");
+            Task_Force tf = new BibleGetSearchFrame.Task_Force(jProgressBar1);
+            tf.execute();
+        } else {
+            JOptionPane.showMessageDialog(null, errorMessage, "Warning!", JOptionPane.WARNING_MESSAGE);
+        }
+    }//GEN-LAST:event_jButtonSearchActionPerformed
 
     private String AddMark(String verseText, String searchTerm){
         String pattern = "(?i)\\b(\\w*)(" + searchTerm + ")(\\w*)\\b";
@@ -754,7 +785,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 if(!"".equals(filterTerm)){
                     versetext = AddMark(versetext, filterTerm);
                 }
-                rowsSearchResultsTable += "<tr><td><a href=\"#\" class=\"button\" id=\"row" + rowIdx + "\">" + "Select" + "</a></td><td>" + localizedBook.Fullname + " " + chapter + ":" + versenumber + "</td><td>" + versetext + "</td></tr>";
+                rowsSearchResultsTable += "<tr><td><span class=\"button\" id=\"row" + rowIdx + "\">" + "Select" + "</span></td><td>" + localizedBook.Fullname + " " + chapter + ":" + versenumber + "</td><td>" + versetext + "</td></tr>";
             }
         } else {
             System.out.println("refreshSearchResults found 0 rows");
@@ -798,9 +829,9 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButtonFilter;
+    private javax.swing.JButton jButtonSearch;
+    private javax.swing.JButton jButtonSort;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JInternalFrame jInternalFramePreviewArea;
     private javax.swing.JLabel jLabel1;
@@ -894,6 +925,23 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 jLabel1.setText(request);
                 System.out.println(request); // prints "Hello World"
                 return true;
+            } else if(request.startsWith("INSERT:")){
+                int IDX = Integer.parseInt(request.split(":")[1]);
+                String JSONSTR = (String) "{\"results\": [" + table.getValueAt(IDX, table.getColumn("JSONSTR").getModelIndex()) + "]}";
+                System.out.println(JSONSTR);
+                callback.success("INJECTIONCOMPLETE:"+IDX);
+                jLabel1.setText("verse at index " + IDX + " will now be inserted into the document...");
+                BGetDocInject jsonResponseToDoc;
+                try {
+                    jsonResponseToDoc = new BGetDocInject(BibleGetIO.getXController(),null);
+                    jsonResponseToDoc.InsertTextAtCurrentCursor(JSONSTR);
+                    return true;
+                } catch (SQLException ex) {
+                    Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (Exception ex) {
+                    Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                return false;
             }
             
             return false;

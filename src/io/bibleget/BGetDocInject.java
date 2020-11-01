@@ -206,7 +206,14 @@ public class BGetDocInject {
             currentBook = currentJson.getString("book");
             currentBookAbbrev = currentJson.getString("bookabbrev");
             currentBookUnivIdx = Integer.decode(currentJson.getString("univbooknum"));
-            currentChapter = currentJson.getInt("chapter");
+            currentChapter = 0;
+            switch(currentJson.get("chapter").getValueType()){
+                case STRING:
+                    currentChapter = Integer.parseInt(currentJson.getString("chapter"));
+                    break;
+                case NUMBER:
+                    currentChapter = currentJson.getInt("chapter");
+            }
             currentVerse = currentJson.getString("verse");
             currentVersion = currentJson.getString("version");
             originalQuery = currentJson.getString("originalquery");
