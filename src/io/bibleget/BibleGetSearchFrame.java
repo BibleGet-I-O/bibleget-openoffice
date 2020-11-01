@@ -255,6 +255,8 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 "  position: absolute;" +
                 "  top: 50%;" +
                 "  margin-top: -40px;" +
+                "  left: 50%;" +
+                "  margin-left: -40px;" +
                 "}" +
                 ".lds-dual-ring:after {" +
                 "  content: \" \";" +
@@ -286,10 +288,10 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 + "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>"
                 + "<script>(function($){"
                 + "  $(document).ready(function(){"
-                + "    $(document).on('click', '#helloworld', function(){"
+                + "    $(document).on('click', '.helloworld', function(){"
                 + "        console.log('Hello World button was clicked...');"
                 + "        cefQuery({"
-                + "          request: 'SEARCH: Hello Java World from the JCEF javascript world!',"
+                + "          request: 'SEARCH:Ave Maria gratia plena Dominus tecum',"
                 + "          onSuccess: function(response){"
                 + "            document.getElementById('response').innerHTML = '<b>Response</b>: '+response;"
                 + "          },"
@@ -302,10 +304,12 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 + "})(jQuery);</script>"
                 + "</head>"
                 + "<body>"
-                + "<h1>Initializing preview area...</h1>"
-                + "<button id=\"helloworld\">Hello World!</button>"
-                + "<div id=\"response\"></div>"
-                + "<div id=\"error\"></div>"
+                + "<h1>Welcome to the BibleGet verses search</h1>"
+                + "<p class=\"helloworld\">You can perform a partial word search, which is the default (i.e. a search for 'Spirit' will find verses with the word 'Spirit' as well as verses with the word 'spiritual'). In this case you cannot search for three letter words (i.e. a search for 'God' will not find verses with 'God' but only with 'godly').</p>"
+                + "<p class=\"helloworld\">You can also choose to perform a search for an exact match, which means that when searching for 'Spirit' only verses that have the exact match for 'Spirit' will be returned, whereas verses with the word 'spiritual' will not. In this case you can search for three letter words such as 'God', but not for two letter words.</p>"
+                + "<p class=\"helloworld\">In any case you cannot search for parts of speech such as pronouns or articles, only words that contain the searched term will be returned in this case. For example, an exact match search for 'her' will return verses containing 'herd', but not verses containing 'her'.</p>"
+                + "<div id=\"response\"><i>(test area for internal communications... clicking on any paragraph above should perform the test)</i></div>"
+                + "<div id=\"error\"><i>(errors for internal communications would show here if there were any...)</i></div>"
                 + "</body>";
         
         currentURL = DataUri.create("text/html", htmlStr);
@@ -925,7 +929,8 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             if (request.startsWith("SEARCH:")) {
                 // Reverse the message and return it to the JavaScript caller.
                 String msg = request.substring(12);
-                callback.success(new StringBuilder(msg).reverse().toString());
+                //callback.success(new StringBuilder(msg).reverse().toString());
+                callback.success("Sancta Maria mater Dei, ora pro nobis peccatoribus.");
                 jLabel1.setText(request);
                 System.out.println(request); // prints "Hello World"
                 return true;
