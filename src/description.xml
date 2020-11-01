@@ -4,8 +4,8 @@
     <version value="2.8"/>
     <identifier value="io.bibleget.BibleGetIO"/>
     <icon>
-        <default xlink:href="images/holy-bible-x256.png"/>
-        <high-contrast xlink:href="images/holy-bible-x256.png"/>
+        <default xlink:href="images/holy-bible-x42.png"/>
+        <high-contrast xlink:href="images/holy-bible-x42.png"/>
     </icon>
     <display-name>
         <name lang="it">BibleGet I/O</name>
