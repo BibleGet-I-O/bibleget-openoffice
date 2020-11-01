@@ -782,7 +782,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 String versetext = (String) model.getValueAt(tableRow, table.getColumn("VERSETEXT").getModelIndex());
                 String searchTerm = (String) model.getValueAt(tableRow, table.getColumn("SEARCHTERM").getModelIndex());
                 int rowIdx = (int) model.getValueAt(tableRow, table.getColumn("IDX").getModelIndex());
-                //String resultJsonStr = (String) table.getValueAt(tableRow, table.getColumn("JSONSTR").getModelIndex());
+                //String resultJsonStr = (String) model.getValueAt(tableRow, table.getColumn("JSONSTR").getModelIndex());
                 versetext = AddMark(versetext, searchTerm);
                 if(!"".equals(filterTerm)){
                     versetext = AddMark(versetext, filterTerm);
@@ -931,7 +931,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 return true;
             } else if(request.startsWith("INSERT:")){
                 int IDX = Integer.parseInt(request.split(":")[1]);
-                String JSONSTR = (String) "{\"results\": [" + table.getValueAt(IDX, table.getColumn("JSONSTR").getModelIndex()) + "]}";
+                String JSONSTR = (String) "{\"results\": [" + model.getValueAt(IDX, table.getColumn("JSONSTR").getModelIndex()) + "]}";
                 System.out.println(JSONSTR);
                 callback.success("INJECTIONCOMPLETE:"+IDX);
                 jLabel1.setText("verse at index " + IDX + " will now be inserted into the document...");
@@ -940,6 +940,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                     jsonResponseToDoc = new BGetDocInject(BibleGetIO.getXController(),null);
                     jsonResponseToDoc.InsertTextAtCurrentCursor(JSONSTR);
                     insertedIndexes.add(IDX);
+                    jLabel1.setText("verse at index " + IDX + " was successfully inserted in the document");
                     return true;
                 } catch (SQLException ex) {
                     Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
