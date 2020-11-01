@@ -31,7 +31,6 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.SwingUtilities;
 import org.cef.CefApp;
 import org.cef.CefClient;
 import org.cef.CefSettings;
@@ -583,6 +582,9 @@ public final class BibleGetIO extends WeakBase
                             }
                         }
                     });
+                    
+                    client.addContextMenuHandler(new JCEFContextMenuHandler());
+                    
                     CefMessageRouter msgRouter = CefMessageRouter.create();
                     
                     BibleGetIO.biblegetDB = DBHelper.getInstance();
