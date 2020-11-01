@@ -31,6 +31,14 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.SwingUtilities;
+import org.cef.CefApp;
+import org.cef.CefClient;
+import org.cef.CefSettings;
+import org.cef.OS;
+import org.cef.browser.CefBrowser;
+import org.cef.browser.CefMessageRouter;
+import org.cef.handler.CefLoadHandlerAdapter;
 
 public final class BibleGetIO extends WeakBase
    implements com.sun.star.frame.XDispatchProvider,
@@ -52,21 +60,25 @@ public final class BibleGetIO extends WeakBase
     private com.sun.star.text.XTextDocument m_xTextDocument;
 
     private static String packagePath;
-    private static BibleGetFrame myFrame;
-    private static OptionsFrame myOptionFrame;
+    private static BibleGetQuoteFrame myFrame;
+    private static BibleGetOptionsFrame myOptionFrame;
     private static DefaultComboBoxModel fontFamilies;
-    private static BibleGetHelp myHelpFrame;   
+    private static BibleGetHelpFrame myHelpFrame;   
     private static BibleGetSelection quoteFromSelection;
-    private static BibleGetDB biblegetDB;
-    private static BibleGetAbout bibleGetAbout;
+    private static DBHelper biblegetDB;
+    private static BibleGetAboutFrame bibleGetAbout;
+    private static BibleGetSearchFrame bibleGetSearch;
     
     private static String myLocale;
     private static Locale uiLocale;
     //public ResourceBundle myMessages;
     public static BGET.MEASUREUNIT measureUnit;
+
+    private static CefApp cefApp;
+    public static CefClient client;
     
     private static BibleGetIO instance;
-
+    
     public BibleGetIO( XComponentContext context )
     {
         m_xContext = context;
@@ -75,7 +87,7 @@ public final class BibleGetIO extends WeakBase
         packagePath = xPackageInformationProvider.getPackageLocation(m_implementationName);        
         //System.out.println(packagePath);
         
-        //myOptionFrame = OptionsFrame.getInstance(packagePath);
+        //myOptionFrame = BibleGetOptionsFrame.getInstance(packagePath);
         
         fontFamilies = getFonts();
         
@@ -88,7 +100,7 @@ public final class BibleGetIO extends WeakBase
                 }
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(BibleGetFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(BibleGetQuoteFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }        
     }
 
@@ -135,6 +147,8 @@ public final class BibleGetIO extends WeakBase
             if ( aURL.Path.compareTo("Help") == 0 )
                 return this;
             if ( aURL.Path.compareTo("Contribute") == 0 )
+                return this;
+            if ( aURL.Path.compareTo("Search") == 0 )
                 return this;
         }
         return null;
@@ -204,7 +218,7 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.myFrame.setVisible(true);
                     }
                     else{
-                        BibleGetIO.myFrame = BibleGetFrame.getInstance(instance.m_xController);
+                        BibleGetIO.myFrame = BibleGetQuoteFrame.getInstance(instance.m_xController);
                         BibleGetIO.myFrame.setVisible(true);                
                     }
                 } catch (ClassNotFoundException | SQLException ex) {
@@ -223,7 +237,7 @@ public final class BibleGetIO extends WeakBase
                         BibleGetIO.myOptionFrame.setVisible(true);
                     }
                     else{
-                        BibleGetIO.myOptionFrame = OptionsFrame.getInstance(instance.m_xController);
+                        BibleGetIO.myOptionFrame = BibleGetOptionsFrame.getInstance(instance.m_xController);
                         BibleGetIO.myOptionFrame.setVisible(true);
                     }
                 } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
@@ -243,8 +257,8 @@ public final class BibleGetIO extends WeakBase
                     }
                     else{
                         //make sure we also have the database initialized first
-                        BibleGetIO.biblegetDB = BibleGetDB.getInstance();                        
-                        BibleGetIO.bibleGetAbout = BibleGetAbout.getInstance();
+                        BibleGetIO.biblegetDB = DBHelper.getInstance();                        
+                        BibleGetIO.bibleGetAbout = BibleGetAboutFrame.getInstance();
                         BibleGetIO.bibleGetAbout.setVisible(true);
                     }
                 } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
@@ -274,7 +288,7 @@ public final class BibleGetIO extends WeakBase
                 }
                 else{
                     try {
-                        BibleGetIO.myHelpFrame = BibleGetHelp.getInstance();
+                        BibleGetIO.myHelpFrame = BibleGetHelpFrame.getInstance();
                         BibleGetIO.myHelpFrame.setVisible(true);
                     } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
                         Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
@@ -294,6 +308,27 @@ public final class BibleGetIO extends WeakBase
                 } catch (MalformedURLException ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException | URISyntaxException ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                return;
+            }
+            if ( aURL.Path.compareTo("Search") == 0 )
+            {
+                try {
+                    // add your own code here
+                    if(BibleGetIO.bibleGetSearch != null ){
+                        //System.out.println("We already have an options windows, now making it visible");
+                        BibleGetIO.bibleGetSearch.setVisible(true);
+                    }
+                    else{
+                        //make sure we also have the database initialized first
+                        //BibleGetIO.biblegetDB = DBHelper.getInstance();                        
+                        BibleGetIO.bibleGetSearch = BibleGetSearchFrame.getInstance();
+                        BibleGetIO.bibleGetSearch.setVisible(true);
+                    }
+                } catch (ClassNotFoundException | UnsupportedEncodingException | SQLException ex) {
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.lang.Exception ex) {
                     Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
@@ -521,19 +556,51 @@ public final class BibleGetIO extends WeakBase
                     BibleGetIO.uiLocale = new Locale(BibleGetIO.myLocale);
                     Locale.setDefault(BibleGetIO.uiLocale);
                     //instance.myMessages = BibleGetI18N.getMessages();
-                    BibleGetIO.biblegetDB = BibleGetDB.getInstance();
+                    
+                    CefSettings settings = new CefSettings();
+                    settings.windowless_rendering_enabled = OS.isLinux();
+                    //settings.windowless_rendering_enabled = true;
+                    //settings.log_severity = LogSeverity.LOGSEVERITY_ERROR;
+                    cefApp = CefApp.getInstance(settings);
+                    client = cefApp.createClient();
+                    
+                    client.addLoadHandler(new CefLoadHandlerAdapter() {
+                        @Override
+                        public void onLoadingStateChange(CefBrowser browser, boolean isLoading,
+                                boolean canGoBack, boolean canGoForward) {
+                            if (!isLoading) {
+                                //browser_ready = true;
+                                //System.out.println("Browser has finished loading!");
+                                
+                                //The following is no longer necessary, was solved by implementing a FocusHandler on the JTextFields!
+                                //The following line actually works to give focus to the OpenOffice instance,
+                                //but then there is no way to give the focus back to the SearchFrame window
+                                //Every attempt either silently falls or creates an exception
+                                //m_xFrame.getContainerWindow().setFocus();
+                                
+                                //SwingUtilities.windowForComponent(browser.getUIComponent()).setVisible(false);
+                                //SwingUtilities.windowForComponent(browser.getUIComponent()).setVisible(true);
+                            }
+                        }
+                    });
+                    CefMessageRouter msgRouter = CefMessageRouter.create();
+                    
+                    BibleGetIO.biblegetDB = DBHelper.getInstance();
                     if(BibleGetIO.biblegetDB != null){ 
                         //System.out.println("BibleGetIO main class : We have an instance of database!"); 
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.myFrame"); 
-                        BibleGetIO.myFrame = BibleGetFrame.getInstance(instance.m_xController);
+                        BibleGetIO.myFrame = BibleGetQuoteFrame.getInstance(instance.m_xController);
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.quoteFromSelection"); 
                         BibleGetIO.quoteFromSelection = BibleGetSelection.getInstance(instance.m_xController);
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.myHelpFrame"); 
-                        BibleGetIO.myHelpFrame = BibleGetHelp.getInstance();
+                        BibleGetIO.myHelpFrame = BibleGetHelpFrame.getInstance();
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.bibleGetAbout"); 
-                        BibleGetIO.bibleGetAbout =  BibleGetAbout.getInstance();
+                        BibleGetIO.bibleGetAbout =  BibleGetAboutFrame.getInstance();
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.myOptionFrame"); 
-                        BibleGetIO.myOptionFrame = OptionsFrame.getInstance(instance.m_xController);
+                        BibleGetIO.myOptionFrame = BibleGetOptionsFrame.getInstance(instance.m_xController);
+                        BibleGetIO.bibleGetSearch = BibleGetSearchFrame.getInstance();
+                        msgRouter.addHandler(BibleGetIO.bibleGetSearch.new MessageRouterHandler(), true);
+                        client.addMessageRouter(msgRouter);
                     }
                     else{ 
                         System.out.println("Sorry, no database instance here."); 
@@ -561,12 +628,35 @@ public final class BibleGetIO extends WeakBase
     }*/   
     
     /**
-     * @param args the command line arguments
+     * @param value
+     * @param input_min
+     * @param input_max
+     * @param output_min
+     * @param output_max
+     * @return 
      */
     /*
     public static void main(String args[]) {
     }
     */
     
-    
+    static public final int remap(int value, int input_min, int input_max, int output_min, int output_max)
+    {
+        long factor = 1000000000;
+
+        long output_spread = output_max - output_min;
+        long input_spread = input_max - input_min;
+
+        //long l_value = value;
+
+        long zero_value = value - input_min;
+        zero_value *= factor;
+        long percentage = zero_value / input_spread;
+
+        long zero_output = percentage * output_spread / factor;
+
+        long result = output_min + zero_output;
+
+        return (int)result;
+    }    
 }

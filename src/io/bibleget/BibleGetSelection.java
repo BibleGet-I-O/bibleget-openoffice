@@ -15,7 +15,7 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.text.XTextDocument;
 import com.sun.star.text.XTextRange;
 import com.sun.star.uno.UnoRuntime;
-import static io.bibleget.BibleGetI18N.__;
+import static io.bibleget.BGetI18N.__;
 import java.awt.HeadlessException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ public class BibleGetSelection {
     private final XController m_xController;
     private final XModel m_xModel;
     private final XTextDocument m_xTextDocument;
-    private static BibleGetDB biblegetDB;
+    private static DBHelper biblegetDB;
     
     private BibleGetSelection(XController xController) throws ClassNotFoundException, SQLException, Exception
     {
@@ -43,7 +43,7 @@ public class BibleGetSelection {
         m_xModel = (XModel) m_xController.getModel();
         m_xTextDocument = (XTextDocument) UnoRuntime.queryInterface(XTextDocument.class,m_xModel);        
         
-        biblegetDB = BibleGetDB.getInstance();
+        biblegetDB = DBHelper.getInstance();
 }
 
     private BibleGetSelection() {
@@ -100,7 +100,7 @@ public class BibleGetSelection {
                                 myResponse = myHTTPCaller.sendGet(myInputContent,versions);
                                 if(myResponse != null){
                                     xTextRange.setString("");
-                                    BibleGetDocInject myJSON = new BibleGetDocInject(m_xController);
+                                    BGetDocInject myJSON = new BGetDocInject(m_xController,null);
                                     myJSON.InsertTextAtCurrentCursor(myResponse);
                                 }
                                 else{
@@ -113,7 +113,7 @@ public class BibleGetSelection {
                                 JOptionPane.showMessageDialog(null, errorDialog, "ERROR >> MALFORMED QUERYSTRING", JOptionPane.ERROR_MESSAGE);
                             }
                         } catch (HeadlessException | ClassNotFoundException | UnknownPropertyException | PropertyVetoException | com.sun.star.lang.IllegalArgumentException | WrappedTargetException ex) {
-                            Logger.getLogger(BibleGetFrame.class.getName()).log(Level.SEVERE, null, ex);
+                            Logger.getLogger(BibleGetQuoteFrame.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     } else {
                         JOptionPane.showMessageDialog(null,__("You cannot send an empty query."),"ERROR >> EMPTY SELECTION",JOptionPane.ERROR_MESSAGE);

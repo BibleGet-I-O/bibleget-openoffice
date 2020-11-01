@@ -29,7 +29,7 @@ import javax.json.JsonValue;
  */
 public class Preferences {
     private static Preferences instance;
-    private final BibleGetDB biblegetDB;    
+    private final DBHelper biblegetDB;    
     
     public Integer PARAGRAPHSTYLES_LINEHEIGHT;
     public Double PARAGRAPHSTYLES_LEFTINDENT;
@@ -83,7 +83,7 @@ public class Preferences {
     public String PREFERREDVERSIONS;
     
     private Preferences() throws ClassNotFoundException, SQLException, Exception{
-        biblegetDB = BibleGetDB.getInstance();
+        biblegetDB = DBHelper.getInstance();
         JsonObject myOptions = biblegetDB.getOptions();
         //System.out.println("PREFERENCES :: " + myOptions.toString());
         //System.out.println("PREFERENCES :: getting JsonValue of options rows");

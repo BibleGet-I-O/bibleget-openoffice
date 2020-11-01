@@ -31,7 +31,7 @@ import javax.json.stream.JsonParsingException;
  * @author John R. D'Orazio <priest@johnromanodorazio.com>
  */
 public class LocalizedBibleBooks {
-    private final BibleGetDB biblegetDB;
+    private final DBHelper biblegetDB;
     private final HashMap<Integer,String> BookAbbreviations = new HashMap<>();
     private final HashMap<Integer,String> BookNames = new HashMap<>();
     private final String curLangDisplayName;
@@ -50,7 +50,7 @@ public class LocalizedBibleBooks {
     
     private LocalizedBibleBooks() throws ClassNotFoundException, SQLException, Exception{
         curLangDisplayName = BibleGetIO.getUILocale().getDisplayName(Locale.ENGLISH).toUpperCase().trim();
-        biblegetDB = BibleGetDB.getInstance();
+        biblegetDB = DBHelper.getInstance();
         langsSupported = biblegetDB.getMetaData("LANGUAGES");
         jsonReader = Json.createReader(new StringReader(langsSupported));
         langsJArr = jsonReader.readArray();
@@ -81,13 +81,16 @@ public class LocalizedBibleBooks {
                     bibleBooksInCurLang = bibleBooksArr.getJsonArray(curLangIdx);
                     bookName = bibleBooksInCurLang.getString(0);
                     bookAbbrev = bibleBooksInCurLang.getString(1);
-                    if(bookName.contains("|")){
-                        bookName = bookName.split("|")[0].trim();
-                    }
+                    //System.out.println("bookAbbrev = " + bookAbbrev + ", bookName = " + bookName);
                     if(bookAbbrev.contains("|")){
-                        bookAbbrev = bookAbbrev.split("|")[0].trim();
+                        String[] bookAbbrevArr = bookAbbrev.split("\\|");
+                        bookAbbrev = bookAbbrevArr[0].trim();
                     }
-                    System.out.println("book at index " + i + " = " + bookAbbrev + " :: " + bookName);
+                    if(bookName.contains("|")){
+                        String[] bookNameArr = bookName.split("\\|");
+                        bookName = bookNameArr[0].trim();
+                    }
+                    //System.out.println("book at index " + i + " = " + bookAbbrev + " :: " + bookName);
                     BookAbbreviations.put(i, bookAbbrev);
                     BookNames.put(i, bookName);
                 } catch(JsonParsingException ex) {
