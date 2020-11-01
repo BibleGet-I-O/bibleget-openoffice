@@ -172,9 +172,6 @@
           </Events>
         </Component>
         <Component class="javax.swing.JTextField" name="jTextField1">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="jTextField1"/>
-          </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel3">
           <Properties>
@@ -184,6 +181,7 @@
         <Component class="javax.swing.JCheckBox" name="jCheckBox1">
           <Properties>
             <Property name="text" type="java.lang.String" value="only exact matches"/>
+            <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;The default behaviour for keyword search is to find any word of 4 or more letters which contains the keyword.&lt;br /&gt;&#xa;If you prefer to query only exact word matches even if less than 4 letters, turn this option on.&lt;br /&gt;&#xa;Note that parts of speech will not return results.&#xa;&lt;/html&gt;"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JButton" name="jButtonFilter">
@@ -213,8 +211,7 @@
         </Component>
         <Component class="javax.swing.JTextField" name="jTextFieldFilterForTerm">
           <Properties>
-            <Property name="text" type="java.lang.String" value="jTextField2"/>
-            <Property name="toolTipText" type="java.lang.String" value="The default behaviour for keyword search is to find any word of 4 or more letters which contains the keyword.  If you prefer to query only exact word matches even if less than 4 letters, turn this option on."/>
+            <Property name="toolTipText" type="java.lang.String" value=""/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel4">

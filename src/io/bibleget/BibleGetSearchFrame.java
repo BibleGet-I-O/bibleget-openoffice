@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -89,6 +90,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     
     private String currentURL;
     private boolean browserFocus_ = true;
+    private List<Integer> insertedIndexes = new ArrayList<>();
     
     private final ImageIcon filter = new ImageIcon(getClass().getResource("/io/bibleget/images/filter.png"));
     private final ImageIcon removeFilter = new ImageIcon(getClass().getResource("/io/bibleget/images/remove_filter.png"));
@@ -207,6 +209,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             + "</style>"
             + "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>"
             + "<script>(function($){"
+            + "  let insertedIndexes = [" + insertedIndexes.stream().map(Object::toString).collect(Collectors.joining(",")) + "];"
             + "  $(document).ready(function(){"
             + "    $(document).on('click', '#bibleGetSearchResultsTableContainer table span.button', function(){"
             + "        if($(this).hasClass('rowinserted') === false){ "
@@ -532,11 +535,10 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             }
         });
 
-        jTextField1.setText("jTextField1");
-
         jLabel3.setText("Term to search");
 
         jCheckBox1.setText("only exact matches");
+        jCheckBox1.setToolTipText("<html>The default behaviour for keyword search is to find any word of 4 or more letters which contains the keyword.<br />\nIf you prefer to query only exact word matches even if less than 4 letters, turn this option on.<br />\nNote that parts of speech will not return results.\n</html>");
 
         jButtonFilter.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/filter.png"))); // NOI18N
         jButtonFilter.setText("Apply filter");
@@ -557,8 +559,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             }
         });
 
-        jTextFieldFilterForTerm.setText("jTextField2");
-        jTextFieldFilterForTerm.setToolTipText("The default behaviour for keyword search is to find any word of 4 or more letters which contains the keyword.  If you prefer to query only exact word matches even if less than 4 letters, turn this option on.");
+        jTextFieldFilterForTerm.setToolTipText("");
 
         jLabel4.setText("Filter results with another term");
 
@@ -715,6 +716,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonSortActionPerformed
 
     private void jButtonSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSearchActionPerformed
+        insertedIndexes.clear();
         boolean readyToGo = true;
         String errorMessage = "";
         if(jListBibleVersions.getSelectedValue() == null){
@@ -785,7 +787,9 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 if(!"".equals(filterTerm)){
                     versetext = AddMark(versetext, filterTerm);
                 }
-                rowsSearchResultsTable += "<tr><td><span class=\"button\" id=\"row" + rowIdx + "\">" + "Select" + "</span></td><td>" + localizedBook.Fullname + " " + chapter + ":" + versenumber + "</td><td>" + versetext + "</td></tr>";
+                String rowinsertedClass = insertedIndexes.indexOf(rowIdx) != -1 ? " rowinserted" : "";
+                String spanButtonText = insertedIndexes.indexOf(rowIdx) != -1 ? "INSERTED" : "Select";
+                rowsSearchResultsTable += "<tr><td><span class=\"button"+rowinsertedClass+"\" id=\"row" + rowIdx + "\">" + spanButtonText + "</span></td><td>" + localizedBook.Fullname + " " + chapter + ":" + versenumber + "</td><td>" + versetext + "</td></tr>";
             }
         } else {
             System.out.println("refreshSearchResults found 0 rows");
@@ -935,6 +939,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 try {
                     jsonResponseToDoc = new BGetDocInject(BibleGetIO.getXController(),null);
                     jsonResponseToDoc.InsertTextAtCurrentCursor(JSONSTR);
+                    insertedIndexes.add(IDX);
                     return true;
                 } catch (SQLException ex) {
                     Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
