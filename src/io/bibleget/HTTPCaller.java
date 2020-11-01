@@ -296,6 +296,9 @@ public class HTTPCaller {
             myQuery = myQuery.replace(":",",");
         }
         
+        //accept any kind of dash / emdash / any kind of dash
+        myQuery = myQuery.replaceAll("[\\x{2011}-\\x{2015}|\\x{2212}|\\x{23AF}]", "-");
+        
         if(myQuery.isEmpty()==false){
             if(myQuery.contains(";")){
                 //System.out.println("We have a semicolon");
