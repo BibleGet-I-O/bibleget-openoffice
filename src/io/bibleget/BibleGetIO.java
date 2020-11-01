@@ -55,8 +55,8 @@ public final class BibleGetIO extends WeakBase
         "com.sun.star.frame.ProtocolHandler" };
     
     private com.sun.star.frame.XController m_xController;
-    private com.sun.star.frame.XModel m_xModel;
-    private com.sun.star.text.XTextDocument m_xTextDocument;
+    //private com.sun.star.frame.XModel m_xModel;
+    //private com.sun.star.text.XTextDocument m_xTextDocument;
 
     private static String packagePath;
     private static BibleGetQuoteFrame myFrame;
@@ -72,6 +72,8 @@ public final class BibleGetIO extends WeakBase
     private static Locale uiLocale;
     //public ResourceBundle myMessages;
     public static BGET.MEASUREUNIT measureUnit;
+    
+    public static int JAVAVERSION;
 
     private static CefApp cefApp;
     public static CefClient client;
@@ -84,11 +86,14 @@ public final class BibleGetIO extends WeakBase
         XPackageInformationProvider xPackageInformationProvider =
             PackageInformationProvider.get(m_xContext);
         packagePath = xPackageInformationProvider.getPackageLocation(m_implementationName);        
-        //System.out.println(packagePath);
+        System.out.println("package path = " + packagePath);
         
         //myOptionFrame = BibleGetOptionsFrame.getInstance(packagePath);
         
         fontFamilies = getFonts();
+        
+        JAVAVERSION = getJavaVersion();
+        System.out.println("Java version currently used = " + JAVAVERSION);
         
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -660,5 +665,16 @@ public final class BibleGetIO extends WeakBase
         long result = output_min + zero_output;
 
         return (int)result;
+    }
+    
+    private static int getJavaVersion() {
+        String version = System.getProperty("java.version");
+        if(version.startsWith("1.")) {
+            version = version.substring(2, 3);
+        } else {
+            int dot = version.indexOf(".");
+            if(dot != -1) { version = version.substring(0, dot); }
+        } 
+        return Integer.parseInt(version);
     }    
 }
