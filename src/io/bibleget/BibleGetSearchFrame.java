@@ -39,18 +39,21 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
+import javax.swing.RowSorter;
+import javax.swing.SortOrder;
 import javax.swing.SwingWorker;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import org.apache.commons.lang3.StringUtils;
-//import javax.swing.SwingWorker;
 import org.cef.OS;
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefFrame;
@@ -77,7 +80,8 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     
     JTable table;
     DefaultTableModel model;
-    TableRowSorter sorter;
+    TableRowSorter<DefaultTableModel> sorter;
+    RowFilter rf = null;
     
     private String selectedVersion;
     
@@ -85,16 +89,41 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     
     private String currentURL;
     private boolean browserFocus_ = true;
-    private Task_Force tf;
+    
+    private final ImageIcon filter = new ImageIcon(getClass().getResource("/io/bibleget/images/filter.png"));
+    private final ImageIcon removeFilter = new ImageIcon(getClass().getResource("/io/bibleget/images/remove_filter.png"));
     
     /**
      * Creates new form BibleGetSearchFrame
      */
     public BibleGetSearchFrame() {
         
-        table = new JTable(new DefaultTableModel());
-        model = (DefaultTableModel) table.getModel();
+        table = new JTable();
+        String[] columnsNames = new String[]{"IDX","BOOK","CHAPTER","VERSE","VERSETEXT","SEARCHTERM","JSONSTR"};
+        model = new DefaultTableModel(null,columnsNames){
+            @Override
+            public Class getColumnClass(int column){
+                switch(column){
+                    case 0:
+                        return Integer.class;
+                    case 1:
+                        return Integer.class;
+                    case 2:
+                        return Integer.class;
+                    case 3:
+                        return String.class;
+                    case 4:
+                        return String.class;
+                    case 5:
+                        return String.class;
+                    case 6:
+                        return String.class;
+                }
+                return String.class;
+            }
+        };
         //new Object[]{"IDX", "BOOK", "CHAPTER", "VERSE", "VERSETEXT", "SEARCHTERM", "JSONSTR"}, numResults)
+        /*
         model.addColumn("IDX");
         model.addColumn("BOOK");
         model.addColumn("CHAPTER");
@@ -102,8 +131,11 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         model.addColumn("VERSETEXT");
         model.addColumn("SEARCHTERM");
         model.addColumn("JSONSTR");
+        */
+        table.setModel(model);
         sorter = new TableRowSorter<>(model);
         table.setRowSorter(sorter);
+        
         try {
             jListBibleVersions = new VersionsSelect(true, ListSelectionModel.SINGLE_SELECTION);
             ListSelectionModel listSelectionModel = jListBibleVersions.getSelectionModel();
@@ -275,13 +307,13 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 jTextField1.requestFocus();
             }
         });
-        jTextField2.addFocusListener(new FocusAdapter() {
+        jTextFieldFilterForTerm.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
                 if (!browserFocus_) return;
                 browserFocus_ = false;
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
-                jTextField2.requestFocus();
+                jTextFieldFilterForTerm.requestFocus();
             }
         });
         // Clear focus from the address field when the browser gains focus.
@@ -299,7 +331,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 browserFocus_ = false;
             }
         });
-        tf = new Task_Force(jProgressBar1);
+        
     }    
 
     public static BibleGetSearchFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
@@ -441,10 +473,13 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         jCheckBox1 = new javax.swing.JCheckBox();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
-        jTextField2 = new javax.swing.JTextField();
+        jTextFieldFilterForTerm = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
         jSeparator2 = new javax.swing.JSeparator();
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTable1 = table;
         jInternalFramePreviewArea = new javax.swing.JInternalFrame();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -483,14 +518,46 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         jButton2.setText("Apply filter");
         jButton2.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jButton2.setIconTextGap(10);
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/Sort.png"))); // NOI18N
         jButton3.setText("Order by reference");
         jButton3.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
-        jTextField2.setText("jTextField2");
+        jTextFieldFilterForTerm.setText("jTextField2");
+        jTextFieldFilterForTerm.setToolTipText("The default behaviour for keyword search is to find any word of 4 or more letters which contains the keyword.  If you prefer to query only exact word matches even if less than 4 letters, turn this option on.");
 
         jLabel4.setText("Filter results with another term");
+
+        jTable1.setModel(model);
+        jTable1.setRowSorter(sorter);
+        jScrollPane2.setViewportView(jTable1);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 364, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane2)
+                .addContainerGap())
+        );
 
         javax.swing.GroupLayout jPanelSettingsAreaLayout = new javax.swing.GroupLayout(jPanelSettingsArea);
         jPanelSettingsArea.setLayout(jPanelSettingsAreaLayout);
@@ -511,8 +578,8 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                                 .addGap(10, 10, 10)
                                 .addGroup(jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jCheckBox1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 211, Short.MAX_VALUE)
-                                    .addComponent(jTextField2)))
+                                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jTextFieldFilterForTerm)))
                             .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jTextField1, javax.swing.GroupLayout.Alignment.LEADING))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -521,7 +588,8 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                             .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelSettingsAreaLayout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton3)))
+                        .addComponent(jButton3))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanelSettingsAreaLayout.setVerticalGroup(
@@ -549,13 +617,15 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                     .addGroup(jPanelSettingsAreaLayout.createSequentialGroup()
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jTextFieldFilterForTerm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -596,6 +666,75 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButton1MouseClicked
 
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        if("Apply filter".equals(jButton2.getText())) {  //__("Apply filter") Then
+            if(jTextFieldFilterForTerm.getText().isEmpty() ){
+                JOptionPane.showMessageDialog(null, "Filter term cannot be empty!", "Warning!", JOptionPane.WARNING_MESSAGE);
+            } else {
+                jButton2.setText("Remove filter"); // __("Remove filter")
+                jButton2.setIcon(removeFilter);
+                String filterTerm = jTextFieldFilterForTerm.getText().trim();
+                if(filterTerm.contains(" ")){
+                    filterTerm = filterTerm.split(" ")[0];
+                }
+                System.out.println("filterTerm = " + filterTerm);
+                //'searchResultsDT.CaseSensitive = False
+                //searchResultsDT.DefaultView.RowFilter = "VERSETEXT LIKE '%" & filterTerm & "%'"
+                try {
+                    rf = RowFilter.regexFilter("(?i)" + filterTerm);
+                    System.out.println("RowFilter did not create an exception");
+                } catch (java.util.regex.PatternSyntaxException e) {
+                    System.out.println(e);
+                    return;
+                }
+                sorter.setRowFilter(rf);
+                System.out.println("RowFilter set!");
+                if(table.getRowCount() > 0){
+                    System.out.println("there are " + table.getRowCount() + " results after applying the filter");
+                    /*
+                    for(int viewRow = 0; viewRow < table.getRowCount(); viewRow++){
+                        int modelRow = table.convertRowIndexToModel(viewRow);
+                        //System.out.println("selected view row = " + viewRow + ", selected model row = " + modelRow);
+                    }
+                    */
+                } else {
+                    System.out.println("there are no results");
+                }
+                //System.out.println("Value at column 4 row 0 = " + model.getValueAt(table.convertRowIndexToModel(0), 4) );
+            }
+        } else {
+            jButton2.setText("Apply filter");// __("Apply filter")
+            jButton2.setIcon(filter);
+            //searchResultsDT.DefaultView.RowFilter = ""
+            jTextFieldFilterForTerm.setText("");
+            sorter.setRowFilter(null);
+        }
+        refreshSearchResults();
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        if("Order by reference".equals(jButton3.getText())){ //__("Order by Reference") Then
+            //searchResultsDT.DefaultView.Sort = "BOOK ASC,CHAPTER ASC,VERSE ASC"
+            List <RowSorter.SortKey> sortKeys = new ArrayList<>();
+            sortKeys.add(new RowSorter.SortKey(1, SortOrder.ASCENDING));
+            sortKeys.add(new RowSorter.SortKey(2, SortOrder.ASCENDING));
+            sortKeys.add(new RowSorter.SortKey(3, SortOrder.ASCENDING));
+            sorter.setSortKeys(sortKeys);
+            sorter.sort();
+            jButton3.setText("Order by importance");
+            //System.out.println("Value at column 4 row 35 = " + model.getValueAt(table.convertRowIndexToModel(35), 4) ); //versetext of first row
+        } else {
+            //searchResultsDT.DefaultView.Sort = "IDX ASC"
+            List <RowSorter.SortKey> sortKeys = new ArrayList<>();
+            sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
+            sorter.setSortKeys(sortKeys);
+            sorter.sort();
+            jButton3.setText("Order by reference");
+            //System.out.println("Value at column 4 row 35 = " + model.getValueAt(table.convertRowIndexToModel(35), 4) ); //versetext of first row
+        }
+        refreshSearchResults();
+    }//GEN-LAST:event_jButton3ActionPerformed
+
     private String AddMark(String verseText, String searchTerm){
         String pattern = "(?i)\\b(\\w*)(" + searchTerm + ")(\\w*)\\b";
         String replacement = "<a class=\"submark\">$1</a><a class=\"mark\">$2</a><a class=\"submark\">$3</a>";
@@ -612,6 +751,43 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         String normalizedString = Normalizer.normalize(inText, Form.NFD);
         String buildStr = normalizedString.replaceAll("\\p{M}", "");
         return Normalizer.normalize(buildStr, Form.NFC);
+    }
+    
+    private void refreshSearchResults(){
+        String previewDocument;
+        String rowsSearchResultsTable = "";
+        String filterTerm = "";
+        if(!"".equals(jTextFieldFilterForTerm.getText())){
+            filterTerm = jTextFieldFilterForTerm.getText().trim();
+            if(filterTerm.contains(" ")){
+                filterTerm = filterTerm.split(" ")[0];
+            }
+        }
+        
+        if(table.getRowCount() > 0){
+            System.out.println("refreshSearchResults found " + table.getRowCount() + " rows");
+            for(int i = 0; i < table.getRowCount(); i++){
+                int tableRow = table.convertRowIndexToModel(i);
+                System.out.println("now dealing with row "+i+" (corresponds to row "+tableRow+" in model)");
+                int book = (int) model.getValueAt(tableRow, table.getColumn("BOOK").getModelIndex());
+                LocalizedBibleBook localizedBook = localizedBookNames.GetBookByIndex(book - 1);
+                int chapter = (int) model.getValueAt(tableRow, table.getColumn("CHAPTER").getModelIndex());
+                String versenumber = (String) model.getValueAt(tableRow, table.getColumn("VERSE").getModelIndex());
+                String versetext = (String) model.getValueAt(tableRow, table.getColumn("VERSETEXT").getModelIndex());
+                String searchTerm = (String) model.getValueAt(tableRow, table.getColumn("SEARCHTERM").getModelIndex());
+                int rowIdx = (int) model.getValueAt(tableRow, table.getColumn("IDX").getModelIndex());
+                //String resultJsonStr = (String) table.getValueAt(tableRow, table.getColumn("JSONSTR").getModelIndex());
+                versetext = AddMark(versetext, searchTerm);
+                if(!"".equals(filterTerm)){
+                    versetext = AddMark(versetext, filterTerm);
+                }
+                rowsSearchResultsTable += "<tr><td><a href=\"#\" class=\"button\" id=\"row" + rowIdx + "\">" + "Select" + "</a></td><td>" + localizedBook.Fullname + " " + chapter + ":" + versenumber + "</td><td>" + versetext + "</td></tr>";
+            }
+        } else {
+            System.out.println("refreshSearchResults found 0 rows");
+        }
+        previewDocument = previewDocumentHead + previewDocumentBodyOpen + rowsSearchResultsTable + previewDocumentBodyClose;
+        browser.loadURL(DataUri.create("text/html", previewDocument) );
     }
     
     
@@ -658,13 +834,16 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanelSettingsArea;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
+    private javax.swing.JTextField jTextFieldFilterForTerm;
     // End of variables declaration//GEN-END:variables
 
     
@@ -750,5 +929,5 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             return false;
         }   
     }
-    
+            
 }
