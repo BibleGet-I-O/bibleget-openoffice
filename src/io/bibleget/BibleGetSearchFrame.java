@@ -85,7 +85,8 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     
     private String currentURL;
     private boolean browserFocus_ = true;
-
+    private Task_Force tf;
+    
     /**
      * Creates new form BibleGetSearchFrame
      */
@@ -298,6 +299,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 browserFocus_ = false;
             }
         });
+        tf = new Task_Force(jProgressBar1);
     }    
 
     public static BibleGetSearchFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
@@ -333,9 +335,10 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         
         @Override
         protected Void doInBackground() throws Exception {
+            publish(0);
             System.out.println("SearchFrame background work started for browser URL loading");
-            publish(15);
             browser.loadURL(DataUri.create("text/html", spinnerPage) );
+            publish(15);
             //let's do this
             String queryString = jTextField1.getText().trim();
             if(queryString.contains(" ")){
@@ -394,7 +397,9 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                         }
                         rowsSearchResultsTable += "<tr><td><a href=\"#\" class=\"button\" id=\"row" + resultCounter + "\">" + __("Select") + "</a></td><td>" + localizedBook.Fullname + " " + chapter + ":" + versenumber + "</td><td>" + versetext + "</td></tr>";
                         resultCounter++;
-                        publish(30+resultCounter);
+                        int remappedVal = BibleGetIO.remap(resultCounter, 0, numResults, 0, 60);
+                        System.out.println("resultCounter = " + resultCounter + ", remappedVal = " + remappedVal);
+                        publish(30+remappedVal);
                     }
                     System.out.println("model now has " + model.getRowCount() + " rows");
                 } else {
@@ -584,9 +589,8 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             errorMessage = "Cannot search for such a small term! We need at least 3 characters.";
         }
         if(readyToGo){
-            jProgressBar1.setValue(0);
-            Task_Force tf1 = new BibleGetSearchFrame.Task_Force(jProgressBar1);
-            tf1.execute();
+            Task_Force tf = new BibleGetSearchFrame.Task_Force(jProgressBar1);
+            tf.execute();
         } else {
             JOptionPane.showMessageDialog(null, errorMessage, "Warning!", JOptionPane.WARNING_MESSAGE);
         }

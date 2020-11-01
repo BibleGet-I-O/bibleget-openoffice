@@ -628,12 +628,35 @@ public final class BibleGetIO extends WeakBase
     }*/   
     
     /**
-     * @param args the command line arguments
+     * @param value
+     * @param input_min
+     * @param input_max
+     * @param output_min
+     * @param output_max
+     * @return 
      */
     /*
     public static void main(String args[]) {
     }
     */
     
-    
+    static public final int remap(int value, int input_min, int input_max, int output_min, int output_max)
+    {
+        long factor = 1000000000;
+
+        long output_spread = output_max - output_min;
+        long input_spread = input_max - input_min;
+
+        //long l_value = value;
+
+        long zero_value = value - input_min;
+        zero_value *= factor;
+        long percentage = zero_value / input_spread;
+
+        long zero_output = percentage * output_spread / factor;
+
+        long result = output_min + zero_output;
+
+        return (int)result;
+    }    
 }
