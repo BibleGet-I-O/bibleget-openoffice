@@ -20,7 +20,10 @@ import static io.bibleget.BGetI18N.__;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Image;
+import java.awt.KeyboardFocusManager;
 import java.awt.Toolkit;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
@@ -38,8 +41,10 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingWorker;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
@@ -50,6 +55,7 @@ import org.cef.OS;
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefFrame;
 import org.cef.callback.CefQueryCallback;
+import org.cef.handler.CefFocusHandlerAdapter;
 import org.cef.handler.CefMessageRouterHandlerAdapter;
 
 /**
@@ -77,6 +83,9 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     
     private LocalizedBibleBooks localizedBookNames;
     
+    private String currentURL;
+    private boolean browserFocus_ = true;
+
     /**
      * Creates new form BibleGetSearchFrame
      */
@@ -236,13 +245,12 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 + "<div id=\"error\"></div>"
                 + "</body>";
         
-        browser = BibleGetIO.client.createBrowser( DataUri.create("text/html",htmlStr), OS.isLinux(), false);
+        currentURL = DataUri.create("text/html", htmlStr);
+        browser = BibleGetIO.client.createBrowser( currentURL, OS.isLinux(), false);
         browserUI = browser.getUIComponent();
         
         initComponents();
-        
-        jInternalFramePreviewArea.getContentPane().add(browserUI, BorderLayout.CENTER);
-        
+               
         try {
             localizedBookNames = LocalizedBibleBooks.getInstance();
         } catch (UnsupportedEncodingException ex) {
@@ -255,6 +263,41 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         
         MouseAdapter mAdapter = new VersionsHoverHandler(jListBibleVersions);
         jListBibleVersions.addMouseMotionListener(mAdapter);
+        
+        jInternalFramePreviewArea.getContentPane().add(browserUI, BorderLayout.CENTER);
+        jTextField1.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (!browserFocus_) return;
+                browserFocus_ = false;
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                jTextField1.requestFocus();
+            }
+        });
+        jTextField2.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (!browserFocus_) return;
+                browserFocus_ = false;
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                jTextField2.requestFocus();
+            }
+        });
+        // Clear focus from the address field when the browser gains focus.
+        BibleGetIO.client.addFocusHandler(new CefFocusHandlerAdapter() {
+            @Override
+            public void onGotFocus(CefBrowser browser) {
+                if (browserFocus_) return;
+                browserFocus_ = true;
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                browser.setFocus(true);
+            }
+
+            @Override
+            public void onTakeFocus(CefBrowser browser, boolean next) {
+                browserFocus_ = false;
+            }
+        });
     }    
 
     public static BibleGetSearchFrame getInstance() throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception
@@ -272,6 +315,105 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         images.add(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/io/bibleget/images/search_x16.png")));
         images.add(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/io/bibleget/images/search_x32.png")));
         return images;
+    }
+
+    private class Task_Force extends SwingWorker<Void, Integer> {
+        JProgressBar jProgressBar;
+        
+        public Task_Force(JProgressBar jpb){
+            this.jProgressBar = jpb;
+        }
+
+        @Override
+        protected void process(List<Integer> chunks) {
+            int i = chunks.get(chunks.size()-1);
+            jProgressBar.setValue(i); // The last value in this array is all we care about.
+            //System.out.println(i);            
+        }
+        
+        @Override
+        protected Void doInBackground() throws Exception {
+            System.out.println("SearchFrame background work started for browser URL loading");
+            publish(15);
+            browser.loadURL(DataUri.create("text/html", spinnerPage) );
+            //let's do this
+            String queryString = jTextField1.getText().trim();
+            if(queryString.contains(" ")){
+                queryString = queryString.split(" ")[0];
+            }
+            
+            HTTPCaller httpCaller =  new HTTPCaller();
+            String response = httpCaller.searchRequest(queryString, selectedVersion, jCheckBox1.isSelected());
+            
+            if(null != response){
+                publish(30);
+                JsonReader jsonReader = Json.createReader(new StringReader(response));
+                JsonObject json = jsonReader.readObject();
+                JsonArray resultsJArray = json.getJsonArray("results");
+                JsonObject infoObj = json.getJsonObject("info");
+                String searchTerm = infoObj.getString("keyword");
+                String versionSearched = infoObj.getString("version");
+                
+                String rowsSearchResultsTable = "";
+                String previewDocument;
+                
+                int book;
+                int chapter;
+                String versenumber;
+                String versetext;
+                String resultJsonStr;
+                
+                int numResults = resultsJArray.size();
+                
+                jInternalFramePreviewArea.setTitle("Search results: " + numResults + " verses found containing the term \"" + searchTerm + "\" in version \"" + versionSearched + "\"");
+                
+                if(numResults > 0){
+                    model.setRowCount(0);
+                    int resultCounter = 0;
+                    Iterator pIterator = resultsJArray.iterator();
+                    while (pIterator.hasNext()) {
+                        JsonObject currentJson = (JsonObject) pIterator.next();
+                        book = Integer.decode(currentJson.getString("univbooknum"));
+                        LocalizedBibleBook localizedBook = localizedBookNames.GetBookByIndex(book - 1);
+                        chapter = Integer.decode(currentJson.getString("chapter"));
+                        versenumber = currentJson.getString("verse");
+                        versetext = currentJson.getString("text");
+                        resultJsonStr = currentJson.toString();
+                        //The following regex removes all NABRE formatting tags from the verse text that is displayed in the table
+                        versetext = versetext.replaceAll("<(?:[^>=]|='[^']*'|=\"[^\"]*\"|=[^'\"][^\\s>]*)*>","");
+                        //System.out.println("versetext before AddMark = " + versetext);
+                        versetext = AddMark(versetext, searchTerm);
+                        //System.out.println("versetext after AddMark = " + versetext);
+                        //System.out.println("IDX="+resultCounter+",BOOK="+book+",CHAPTER="+chapter+",VERSE="+versenumber+",VERSETEXT="+versenumber+",SEARCHTERM="+searchTerm+",JSONSTR="+resultJsonStr);
+                        if(null != model){
+                            //is it better to add them directly to the model, or gather them in a Vector and then add the Vector to the model?
+                            //see for example https://stackoverflow.com/a/22718808/394921
+                            model.addRow(new Object[]{resultCounter, book, chapter, versenumber, versetext, searchTerm, resultJsonStr});
+                        } else {
+                            System.out.println("Table model is null! now why is that?");
+                        }
+                        rowsSearchResultsTable += "<tr><td><a href=\"#\" class=\"button\" id=\"row" + resultCounter + "\">" + __("Select") + "</a></td><td>" + localizedBook.Fullname + " " + chapter + ":" + versenumber + "</td><td>" + versetext + "</td></tr>";
+                        resultCounter++;
+                        publish(30+resultCounter);
+                    }
+                    System.out.println("model now has " + model.getRowCount() + " rows");
+                } else {
+                    rowsSearchResultsTable += "<tr><td></td><td></td><td></td></tr>";
+                }
+                
+                previewDocument = previewDocumentHead + previewDocumentBodyOpen + rowsSearchResultsTable + previewDocumentBodyClose;
+                browser.loadURL(DataUri.create("text/html",previewDocument));
+                publish(100);
+            } else {
+                JOptionPane.showMessageDialog(null, "Unable to communicate with the BibleGet server. Please check your internet connection.", "Warning!", JOptionPane.WARNING_MESSAGE);
+            }
+            return null;
+        }
+        
+        @Override
+        protected void done(){
+            System.out.println("Background worker has finished");
+        }
     }
     
     /**
@@ -306,6 +448,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         setName("searchFrame"); // NOI18N
         setPreferredSize(new java.awt.Dimension(1200, 800));
 
+        jPanelSettingsArea.setName("jPanelOnTheLeft"); // NOI18N
         jPanelSettingsArea.setPreferredSize(new java.awt.Dimension(400, 500));
 
         jLabel1.setText("waiting for a browser click...");
@@ -418,6 +561,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
 
         jInternalFramePreviewArea.setTitle("Search results");
         jInternalFramePreviewArea.setFrameIcon(new javax.swing.ImageIcon(getClass().getResource("/io/bibleget/images/wysiwyg/24x24/preview.png"))); // NOI18N
+        jInternalFramePreviewArea.setName("browserInternalFrame"); // NOI18N
         jInternalFramePreviewArea.setPreferredSize(new java.awt.Dimension(800, 800));
         jInternalFramePreviewArea.setVisible(true);
         getContentPane().add(jInternalFramePreviewArea, java.awt.BorderLayout.CENTER);
@@ -440,76 +584,11 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             errorMessage = "Cannot search for such a small term! We need at least 3 characters.";
         }
         if(readyToGo){
-            browser.loadURL(DataUri.create("text/html", spinnerPage) );
-            //let's do this
-            String queryString = jTextField1.getText().trim();
-            if(queryString.contains(" ")){
-                queryString = queryString.split(" ")[0];
-            }
-            
-            HTTPCaller httpCaller =  new HTTPCaller();
-            String response = httpCaller.searchRequest(queryString, selectedVersion, jCheckBox1.isSelected());
-            
-            if(null != response){
-                JsonReader jsonReader = Json.createReader(new StringReader(response));
-                JsonObject json = jsonReader.readObject();
-                JsonArray resultsJArray = json.getJsonArray("results");
-                JsonObject infoObj = json.getJsonObject("info");
-                String searchTerm = infoObj.getString("keyword");
-                String versionSearched = infoObj.getString("version");
-                
-                String rowsSearchResultsTable = "";
-                String previewDocument;
-                
-                int book;
-                int chapter;
-                String versenumber;
-                String versetext;
-                String resultJsonStr;
-                
-                int numResults = resultsJArray.size();
-                
-                jInternalFramePreviewArea.setTitle("Search results: " + numResults + " verses found containing the term \"" + searchTerm + "\" in version \"" + versionSearched + "\"");
-                
-                if(numResults > 0){
-                    model.setRowCount(0);
-                    int resultCounter = 0;
-                    Iterator pIterator = resultsJArray.iterator();
-                    while (pIterator.hasNext()) {
-                        JsonObject currentJson = (JsonObject) pIterator.next();
-                        book = Integer.decode(currentJson.getString("univbooknum"));
-                        LocalizedBibleBook localizedBook = localizedBookNames.GetBookByIndex(book - 1);
-                        chapter = Integer.decode(currentJson.getString("chapter"));
-                        versenumber = currentJson.getString("verse");
-                        versetext = currentJson.getString("text");
-                        resultJsonStr = currentJson.toString();
-                        //The following regex removes all NABRE formatting tags from the verse text that is displayed in the table
-                        versetext = versetext.replaceAll("<(?:[^>=]|='[^']*'|=\"[^\"]*\"|=[^'\"][^\\s>]*)*>","");
-                        //System.out.println("versetext before AddMark = " + versetext);
-                        versetext = AddMark(versetext, searchTerm);
-                        //System.out.println("versetext after AddMark = " + versetext);
-                        //System.out.println("IDX="+resultCounter+",BOOK="+book+",CHAPTER="+chapter+",VERSE="+versenumber+",VERSETEXT="+versenumber+",SEARCHTERM="+searchTerm+",JSONSTR="+resultJsonStr);
-                        if(null != model){
-                            //is it better to add them directly to the model, or gather them in a Vector and then add the Vector to the model?
-                            //see for example https://stackoverflow.com/a/22718808/394921
-                            model.addRow(new Object[]{resultCounter, book, chapter, versenumber, versetext, searchTerm, resultJsonStr});
-                        } else {
-                            System.out.println("Table model is null! now why is that?");
-                        }
-                        rowsSearchResultsTable += "<tr><td><a href=\"#\" class=\"button\" id=\"row" + resultCounter + "\">" + __("Select") + "</a></td><td>" + localizedBook.Fullname + " " + chapter + ":" + versenumber + "</td><td>" + versetext + "</td></tr>";
-                        resultCounter++;
-                    }
-                    System.out.println("model now has " + model.getRowCount() + " rows");
-                } else {
-                    rowsSearchResultsTable += "<tr><td></td><td></td><td></td></tr>";
-                }
-                
-                previewDocument = previewDocumentHead + previewDocumentBodyOpen + rowsSearchResultsTable + previewDocumentBodyClose;
-                browser.loadURL(DataUri.create("text/html",previewDocument));
-            }
-            
+            jProgressBar1.setValue(0);
+            Task_Force tf1 = new BibleGetSearchFrame.Task_Force(jProgressBar1);
+            tf1.execute();
         } else {
-            JOptionPane.showMessageDialog(null, errorMessage, "Warning!", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, errorMessage, "Warning!", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_jButton1MouseClicked
 
@@ -593,6 +672,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         }
         // let's handle visibility...
         if (!visible || !isVisible()) { // have to check this condition simply because super.setVisible(true) invokes toFront if frame was already visible
+            jProgressBar1.setValue(0);
             super.setVisible(visible);
         }
         // ...and bring frame to the front.. in a strange and weird way

@@ -31,11 +31,14 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.SwingUtilities;
 import org.cef.CefApp;
 import org.cef.CefClient;
 import org.cef.CefSettings;
 import org.cef.OS;
+import org.cef.browser.CefBrowser;
 import org.cef.browser.CefMessageRouter;
+import org.cef.handler.CefLoadHandlerAdapter;
 
 public final class BibleGetIO extends WeakBase
    implements com.sun.star.frame.XDispatchProvider,
@@ -556,9 +559,30 @@ public final class BibleGetIO extends WeakBase
                     
                     CefSettings settings = new CefSettings();
                     settings.windowless_rendering_enabled = OS.isLinux();
+                    //settings.windowless_rendering_enabled = true;
                     //settings.log_severity = LogSeverity.LOGSEVERITY_ERROR;
                     cefApp = CefApp.getInstance(settings);
                     client = cefApp.createClient();
+                    
+                    client.addLoadHandler(new CefLoadHandlerAdapter() {
+                        @Override
+                        public void onLoadingStateChange(CefBrowser browser, boolean isLoading,
+                                boolean canGoBack, boolean canGoForward) {
+                            if (!isLoading) {
+                                //browser_ready = true;
+                                //System.out.println("Browser has finished loading!");
+                                
+                                //The following is no longer necessary, was solved by implementing a FocusHandler on the JTextFields!
+                                //The following line actually works to give focus to the OpenOffice instance,
+                                //but then there is no way to give the focus back to the SearchFrame window
+                                //Every attempt either silently falls or creates an exception
+                                //m_xFrame.getContainerWindow().setFocus();
+                                
+                                //SwingUtilities.windowForComponent(browser.getUIComponent()).setVisible(false);
+                                //SwingUtilities.windowForComponent(browser.getUIComponent()).setVisible(true);
+                            }
+                        }
+                    });
                     CefMessageRouter msgRouter = CefMessageRouter.create();
                     
                     BibleGetIO.biblegetDB = DBHelper.getInstance();
