@@ -19,18 +19,31 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.view.XViewSettingsSupplier;
 import java.awt.Desktop;
 import java.awt.GraphicsEnvironment;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import javax.net.ssl.HttpsURLConnection;
 import javax.swing.DefaultComboBoxModel;
+import org.apache.commons.lang3.SystemUtils;
 import org.cef.CefApp;
 import org.cef.CefClient;
 import org.cef.CefSettings;
@@ -83,29 +96,6 @@ public final class BibleGetIO extends WeakBase
     public BibleGetIO( XComponentContext context )
     {
         m_xContext = context;
-        XPackageInformationProvider xPackageInformationProvider =
-            PackageInformationProvider.get(m_xContext);
-        packagePath = xPackageInformationProvider.getPackageLocation(m_implementationName);        
-        System.out.println("package path = " + packagePath);
-        
-        //myOptionFrame = BibleGetOptionsFrame.getInstance(packagePath);
-        
-        fontFamilies = getFonts();
-        
-        JAVAVERSION = getJavaVersion();
-        System.out.println("Java version currently used = " + JAVAVERSION);
-        
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                //System.out.println(info.getName());
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(BibleGetQuoteFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }        
     }
 
     public static XSingleComponentFactory __getComponentFactory( String sImplementationName ) {
@@ -479,6 +469,32 @@ public final class BibleGetIO extends WeakBase
             
             if(instance==null){
                 instance = this;
+                
+                XPackageInformationProvider xPackageInformationProvider =
+                    PackageInformationProvider.get(instance.m_xContext);
+                BibleGetIO.packagePath = xPackageInformationProvider.getPackageLocation(BibleGetIO.m_implementationName);
+                System.out.println("package path = " + BibleGetIO.packagePath);
+
+                //myOptionFrame = BibleGetOptionsFrame.getInstance(packagePath);
+
+                BibleGetIO.fontFamilies = getFonts();
+
+                BibleGetIO.JAVAVERSION = BibleGetIO.getJavaVersion();
+                System.out.println("Java version currently used = " + BibleGetIO.JAVAVERSION);
+
+                try {
+                    for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                        //System.out.println(info.getName());
+                        if ("Nimbus".equals(info.getName())) {
+                            javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                            break;
+                        }
+                    }
+                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+                    java.util.logging.Logger.getLogger(BibleGetQuoteFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                }        
+                
+                
                 instance.m_xFrame = (com.sun.star.frame.XFrame)UnoRuntime.queryInterface(
                 com.sun.star.frame.XFrame.class, object[0]);
                 instance.m_xController = instance.m_xFrame.getController();
@@ -560,6 +576,8 @@ public final class BibleGetIO extends WeakBase
                     BibleGetIO.uiLocale = new Locale(BibleGetIO.myLocale);
                     Locale.setDefault(BibleGetIO.uiLocale);
                     //instance.myMessages = BibleGetI18N.getMessages();
+                    
+                    BibleGetIO.setNativeLibraryDir();
                     
                     CefSettings settings = new CefSettings();
                     settings.windowless_rendering_enabled = OS.isLinux();
@@ -676,5 +694,311 @@ public final class BibleGetIO extends WeakBase
             if(dot != -1) { version = version.substring(0, dot); }
         } 
         return Integer.parseInt(version);
-    }    
+    }
+    
+    private static void setNativeLibraryDir() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException, IOException {
+        String nativelibrarypath = "";
+        String ziplibrarypath = "";
+        String[] JCEFfiles = null;
+        String[] JCEFswiftshaderFiles = null;
+        if(SystemUtils.IS_OS_WINDOWS){
+            nativelibrarypath = "/AppData/Roaming/BibleGetOpenOfficePlugin/JCEF";
+            ziplibrarypath = "win32";
+            JCEFfiles = new String[]{
+                "cef.pak",
+                "cef_100_percent.pak",
+                "cef_200_percent.pak",
+                "cef_extensions.pak",
+                "chrome_elf.dll",
+                "d3dcompiler_47.dll",
+                "devtools_resources.pak",
+                "icudtl.dat",
+                "jcef.dll",
+                "jcef_helper.exe",
+                "libEGL.dll",
+                "libGLESv2.dll",
+                "libcef.dll",
+                "snapshot_blob.bin",
+                "v8_context_snapshot.bin"
+            };
+            JCEFswiftshaderFiles = new String[]{
+                "libEGL.dll",
+                "libGLESv2.dll"
+            };
+        }
+        else if(SystemUtils.IS_OS_MAC_OSX){
+            nativelibrarypath = "/Library/Application Support/BibleGetOpenOfficePlugin/JCEF";
+            ziplibrarypath = "java-cef-build-bin/bin/jcef_app.app/Contents/Frameworks"; //(??? double check how macOS is supposed to work)
+        }
+        else if(SystemUtils.IS_OS_LINUX){
+            nativelibrarypath = "/.BibleGetOpenOfficePlugin/JCEF";
+            switch(System.getProperty("sun.arch.data.model")){
+                case "64":
+                    ziplibrarypath = "linux64";
+                    break;
+                case "32":
+                    ziplibrarypath = "linux32";
+                    break;
+            }
+            JCEFfiles = new String[]{
+                "cef.pak",
+                "cef_100_percent.pak",
+                "cef_200_percent.pak",
+                "cef_extensions.pak",
+                "chrome-sandbox",
+                "devtools_resources.pak",
+                "icudtl.dat",
+                "jcef_helper",
+                "libcef.so",
+                "libEGL.so",
+                "libGLESv2.so",
+                "libjcef.so",
+                "snapshot_blob.bin",
+                "v8_context_snapshot.bin"
+            };
+            JCEFswiftshaderFiles = new String[]{
+                "libEGL.so",
+                "libGLESv2.so"
+            };
+        }
+        nativelibrarypath = System.getProperty("user.home") + nativelibrarypath;
+
+        //first let's check if the JCEF directory exists in the user's home under our BibleGetOpenOfficePlugin directory
+        //and if not, we create it
+        Path JCEFpath = Paths.get(nativelibrarypath);
+        Path JCEFlocalespath = Paths.get(nativelibrarypath, "locales");
+        Path JCEFswshaderpath = Paths.get(nativelibrarypath, "swiftshader");
+        if(Files.notExists(JCEFpath)){
+            File jcefDirectory = new File(nativelibrarypath);
+            jcefDirectory.mkdirs();
+        }
+        if(Files.notExists(JCEFlocalespath) ){
+            File jcefLocalesDir = new File(nativelibrarypath, "locales");
+            jcefLocalesDir.mkdir();
+        }
+        if(Files.notExists(JCEFswshaderpath) ){
+            File jcefSwShaderDir = new File(nativelibrarypath, "swiftshader");
+            jcefSwShaderDir.mkdir();
+        }
+        
+        String[] JCEFlocaleFiles = new String[]{
+            "am.pak",
+            "ar.pak",
+            "bg.pak",
+            "bn.pak",
+            "ca.pak",
+            "cs.pak",
+            "da.pak",
+            "de.pak",
+            "el.pak",
+            "en-GB.pak",
+            "en-US.pak",
+            "es-419.pak",
+            "es.pak",
+            "et.pak",
+            "fa.pak",
+            "fi.pak",
+            "fil.pak",
+            "fr.pak",
+            "gu.pak",
+            "he.pak",
+            "hi.pak",
+            "hr.pak",
+            "hu.pak",
+            "id.pak",
+            "it.pak",
+            "ja.pak",
+            "kn.pak",
+            "ko.pak",
+            "lt.pak",
+            "lv.pak",
+            "ml.pak",
+            "mr.pak",
+            "ms.pak",
+            "nb.pak",
+            "nl.pak",
+            "pl.pak",
+            "pt-BR.pak",
+            "pt-PT.pak",
+            "ro.pak",
+            "ru.pak",
+            "sk.pak",
+            "sl.pak",
+            "sr.pak",
+            "sv.pak",
+            "sw.pak",
+            "ta.pak",
+            "te.pak",
+            "th.pak",
+            "tr.pak",
+            "uk.pak",
+            "vi.pak",
+            "zh-CN.pak",
+            "zh-TW.pak"
+        };
+        
+        String tempDir = System.getProperty("java.io.tmpdir");
+        
+        for(String fileName : JCEFfiles ){
+            Path filePath = Paths.get(nativelibrarypath, fileName);
+            if(Files.notExists(filePath) ){
+                Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, fileName);
+                if(Files.notExists(tempFilePath)){
+                    //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
+                    BibleGetIO.downloadJCEF();
+                }
+                //now we can copy the missing file from the tempDir
+                Files.copy(tempFilePath,filePath);
+            }
+        }
+        for(String fileName : JCEFlocaleFiles ){
+            Path filePath = Paths.get(nativelibrarypath, "locales", fileName);
+            if(Files.notExists(filePath) ){
+                Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "locales", fileName);
+                if(Files.notExists(tempFilePath)){
+                    //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
+                    BibleGetIO.downloadJCEF();
+                }
+                //now we can copy the missing file from the tempDir
+                Files.copy(tempFilePath,filePath);
+            }
+        }
+        for(String fileName : JCEFswiftshaderFiles ){
+            Path filePath = Paths.get(nativelibrarypath, "swiftshader", fileName);
+            if(Files.notExists(filePath) ){
+                Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "swiftshader", fileName);
+                if(Files.notExists(tempFilePath)){
+                    //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
+                    BibleGetIO.downloadJCEF();
+                }
+                //now we can copy the missing file from the tempDir
+                Files.copy(tempFilePath,filePath);
+            }
+        }
+        
+        if(JAVAVERSION == 8){
+        
+            final Field usrPathsField = ClassLoader.class.getDeclaredField("usr_paths");
+            System.out.println("Java version is 8 and usr_path at start of runtime = " + usrPathsField.toString());
+            usrPathsField.setAccessible(true);
+            //get array of paths
+            final String[] paths = (String[])usrPathsField.get(null);
+            //check if the path to add is already present
+            for(String path : paths) {
+                if(path.equals(nativelibrarypath)) {
+                    return;
+                }
+            }
+            System.out.println(nativelibrarypath + " was not among the usr_paths, now trying to add it..." );
+            //add the new path
+            final String[] newPaths = Arrays.copyOf(paths, paths.length + 1);
+            newPaths[newPaths.length-1] = nativelibrarypath;
+            usrPathsField.set(null, newPaths);
+            System.out.println("usr_path is now = " + usrPathsField.toString());
+        }
+        
+    }
+    
+    private static void downloadJCEF() throws MalformedURLException, IOException{
+        System.out.println("starting downloadJCEF process...");
+        //following URLs retrieved via the github api at
+        //    https://api.github.com/repos/jcefbuild/jcefbuild/releases/30632029/assets
+        // actually the same informatino is present in:
+        //    https://api.github.com/repos/jcefbuild/jcefbuild/releases
+        // use Accept header = application/vnd.github.v3+json in order to retrieve results in JSON notation
+        // the result of this last API endpoint is an ARRAY of objects, the first of which should be the latest release
+        // but in order to target a specific release, search for "tag_name" (or "name", should be the same) 
+        //     as indicated in the following JCEFbuild String
+        //     The object that has this "tag_name" will also have an "assets" property at the same level as "tag_name"
+        //     "assets" is again an ARRAY of OBJECTS
+        //     We must search for objects that have "name" of: {"linux32.zip", "linux64.zip", "macosx64.zip", "win32.zip"}
+        //     and get their "url" and perhaps "content_type"
+        
+        String JCEFbuild = "v1.0.10-84.3.8+gc8a556f+chromium-84.0.4147.105";
+        String[] targetOS = new String[]{"linux32.zip", "linux64.zip", "macosx64.zip", "win32.zip"};
+        
+        //Until we automate the process, here are the hardcoded URLs for the target OSs, for the indicated release:
+        String linux32URL = "https://api.github.com/repos/jcefbuild/jcefbuild/releases/assets/24791124";
+        String linux64URL = "https://api.github.com/repos/jcefbuild/jcefbuild/releases/assets/24791106";
+        String macosx64URL = "https://api.github.com/repos/jcefbuild/jcefbuild/releases/assets/24791232";
+        String win32URL = "https://api.github.com/repos/jcefbuild/jcefbuild/releases/assets/24791067";
+        
+        URL downloadURL = null;
+        if(SystemUtils.IS_OS_WINDOWS){
+            downloadURL = new URL(win32URL);
+        } else if (SystemUtils.IS_OS_MAC_OSX){
+            downloadURL = new URL(macosx64URL);
+        } else if (SystemUtils.IS_OS_LINUX){
+            switch(System.getProperty("sun.arch.data.model")){
+                case "64":
+                    downloadURL = new URL(linux64URL);
+                    break;
+                case "32":
+                    downloadURL = new URL(linux32URL);
+                    break;
+            }
+        }
+        System.out.println("download URL was detected as " + downloadURL.toString());
+        
+        HttpsURLConnection con;
+        try{
+            con = (HttpsURLConnection) downloadURL.openConnection();            
+             // optional default is GET
+            con.setRequestMethod("GET");
+            con.setRequestProperty("Accept", "application/octet-stream");
+
+
+            //System.out.println("Sending 'GET' request to URL : " + url);
+            //System.out.println("Response Code : " + con.getResponseCode());
+            int respCode;
+            respCode = con.getResponseCode();
+            if(HttpsURLConnection.HTTP_OK == respCode) {
+                
+                Path outDir = Paths.get(System.getProperty("java.io.tmpdir"),"BibleGetJCEF");
+                System.out.println("Temp directory where JCEF should or will be stored was detected as " + outDir.toString());
+                if(Files.notExists(outDir)){
+                    System.out.println("The BibleGetJCEF directory in the temp folder was not found, now creating...");
+                    File jcefDirectoryTMP = new File(outDir.toString());
+                    jcefDirectoryTMP.mkdir();
+                }
+                
+                byte[] buffer = new byte[2048];
+                try ( 
+                        InputStream conInStr = con.getInputStream();
+                        BufferedInputStream buffInStr = new BufferedInputStream(conInStr);
+                        ZipInputStream zipInStream = new ZipInputStream(buffInStr);
+                    ) {
+                    System.out.println("We seem to have a stream of data from the github assets...");
+                    
+                    ZipEntry entry;
+                    while ((entry = zipInStream.getNextEntry()) != null) {
+                        if(entry.isDirectory()){
+                            File entryFile = new File(outDir.toString(), entry.getName());
+                            if(entryFile.exists() == false){
+                                System.out.println("directory " + entryFile.getCanonicalPath() + " did not exist, now creating...");
+                                entryFile.mkdirs();
+                            }
+                        } else {
+                            Path filePath = outDir.resolve(entry.getName());
+                            //instead of checking whether the file exists, we'll simply overwrite by passing false as second parameter to FileOutputStream
+                            //let's keep life simple, it doesn't take that long
+                            //File entryFile = new File(outDir.toString(), entry.getName());
+                            //if(entryFile.exists() == false){
+                                try (FileOutputStream fos = new FileOutputStream(filePath.toFile(), false);
+                                        BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length)) {
+                                    int len;
+                                    while ((len = zipInStream.read(buffer)) > 0) {
+                                        bos.write(buffer, 0, len);
+                                    }
+                                }
+                            //}
+                        }
+                    }
+                }
+            }
+            con.disconnect();
+        } catch(NullPointerException ex){
+            Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, "downloadJCEF() : We were not able to determine the correct URL to communicate with.");
+        }
+    }
 }
