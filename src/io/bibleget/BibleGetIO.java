@@ -31,17 +31,11 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.CopyOption;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -941,7 +935,11 @@ public final class BibleGetIO extends WeakBase
             usrPathsField.set(null, newPaths);
             //final String[] paths2 = (String[])usrPathsField.get(null);
             //System.out.println("usr_path is now = " + String.join(";", paths2) );
-        }
+        }/* else if (JAVAVERSION == 12 || JAVAVERSION == 13){
+            Lookup cl = MethodHandles.privateLookupIn(ClassLoader.class, MethodHandles.lookup());
+            VarHandle usr_paths = cl.findStaticVarHandle(ClassLoader.class, "usr_paths", String[].class);
+            usr_paths.set(null);
+        }*/
         
     }
     
