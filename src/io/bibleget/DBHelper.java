@@ -256,7 +256,11 @@ public class DBHelper {
             derbyhome = "/AppData/Roaming/BibleGetOpenOfficePlugin";
         }
         else if(SystemUtils.IS_OS_MAC_OSX){
-            derbyhome = "/Library/Application Support/BibleGetOpenOfficePlugin";
+            //after reading https://developer.apple.com/library/archive/qa/qa1170/_index.html#//apple_ref/doc/uid/DTS10001702-CH1-SECTION4 ,
+            //I decided to move the database from /Library/Application Support/BibleGetOpenOfficePlugin
+            //Application Support should contain non essential data that a user could play around with
+            //we certainly don't want that!
+            derbyhome = "/Library/BibleGetOpenOfficePlugin"; //
         }
         else if(SystemUtils.IS_OS_LINUX){
             derbyhome = "/.BibleGetOpenOfficePlugin";

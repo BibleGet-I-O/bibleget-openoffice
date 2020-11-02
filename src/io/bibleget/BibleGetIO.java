@@ -726,10 +726,6 @@ public final class BibleGetIO extends WeakBase
                 "libGLESv2.dll"
             };
         }
-        else if(SystemUtils.IS_OS_MAC_OSX){
-            nativelibrarypath = "/Library/Application Support/BibleGetOpenOfficePlugin/JCEF";
-            ziplibrarypath = "java-cef-build-bin/bin/jcef_app.app/Contents/Frameworks"; //(??? double check how macOS is supposed to work)
-        }
         else if(SystemUtils.IS_OS_LINUX){
             nativelibrarypath = "/.BibleGetOpenOfficePlugin/JCEF";
             switch(System.getProperty("sun.arch.data.model")){
@@ -761,119 +757,160 @@ public final class BibleGetIO extends WeakBase
                 "libGLESv2.so"
             };
         }
+        else if(SystemUtils.IS_OS_MAC_OSX){
+            nativelibrarypath = "/Library/BibleGetOpenOfficePlugin/jcef_app.app";
+            ziplibrarypath = "java-cef-build-bin/bin/jcef_app.app"; //(??? double check how macOS is supposed to work)
+        }
+        
         nativelibrarypath = System.getProperty("user.home") + nativelibrarypath;
+        
+        
+        if(SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_WINDOWS){
 
-        //first let's check if the JCEF directory exists in the user's home under our BibleGetOpenOfficePlugin directory
-        //and if not, we create it
-        Path JCEFpath = Paths.get(nativelibrarypath);
-        Path JCEFlocalespath = Paths.get(nativelibrarypath, "locales");
-        Path JCEFswshaderpath = Paths.get(nativelibrarypath, "swiftshader");
-        if(Files.notExists(JCEFpath)){
-            File jcefDirectory = new File(nativelibrarypath);
-            jcefDirectory.mkdirs();
-        }
-        if(Files.notExists(JCEFlocalespath) ){
-            File jcefLocalesDir = new File(nativelibrarypath, "locales");
-            jcefLocalesDir.mkdir();
-        }
-        if(Files.notExists(JCEFswshaderpath) ){
-            File jcefSwShaderDir = new File(nativelibrarypath, "swiftshader");
-            jcefSwShaderDir.mkdir();
-        }
-        
-        String[] JCEFlocaleFiles = new String[]{
-            "am.pak",
-            "ar.pak",
-            "bg.pak",
-            "bn.pak",
-            "ca.pak",
-            "cs.pak",
-            "da.pak",
-            "de.pak",
-            "el.pak",
-            "en-GB.pak",
-            "en-US.pak",
-            "es-419.pak",
-            "es.pak",
-            "et.pak",
-            "fa.pak",
-            "fi.pak",
-            "fil.pak",
-            "fr.pak",
-            "gu.pak",
-            "he.pak",
-            "hi.pak",
-            "hr.pak",
-            "hu.pak",
-            "id.pak",
-            "it.pak",
-            "ja.pak",
-            "kn.pak",
-            "ko.pak",
-            "lt.pak",
-            "lv.pak",
-            "ml.pak",
-            "mr.pak",
-            "ms.pak",
-            "nb.pak",
-            "nl.pak",
-            "pl.pak",
-            "pt-BR.pak",
-            "pt-PT.pak",
-            "ro.pak",
-            "ru.pak",
-            "sk.pak",
-            "sl.pak",
-            "sr.pak",
-            "sv.pak",
-            "sw.pak",
-            "ta.pak",
-            "te.pak",
-            "th.pak",
-            "tr.pak",
-            "uk.pak",
-            "vi.pak",
-            "zh-CN.pak",
-            "zh-TW.pak"
-        };
-        
-        String tempDir = System.getProperty("java.io.tmpdir");
-        
-        for(String fileName : JCEFfiles ){
-            Path filePath = Paths.get(nativelibrarypath, fileName);
-            if(Files.notExists(filePath) ){
-                Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, fileName);
-                if(Files.notExists(tempFilePath)){
-                    //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
-                    BibleGetIO.downloadJCEF();
-                }
-                //now we can copy the missing file from the tempDir
-                Files.copy(tempFilePath,filePath);
+            //first let's check if the JCEF directory exists in the user's home under our BibleGetOpenOfficePlugin directory
+            //and if not, we create it
+            Path JCEFpath = Paths.get(nativelibrarypath);
+            if(Files.notExists(JCEFpath)){
+                File jcefDirectory = new File(nativelibrarypath);
+                jcefDirectory.mkdirs();
             }
-        }
-        for(String fileName : JCEFlocaleFiles ){
-            Path filePath = Paths.get(nativelibrarypath, "locales", fileName);
-            if(Files.notExists(filePath) ){
-                Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "locales", fileName);
-                if(Files.notExists(tempFilePath)){
-                    //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
-                    BibleGetIO.downloadJCEF();
+        
+            String tempDir = System.getProperty("java.io.tmpdir");
+            //check if the necessary files exist in the user.path BibleGetIOOpenOffice/JCEF folder
+            if(JCEFfiles != null){
+                for(String fileName : JCEFfiles ){
+                    Path filePath = Paths.get(nativelibrarypath, fileName);
+                    if(Files.notExists(filePath) ){
+                        Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, fileName);
+                        if(Files.notExists(tempFilePath)){
+                            //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
+                            BibleGetIO.downloadJCEF();
+                        }
+                        //now we can copy the missing file from the tempDir
+                        Files.copy(tempFilePath,filePath);
+                    }
                 }
-                //now we can copy the missing file from the tempDir
-                Files.copy(tempFilePath,filePath);
+            } else {
+                Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, "setNativeLibraryDir() : We were not able to determine the correct folder structure for this system in order to ensure the correct functioning of the Chrome Embedded Framework.");
             }
-        }
-        for(String fileName : JCEFswiftshaderFiles ){
-            Path filePath = Paths.get(nativelibrarypath, "swiftshader", fileName);
-            if(Files.notExists(filePath) ){
-                Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "swiftshader", fileName);
-                if(Files.notExists(tempFilePath)){
-                    //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
-                    BibleGetIO.downloadJCEF();
+            
+            //check if the 'locales' subfolder exists in the user.path BibleGetIOOpenOffice/JCEF folder
+            //and if not create it
+            Path JCEFlocalespath = Paths.get(nativelibrarypath, "locales");
+            if(Files.notExists(JCEFlocalespath) ){
+                File jcefLocalesDir = new File(nativelibrarypath, "locales");
+                jcefLocalesDir.mkdir();
+            }
+            
+            //Define the files that should be in the 'locales' subfolder
+            String[] JCEFlocaleFiles = new String[]{
+                "am.pak",
+                "ar.pak",
+                "bg.pak",
+                "bn.pak",
+                "ca.pak",
+                "cs.pak",
+                "da.pak",
+                "de.pak",
+                "el.pak",
+                "en-GB.pak",
+                "en-US.pak",
+                "es-419.pak",
+                "es.pak",
+                "et.pak",
+                "fa.pak",
+                "fi.pak",
+                "fil.pak",
+                "fr.pak",
+                "gu.pak",
+                "he.pak",
+                "hi.pak",
+                "hr.pak",
+                "hu.pak",
+                "id.pak",
+                "it.pak",
+                "ja.pak",
+                "kn.pak",
+                "ko.pak",
+                "lt.pak",
+                "lv.pak",
+                "ml.pak",
+                "mr.pak",
+                "ms.pak",
+                "nb.pak",
+                "nl.pak",
+                "pl.pak",
+                "pt-BR.pak",
+                "pt-PT.pak",
+                "ro.pak",
+                "ru.pak",
+                "sk.pak",
+                "sl.pak",
+                "sr.pak",
+                "sv.pak",
+                "sw.pak",
+                "ta.pak",
+                "te.pak",
+                "th.pak",
+                "tr.pak",
+                "uk.pak",
+                "vi.pak",
+                "zh-CN.pak",
+                "zh-TW.pak"
+            };
+
+            //check if the necessary files exist in the 'locales' subfolder of the user.path BibleGetIOOpenOffice/JCEF folder
+            for(String fileName : JCEFlocaleFiles ){
+                Path filePath = Paths.get(nativelibrarypath, "locales", fileName);
+                if(Files.notExists(filePath) ){
+                    Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "locales", fileName);
+                    if(Files.notExists(tempFilePath)){
+                        //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
+                        BibleGetIO.downloadJCEF();
+                    }
+                    //now we can copy the missing file from the tempDir
+                    Files.copy(tempFilePath,filePath);
                 }
-                //now we can copy the missing file from the tempDir
-                Files.copy(tempFilePath,filePath);
             }
+            
+            //check if the 'swiftshader' subfolder exists in the user.path BibleGetIOOpenOffice/JCEF folder
+            //and if not create it
+            Path JCEFswshaderpath = Paths.get(nativelibrarypath, "swiftshader");
+            if(Files.notExists(JCEFswshaderpath) ){
+                File jcefSwShaderDir = new File(nativelibrarypath, "swiftshader");
+                jcefSwShaderDir.mkdir();
+            }
+            
+            //check if the necessary files exist in the 'swiftshader subfolder
+            if(JCEFswiftshaderFiles != null){
+                for(String fileName : JCEFswiftshaderFiles ){
+                    Path filePath = Paths.get(nativelibrarypath, "swiftshader", fileName);
+                    if(Files.notExists(filePath) ){
+                        Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "swiftshader", fileName);
+                        if(Files.notExists(tempFilePath)){
+                            //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
+                            BibleGetIO.downloadJCEF();
+                        }
+                        //now we can copy the missing file from the tempDir
+                        Files.copy(tempFilePath,filePath);
+                    }
+                }
+            } else {
+                Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, "setNativeLibraryDir() : We were not able to determine the correct folder structure for this system in order to ensure the correct functioning of the Chrome Embedded Framework.");
+            }
+        } else if(SystemUtils.IS_OS_MAC_OSX){
+            //basically we don't nee the TEMP storage, because the app structure is exactly the same between the zip file and the user folder
+            
+            //first let's check if the JCEF directory exists in the user's home under our BibleGetOpenOfficePlugin directory
+            //and if not, we create it
+            Path JCEFpath = Paths.get(nativelibrarypath);
+            if(Files.notExists(JCEFpath)){
+                //File jcefDirectory = new File(nativelibrarypath);
+                //jcefDirectory.mkdirs();
+                //The directory will be created when reading the zip file!
+                BibleGetIO.downloadJCEF();
+            }
+            
         }
         
         if(JAVAVERSION == 8){
@@ -953,14 +990,18 @@ public final class BibleGetIO extends WeakBase
             //System.out.println("Response Code : " + con.getResponseCode());
             int respCode;
             respCode = con.getResponseCode();
+            Path outDir = null;
             if(HttpsURLConnection.HTTP_OK == respCode) {
-                
-                Path outDir = Paths.get(System.getProperty("java.io.tmpdir"),"BibleGetJCEF");
-                System.out.println("Temp directory where JCEF should or will be stored was detected as " + outDir.toString());
-                if(Files.notExists(outDir)){
-                    System.out.println("The BibleGetJCEF directory in the temp folder was not found, now creating...");
-                    File jcefDirectoryTMP = new File(outDir.toString());
-                    jcefDirectoryTMP.mkdir();
+                if(SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_WINDOWS ){
+                    outDir = Paths.get(System.getProperty("java.io.tmpdir"),"BibleGetJCEF");
+                    System.out.println("Temp directory where JCEF should or will be stored was detected as " + outDir.toString());
+                    if(Files.notExists(outDir)){
+                        System.out.println("The BibleGetJCEF directory in the temp folder was not found, now creating...");
+                        File jcefDirectoryTMP = new File(outDir.toString());
+                        jcefDirectoryTMP.mkdir();
+                    }
+                } else if( SystemUtils.IS_OS_MAC_OSX ){
+                    outDir = Paths.get(System.getProperty("user.home"), "Library", "BibleGetOpenOfficePlugin" );
                 }
                 
                 byte[] buffer = new byte[2048];
@@ -972,7 +1013,7 @@ public final class BibleGetIO extends WeakBase
                     System.out.println("We seem to have a stream of data from the github assets...");
                     
                     ZipEntry entry;
-                    while ((entry = zipInStream.getNextEntry()) != null) {
+                    while ((entry = zipInStream.getNextEntry()) != null && outDir != null) {
                         if(entry.isDirectory()){
                             File entryFile = new File(outDir.toString(), entry.getName());
                             if(entryFile.exists() == false){
