@@ -31,11 +31,17 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.CopyOption;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,6 +49,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.net.ssl.HttpsURLConnection;
 import javax.swing.DefaultComboBoxModel;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.cef.CefApp;
 import org.cef.CefClient;
@@ -990,18 +997,13 @@ public final class BibleGetIO extends WeakBase
             //System.out.println("Response Code : " + con.getResponseCode());
             int respCode;
             respCode = con.getResponseCode();
-            Path outDir = null;
             if(HttpsURLConnection.HTTP_OK == respCode) {
-                if(SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_WINDOWS ){
-                    outDir = Paths.get(System.getProperty("java.io.tmpdir"),"BibleGetJCEF");
-                    System.out.println("Temp directory where JCEF should or will be stored was detected as " + outDir.toString());
-                    if(Files.notExists(outDir)){
-                        System.out.println("The BibleGetJCEF directory in the temp folder was not found, now creating...");
-                        File jcefDirectoryTMP = new File(outDir.toString());
-                        jcefDirectoryTMP.mkdir();
-                    }
-                } else if( SystemUtils.IS_OS_MAC_OSX ){
-                    outDir = Paths.get(System.getProperty("user.home"), "Library", "BibleGetOpenOfficePlugin" );
+                Path outDir = Paths.get(System.getProperty("java.io.tmpdir"),"BibleGetJCEF");
+                System.out.println("Temp directory where JCEF should or will be stored was detected as " + outDir.toString());
+                if(Files.notExists(outDir)){
+                    System.out.println("The BibleGetJCEF directory in the temp folder was not found, now creating...");
+                    File jcefDirectoryTMP = new File(outDir.toString());
+                    jcefDirectoryTMP.mkdir();
                 }
                 
                 byte[] buffer = new byte[2048];
@@ -1013,7 +1015,7 @@ public final class BibleGetIO extends WeakBase
                     System.out.println("We seem to have a stream of data from the github assets...");
                     
                     ZipEntry entry;
-                    while ((entry = zipInStream.getNextEntry()) != null && outDir != null) {
+                    while ((entry = zipInStream.getNextEntry()) != null) {
                         if(entry.isDirectory()){
                             File entryFile = new File(outDir.toString(), entry.getName());
                             if(entryFile.exists() == false){
@@ -1036,6 +1038,13 @@ public final class BibleGetIO extends WeakBase
                             //}
                         }
                     }
+                    
+                    if(SystemUtils.IS_OS_MAC_OSX){
+                        //in the case of MacOS we can copy the whole directory structure as is...
+                        File srcDir = Paths.get(System.getProperty("java.io.tmpdir"),"BibleGetJCEF","macosx64","java-cef-build-bin","bin").toFile();
+                        File destDir = Paths.get(System.getProperty("user.home"),"Library","BibleGetOpenOfficePlugin").toFile();
+                        FileUtils.copyDirectory(srcDir, destDir);
+                    }
                 }
             }
             con.disconnect();
@@ -1043,4 +1052,5 @@ public final class BibleGetIO extends WeakBase
             Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, "downloadJCEF() : We were not able to determine the correct URL to communicate with.");
         }
     }
+    
 }
