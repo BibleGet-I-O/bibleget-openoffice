@@ -919,20 +919,21 @@ public final class BibleGetIO extends WeakBase
             usrPathsField.setAccessible(true);
             //get array of paths
             final String[] paths = (String[])usrPathsField.get(null);
-            //System.out.println("Java version is 8 and usr_path at start of runtime = " + String.join(";", paths) );
+            System.out.println("Java version is 8 and usr_paths at start of runtime = " + String.join(";", paths) );
             //check if the path to add is already present
             for(String path : paths) {
                 if(path.equals(nativelibrarypath)) {
                     return;
                 }
             }
-            //System.out.println(nativelibrarypath + " was not among the usr_paths, now trying to add it..." );
+            System.out.println(nativelibrarypath + " was not among the usr_paths, now trying to add it..." );
             //add the new path
             final String[] newPaths = Arrays.copyOf(paths, paths.length + 1);
             newPaths[newPaths.length-1] = nativelibrarypath;
+            System.setProperty("java.library.path", String.join(";", newPaths) );
             usrPathsField.set(null, newPaths);
-            //final String[] paths2 = (String[])usrPathsField.get(null);
-            //System.out.println("usr_path is now = " + String.join(";", paths2) );
+            final String[] paths2 = (String[])usrPathsField.get(null);
+            System.out.println("usr_paths is now = " + String.join(";", paths2) );
         }
         
     }
