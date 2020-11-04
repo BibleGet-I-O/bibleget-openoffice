@@ -937,7 +937,7 @@ public final class BibleGetIO extends WeakBase
             usrPathsField.set(null, newPaths);
             final String[] paths2 = (String[])usrPathsField.get(null);
             System.out.println("usr_paths is now = " + String.join(";", paths2) );
-        } else if (JAVAVERSION == 12 || JAVAVERSION == 13){
+        } else if (JAVAVERSION >= 9){
             Lookup cl = MethodHandles.privateLookupIn(ClassLoader.class, MethodHandles.lookup());
             VarHandle usr_paths = cl.findStaticVarHandle(ClassLoader.class, "usr_paths", String[].class);
             
