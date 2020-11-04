@@ -48,11 +48,13 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.swing.DefaultComboBoxModel;
 import org.apache.commons.lang3.SystemUtils;
 import org.cef.CefApp;
+import org.cef.CefApp.CefAppState;
 import org.cef.CefClient;
 import org.cef.CefSettings;
 import org.cef.OS;
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefMessageRouter;
+import org.cef.handler.CefAppHandlerAdapter;
 import org.cef.handler.CefLoadHandlerAdapter;
 
 public final class BibleGetIO extends WeakBase
@@ -587,7 +589,24 @@ public final class BibleGetIO extends WeakBase
                     //settings.windowless_rendering_enabled = true;
                     //settings.log_severity = LogSeverity.LOGSEVERITY_ERROR;
                     cefApp = CefApp.getInstance(settings);
+                    if(cefApp != null){
+                        System.out.println("we seem to have an instance of CefApp: version = " + cefApp.getVersion());
+                    }
+                    
+                    CefApp.addAppHandler(new CefAppHandlerAdapter(null) {
+                        @Override
+                        public void stateHasChanged(org.cef.CefApp.CefAppState state) {
+                            
+                            System.out.println("CefAppState has changed : " + state.name());
+                            // Shutdown the app if the native CEF part is terminated
+                            if (state == CefAppState.TERMINATED) System.exit(0);
+                        }
+                    });
+                    
                     client = cefApp.createClient();
+                    if(client != null){
+                        System.out.println("we seem to have a client instance of cefApp");
+                    }
                     
                     client.addLoadHandler(new CefLoadHandlerAdapter() {
                         @Override
@@ -938,24 +957,29 @@ public final class BibleGetIO extends WeakBase
             final String[] paths2 = (String[])usrPathsField.get(null);
             System.out.println("usr_paths is now = " + String.join(";", paths2) );
         } else if (JAVAVERSION >= 9){
-            Lookup cl = MethodHandles.privateLookupIn(ClassLoader.class, MethodHandles.lookup());
-            VarHandle usr_paths = cl.findStaticVarHandle(ClassLoader.class, "usr_paths", String[].class);
-            
-            final String[] paths = (String[]) usr_paths.get(null);
-            System.out.println("Java version is 12/13 and usr_paths at start of runtime = " + String.join(";", paths) );
-            for(String path : paths) {
-                if(path.equals(nativelibrarypath)) {
-                    return;
+            try {
+                Lookup cl = MethodHandles.privateLookupIn(ClassLoader.class, MethodHandles.lookup());
+                VarHandle usr_paths = cl.findStaticVarHandle(ClassLoader.class, "usr_paths", String[].class);
+
+                final String[] paths = (String[]) usr_paths.get();
+                System.out.println("Java version is >= 9 and usr_paths at start of runtime = " + String.join(";", paths) );
+                for(String path : paths) {
+                    if(path.equals(nativelibrarypath)) {
+                        return;
+                    }
                 }
+                System.out.println(nativelibrarypath + " was not among the usr_paths, now trying to add it..." );
+                //add the new path
+                final String[] newPaths = Arrays.copyOf(paths, paths.length + 1);
+                newPaths[newPaths.length-1] = nativelibrarypath;
+                System.setProperty("java.library.path", String.join(";", newPaths) );
+                usr_paths.set(newPaths);
+                final String[] paths2 = (String[]) usr_paths.get();
+                System.out.println("usr_paths is now = " + String.join(";", paths2) );
+                System.out.println("java.library.path is now = " + System.getProperty("java.library.path") );
+            } catch(ReflectiveOperationException e){
+                System.out.println("If you're seeing this, should you be worried? Native libs are not made available?");
             }
-            System.out.println(nativelibrarypath + " was not among the usr_paths, now trying to add it..." );
-            //add the new path
-            final String[] newPaths = Arrays.copyOf(paths, paths.length + 1);
-            newPaths[newPaths.length-1] = nativelibrarypath;
-            System.setProperty("java.library.path", String.join(";", newPaths) );
-            usr_paths.set(null);
-            final String[] paths2 = (String[]) usr_paths.get(null);
-            System.out.println("usr_paths is now = " + String.join(";", paths2) );
         }
         
     }
