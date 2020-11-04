@@ -40,6 +40,7 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -583,6 +584,17 @@ public final class BibleGetIO extends WeakBase
                     //instance.myMessages = BibleGetI18N.getMessages();
                     
                     BibleGetIO.setNativeLibraryDir();
+
+                    
+                    CefApp.addAppHandler(new CefAppHandlerAdapter(null) {
+                        @Override
+                        public void stateHasChanged(CefAppState state) {
+                            
+                            System.out.println("CefAppState has changed : " + state.name());
+                            // Shutdown the app if the native CEF part is terminated
+                            //if (state == CefAppState.TERMINATED) System.exit(0);
+                        }
+                    });
                     
                     CefSettings settings = new CefSettings();
                     settings.windowless_rendering_enabled = OS.isLinux();
@@ -592,16 +604,6 @@ public final class BibleGetIO extends WeakBase
                     if(cefApp != null){
                         System.out.println("we seem to have an instance of CefApp: version = " + cefApp.getVersion());
                     }
-                    
-                    CefApp.addAppHandler(new CefAppHandlerAdapter(null) {
-                        @Override
-                        public void stateHasChanged(org.cef.CefApp.CefAppState state) {
-                            
-                            System.out.println("CefAppState has changed : " + state.name());
-                            // Shutdown the app if the native CEF part is terminated
-                            if (state == CefAppState.TERMINATED) System.exit(0);
-                        }
-                    });
                     
                     client = cefApp.createClient();
                     if(client != null){
@@ -977,6 +979,26 @@ public final class BibleGetIO extends WeakBase
                 final String[] paths2 = (String[]) usr_paths.get();
                 System.out.println("usr_paths is now = " + String.join(";", paths2) );
                 System.out.println("java.library.path is now = " + System.getProperty("java.library.path") );
+                
+                Map<String,String> envVars = System.getenv();                
+                /* the following obviously is not working, it seems to be creating an exception... need to find another way...
+                Class processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
+                Lookup cl2 = MethodHandles.privateLookupIn(processEnvironmentClass, MethodHandles.lookup());
+                VarHandle env_vars;
+                env_vars = cl2.findStaticVarHandle(processEnvironmentClass, "theEnvironment", Map.class);
+                final Map<String,String> envVars = (Map<String,String>) env_vars.get();
+                */
+                envVars.entrySet().forEach((envVar) -> {
+                    System.out.println(envVar.getKey() + " = " + envVar.getValue());
+                });
+                
+                
+                // Perform startup initialization on platforms that require it.
+                if (!CefApp.startup(null)) {
+                    System.out.println("JCEF Startup initialization failed!");
+                } else {
+                    System.out.println("JCEF startup seems to have been successful...");
+                }
             } catch(ReflectiveOperationException e){
                 System.out.println("If you're seeing this, should you be worried? Native libs are not made available?");
             }
