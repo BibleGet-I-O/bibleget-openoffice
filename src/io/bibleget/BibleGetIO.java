@@ -532,22 +532,24 @@ public final class BibleGetIO extends WeakBase
                     //xNameAccess1.getElementType();
                     System.out.println("elNames = " + Arrays.toString(elNames));
                     //System.out.println(xNameAccess1.getByName("MeasureUnit").toString());
-                    System.out.println(AnyConverter.toInt(xNameAccess1.getByName("MeasureUnit")));
+                    System.out.println("MeasureUnit Class name =" + xNameAccess1.getByName("MeasureUnit").getClass().getName());
+                    System.out.println("MeasureUnit Class TypeName =" + xNameAccess1.getByName("MeasureUnit").getClass().getTypeName());
+                    System.out.println( (int)xNameAccess1.getByName("MeasureUnit"));
                     /*
                         MM = 1
                         CM = 2
                         INCHES = 8
-                        PICA = 7
                         POINT = 6
+                        PICA = 7
                     */
-                    int mUnit = AnyConverter.toInt(xNameAccess1.getByName("MeasureUnit"));
+                    int mUnit = (int)xNameAccess1.getByName("MeasureUnit");
                     BibleGetIO.measureUnit = BGET.MEASUREUNIT.valueOf(mUnit);
                     try {
                         XViewSettingsSupplier xViewSettings = (XViewSettingsSupplier) UnoRuntime.queryInterface(XViewSettingsSupplier.class,instance.m_xController);
                         XPropertySet viewSettings=xViewSettings.getViewSettings();
                         System.out.println("I got the HorizontalRulerMetric property, here is the type :" + AnyConverter.getType(viewSettings.getPropertyValue("HorizontalRulerMetric")));
-                        System.out.println("And here is the value: " + AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric")));
-                        int mUnit1 = AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric"));
+                        System.out.println("And here is the value: " + (int)viewSettings.getPropertyValue("HorizontalRulerMetric"));
+                        int mUnit1 = (int)viewSettings.getPropertyValue("HorizontalRulerMetric");
                         if(mUnit1 != mUnit){
                             //the ruler seems to have changed somehow?
                             BibleGetIO.measureUnit = BGET.MEASUREUNIT.valueOf(mUnit1);
