@@ -82,7 +82,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     JTable table;
     DefaultTableModel model;
     TableRowSorter<DefaultTableModel> sorter;
-    RowFilter rf = null;
+    RowFilter<DefaultTableModel,Integer> rf = null;
     
     private String selectedVersion;
     
@@ -91,6 +91,8 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     private String currentURL;
     private boolean browserFocus_ = true;
     private List<Integer> insertedIndexes = new ArrayList<>();
+    private String lastTermSearched = "";
+    private String lastVersionSelected = "";
     
     private final ImageIcon filter = new ImageIcon(getClass().getResource("/io/bibleget/images/filter.png"));
     private final ImageIcon removeFilter = new ImageIcon(getClass().getResource("/io/bibleget/images/remove_filter.png"));
@@ -332,13 +334,13 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         jListBibleVersions.addMouseMotionListener(mAdapter);
         
         jInternalFramePreviewArea.getContentPane().add(browserUI, BorderLayout.CENTER);
-        jTextField1.addFocusListener(new FocusAdapter() {
+        jTextFieldSearchForTerm.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
                 if (!browserFocus_) return;
                 browserFocus_ = false;
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
-                jTextField1.requestFocus();
+                jTextFieldSearchForTerm.requestFocus();
             }
         });
         jTextFieldFilterForTerm.addFocusListener(new FocusAdapter() {
@@ -406,11 +408,11 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             browser.loadURL(DataUri.create("text/html", spinnerPage) );
             publish(15);
             //let's do this
-            String queryString = jTextField1.getText().trim();
+            String queryString = jTextFieldSearchForTerm.getText().trim();
             if(queryString.contains(" ")){
                 queryString = queryString.split(" ")[0];
             }
-            
+            lastTermSearched = queryString;
             HTTPCaller httpCaller =  new HTTPCaller();
             String response = httpCaller.searchRequest(queryString, selectedVersion, jCheckBox1.isSelected());
             
@@ -421,7 +423,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 JsonArray resultsJArray = json.getJsonArray("results");
                 JsonObject infoObj = json.getJsonObject("info");
                 String searchTerm = infoObj.getString("keyword");
-                String versionSearched = infoObj.getString("version");
+                lastVersionSelected = infoObj.getString("version");
                 
                 String rowsSearchResultsTable = "";
                 String previewDocument;
@@ -434,7 +436,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 
                 int numResults = resultsJArray.size();
                 
-                jInternalFramePreviewArea.setTitle("Search results: " + numResults + " verses found containing the term \"" + searchTerm + "\" in version \"" + versionSearched + "\"");
+                jInternalFramePreviewArea.setTitle("Search results: " + numResults + " verses found containing the term \"" + searchTerm + "\" in version \"" + lastVersionSelected + "\"");
                 
                 if(numResults > 0){
                     model.setRowCount(0);
@@ -502,7 +504,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         jLabel2 = new javax.swing.JLabel();
         jButtonSearch = new javax.swing.JButton();
-        jTextField1 = new javax.swing.JTextField();
+        jTextFieldSearchForTerm = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         jCheckBox1 = new javax.swing.JCheckBox();
         jButtonFilter = new javax.swing.JButton();
@@ -517,7 +519,6 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         setTitle("Search for verses by keyword");
         setIconImages(setIconImages());
         setName("searchFrame"); // NOI18N
-        setPreferredSize(new java.awt.Dimension(1200, 800));
 
         jPanelSettingsArea.setName("jPanelOnTheLeft"); // NOI18N
         jPanelSettingsArea.setPreferredSize(new java.awt.Dimension(400, 500));
@@ -589,7 +590,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                                     .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 211, Short.MAX_VALUE)
                                     .addComponent(jTextFieldFilterForTerm)))
                             .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.Alignment.LEADING))
+                            .addComponent(jTextFieldSearchForTerm, javax.swing.GroupLayout.Alignment.LEADING))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanelSettingsAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jButtonFilter, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
@@ -611,7 +612,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                         .addGap(14, 14, 14)
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jTextFieldSearchForTerm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(5, 5, 5)
                         .addComponent(jCheckBox1))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelSettingsAreaLayout.createSequentialGroup()
@@ -651,7 +652,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFilterActionPerformed
-        if("Apply filter".equals(jButtonFilter.getText())) {  //__("Apply filter") Then
+        if("Apply filter".equals(jButtonFilter.getText())) {
             if(jTextFieldFilterForTerm.getText().isEmpty() ){
                 JOptionPane.showMessageDialog(null, "Filter term cannot be empty!", "Warning!", JOptionPane.WARNING_MESSAGE);
             } else {
@@ -662,8 +663,6 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                     filterTerm = filterTerm.split(" ")[0];
                 }
                 System.out.println("filterTerm = " + filterTerm);
-                //'searchResultsDT.CaseSensitive = False
-                //searchResultsDT.DefaultView.RowFilter = "VERSETEXT LIKE '%" & filterTerm & "%'"
                 try {
                     rf = RowFilter.regexFilter("(?i)" + filterTerm);
                     System.out.println("RowFilter did not create an exception");
@@ -675,6 +674,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 System.out.println("RowFilter set!");
                 if(table.getRowCount() > 0){
                     System.out.println("there are " + table.getRowCount() + " results after applying the filter");
+                    jInternalFramePreviewArea.setTitle("Search results: " + table.getRowCount() + " verses filtered by the term \"" + filterTerm + "\"  out of " + model.getRowCount() + " found containing the term \"" + lastTermSearched + "\" in version \"" + lastVersionSelected + "\"");
                     /*
                     for(int viewRow = 0; viewRow < table.getRowCount(); viewRow++){
                         int modelRow = table.convertRowIndexToModel(viewRow);
@@ -692,6 +692,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             //searchResultsDT.DefaultView.RowFilter = ""
             jTextFieldFilterForTerm.setText("");
             sorter.setRowFilter(null);
+            jInternalFramePreviewArea.setTitle("Search results: " + table.getRowCount() + " verses found containing the term \"" + lastTermSearched + "\" in version \"" + lastVersionSelected + "\"");
         }
         refreshSearchResults();
     }//GEN-LAST:event_jButtonFilterActionPerformed
@@ -722,10 +723,10 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         if(jListBibleVersions.getSelectedValue() == null){
             readyToGo = false;
             errorMessage = "Cannot search for a term if we don't know which Bible version to search from!";
-        } else if(jTextField1.getText().isEmpty()){
+        } else if(jTextFieldSearchForTerm.getText().isEmpty()){
             readyToGo = false;
             errorMessage = "Cannot search for an empty term!";
-        } else if(jTextField1.getText().length() < 3){
+        } else if(jTextFieldSearchForTerm.getText().length() < 3){
             readyToGo = false;
             errorMessage = "Cannot search for such a small term! We need at least 3 characters.";
         }
@@ -847,8 +848,8 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextFieldFilterForTerm;
+    private javax.swing.JTextField jTextFieldSearchForTerm;
     // End of variables declaration//GEN-END:variables
 
     
