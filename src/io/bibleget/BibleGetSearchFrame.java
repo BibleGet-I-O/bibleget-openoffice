@@ -697,24 +697,20 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonFilterActionPerformed
 
     private void jButtonSortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSortActionPerformed
-        if("Order by reference".equals(jButtonSort.getText())){ //__("Order by Reference") Then
-            //searchResultsDT.DefaultView.Sort = "BOOK ASC,CHAPTER ASC,VERSE ASC"
+        if("Order by reference".equals(jButtonSort.getText())){ 
             List <RowSorter.SortKey> sortKeys = new ArrayList<>();
-            sortKeys.add(new RowSorter.SortKey(1, SortOrder.ASCENDING));
-            sortKeys.add(new RowSorter.SortKey(2, SortOrder.ASCENDING));
-            sortKeys.add(new RowSorter.SortKey(3, SortOrder.ASCENDING));
+            sortKeys.add(new RowSorter.SortKey(1, SortOrder.ASCENDING)); //BOOK ASC
+            sortKeys.add(new RowSorter.SortKey(2, SortOrder.ASCENDING)); //CHAPTER ASC
+            sortKeys.add(new RowSorter.SortKey(3, SortOrder.ASCENDING)); //VERSE ASC
             sorter.setSortKeys(sortKeys);
             sorter.sort();
             jButtonSort.setText("Order by importance");
-            //System.out.println("Value at column 4 row 35 = " + model.getValueAt(table.convertRowIndexToModel(35), 4) ); //versetext of first row
         } else {
-            //searchResultsDT.DefaultView.Sort = "IDX ASC"
             List <RowSorter.SortKey> sortKeys = new ArrayList<>();
-            sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
+            sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING)); //IDX ASC
             sorter.setSortKeys(sortKeys);
             sorter.sort();
             jButtonSort.setText("Order by reference");
-            //System.out.println("Value at column 4 row 35 = " + model.getValueAt(table.convertRowIndexToModel(35), 4) ); //versetext of first row
         }
         refreshSearchResults();
     }//GEN-LAST:event_jButtonSortActionPerformed
