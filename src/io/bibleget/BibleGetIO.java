@@ -21,10 +21,12 @@ import java.awt.Desktop;
 import java.awt.GraphicsEnvironment;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
@@ -41,7 +43,7 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -953,7 +955,7 @@ public final class BibleGetIO extends WeakBase
             usrPathsField.setAccessible(true);
             //get array of paths
             final String[] paths = (String[])usrPathsField.get(null);
-            System.out.println("Java version is 8 and usr_paths at start of runtime = " + String.join(";", paths) );
+            System.out.println("Java version is 8 and usr_paths at start of runtime = " + String.join(File.separator, paths) );
             //check if the path to add is already present
             for(String path : paths) {
                 if(path.equals(nativelibrarypath)) {
@@ -974,7 +976,7 @@ public final class BibleGetIO extends WeakBase
                 VarHandle usr_paths = cl.findStaticVarHandle(ClassLoader.class, "usr_paths", String[].class);
 
                 final String[] paths = (String[]) usr_paths.get();
-                System.out.println("Java version is >= 9 and usr_paths at start of runtime = " + String.join(";", paths) );
+                System.out.println("Java version is >= 9 and usr_paths at start of runtime = " + String.join(File.pathSeparator, paths) );
                 for(String path : paths) {
                     if(path.equals(nativelibrarypath)) {
                         return;
@@ -984,10 +986,10 @@ public final class BibleGetIO extends WeakBase
                 //add the new path
                 final String[] newPaths = Arrays.copyOf(paths, paths.length + 1);
                 newPaths[newPaths.length-1] = nativelibrarypath;
-                System.setProperty("java.library.path", String.join(";", newPaths) );
+                System.setProperty("java.library.path", String.join(File.pathSeparator, newPaths) );
                 usr_paths.set(newPaths);
                 final String[] paths2 = (String[]) usr_paths.get();
-                System.out.println("usr_paths is now = " + String.join(";", paths2) );
+                System.out.println("usr_paths is now = " + String.join(File.pathSeparator, paths2) );
                 System.out.println("java.library.path is now = " + System.getProperty("java.library.path") );
                 
                 //Map<String,String> envVars = System.getenv();                
@@ -1125,4 +1127,21 @@ public final class BibleGetIO extends WeakBase
             Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, "downloadJCEF() : We were not able to determine the correct URL to communicate with.");
         }
     }
+    
+    private static class StreamGobbler implements Runnable {
+        private final InputStream inputStream;
+        private final Consumer<String> consumer;
+
+        public StreamGobbler(InputStream inputStream, Consumer<String> consumer) {
+            this.inputStream = inputStream;
+            this.consumer = consumer;
+        }
+
+        @Override
+        public void run() {
+            new BufferedReader(new InputStreamReader(inputStream)).lines()
+              .forEach(consumer);
+        }
+    }    
+    
 }

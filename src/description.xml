@@ -15,8 +15,8 @@
         <name lang="fr">BibleGet I/O</name>
     </display-name>
     <publisher>
-        <name lang="fr" xlink:href="https://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
         <name lang="it" xlink:href="https://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
+        <name lang="fr" xlink:href="https://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
         <name lang="en" xlink:href="https://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
         <name lang="es" xlink:href="https://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
         <name lang="de" xlink:href="https://www.bibleget.io">John R. D'Orazio, Giovanni Gregori, Simone Urbinati</name>
@@ -29,10 +29,10 @@
         <src lang="fr" xlink:href="description/desc_fr.txt"/>
     </extension-description>
     <registration>
-        <simple-license accept-by="user" default-license-id="en">
-            <license-text lang="en" license-id="en" xlink:href="licenses/license.TXT"/>
+        <simple-license accept-by="user" default-license-id="it">
+            <license-text lang="it" license-id="it" xlink:href="licenses/license.TXT"/>
             <license-text lang="fr" xlink:href="licenses/license.TXT"/>
-            <license-text lang="it" xlink:href="licenses/license.TXT"/>
+            <license-text lang="en" xlink:href="licenses/license.TXT"/>
             <license-text lang="es" xlink:href="licenses/license.TXT"/>
             <license-text lang="de" xlink:href="licenses/license.TXT"/>
         </simple-license>
