@@ -30,6 +30,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.VarHandle;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -52,6 +53,7 @@ import org.cef.CefApp;
 import org.cef.CefApp.CefAppState;
 import org.cef.CefClient;
 import org.cef.CefSettings;
+import org.cef.CefSettings.LogSeverity;
 import org.cef.OS;
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefMessageRouter;
@@ -585,57 +587,62 @@ public final class BibleGetIO extends WeakBase
                     Locale.setDefault(BibleGetIO.uiLocale);
                     //instance.myMessages = BibleGetI18N.getMessages();
                     
-                    BibleGetIO.setNativeLibraryDir();
-
-                    
-                    CefApp.addAppHandler(new CefAppHandlerAdapter(null) {
-                        @Override
-                        public void stateHasChanged(CefAppState state) {
-                            
-                            System.out.println("CefAppState has changed : " + state.name());
-                            // Shutdown the app if the native CEF part is terminated
-                            //if (state == CefAppState.TERMINATED) System.exit(0);
-                        }
+                    try{
+                        BibleGetIO.setNativeLibraryDir();
+                    } catch (InvocationTargetException ex){
+                        System.out.println( ex.getCause() );
+                    }
+                    /*
+                    Map<String,String> envVars = System.getenv();                
+                    envVars.entrySet().forEach((envVar) -> {
+                        System.out.println(envVar.getKey() + " = " + envVar.getValue());
                     });
+                    */
+                    if(CefApp.startup(new String[]{"--disable-gpu"})){
+                        if (CefApp.getState() != CefApp.CefAppState.INITIALIZED) {
+                            System.out.println("Creating CefSettings...");
+                            CefSettings settings = new CefSettings();
+                            settings.windowless_rendering_enabled = OS.isLinux();
+                            settings.log_severity = LogSeverity.LOGSEVERITY_VERBOSE;
+                            cefApp = CefApp.getInstance(new String[]{"--disable-gpu"}, settings);
+                        
+                            if(cefApp != null){
+                                System.out.println("we seem to have an instance of CefApp:");
+                                System.out.println(cefApp.getVersion());
                     
-                    CefSettings settings = new CefSettings();
-                    settings.windowless_rendering_enabled = OS.isLinux();
-                    //settings.windowless_rendering_enabled = true;
-                    //settings.log_severity = LogSeverity.LOGSEVERITY_ERROR;
-                    cefApp = CefApp.getInstance(settings);
-                    if(cefApp != null){
-                        System.out.println("we seem to have an instance of CefApp: version = " + cefApp.getVersion());
-                    }
-                    
-                    client = cefApp.createClient();
-                    if(client != null){
-                        System.out.println("we seem to have a client instance of cefApp");
-                    }
-                    
-                    client.addLoadHandler(new CefLoadHandlerAdapter() {
-                        @Override
-                        public void onLoadingStateChange(CefBrowser browser, boolean isLoading,
-                                boolean canGoBack, boolean canGoForward) {
-                            if (!isLoading) {
-                                //browser_ready = true;
-                                //System.out.println("Browser has finished loading!");
-                                
-                                //The following is no longer necessary, was solved by implementing a FocusHandler on the JTextFields!
-                                //The following line actually works to give focus to the OpenOffice instance,
-                                //but then there is no way to give the focus back to the SearchFrame window
-                                //Every attempt either silently falls or creates an exception
-                                //m_xFrame.getContainerWindow().setFocus();
-                                
-                                //SwingUtilities.windowForComponent(browser.getUIComponent()).setVisible(false);
-                                //SwingUtilities.windowForComponent(browser.getUIComponent()).setVisible(true);
+                                CefApp.addAppHandler(new CefAppHandlerAdapter(null) {
+                                    @Override
+                                    public void stateHasChanged(CefAppState state) {
+                                        System.out.println("CefAppState has changed : " + state.name());
+                                    }
+                                });
                             }
+                        } else {
+                            cefApp = CefApp.getInstance();
                         }
-                    });
-                    
-                    client.addContextMenuHandler(new JCEFContextMenuHandler());
-                    
-                    CefMessageRouter msgRouter = CefMessageRouter.create();
-                    
+                        
+                        client = cefApp.createClient();
+                        if(client != null){
+                            System.out.println("we seem to have a client instance of cefApp");
+                            
+                            client.addLoadHandler(new CefLoadHandlerAdapter() {
+                                @Override
+                                public void onLoadingStateChange(CefBrowser browser, boolean isLoading,
+                                        boolean canGoBack, boolean canGoForward) {
+                                    if (!isLoading) {
+                                        //browser_ready = true;
+                                        System.out.println("Browser has finished loading!");
+                                    }
+                                }
+                            });
+
+                            client.addContextMenuHandler(new JCEFContextMenuHandler());
+                            
+                        }
+
+                    } else {
+                        System.out.println("Startup initialization failed!");
+                    }
                     BibleGetIO.biblegetDB = DBHelper.getInstance();
                     if(BibleGetIO.biblegetDB != null){ 
                         //System.out.println("BibleGetIO main class : We have an instance of database!"); 
@@ -650,6 +657,7 @@ public final class BibleGetIO extends WeakBase
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.myOptionFrame"); 
                         BibleGetIO.myOptionFrame = BibleGetOptionsFrame.getInstance(instance.m_xController);
                         BibleGetIO.bibleGetSearch = BibleGetSearchFrame.getInstance();
+                        CefMessageRouter msgRouter = CefMessageRouter.create();
                         msgRouter.addHandler(BibleGetIO.bibleGetSearch.new MessageRouterHandler(), true);
                         client.addMessageRouter(msgRouter);
                     }
@@ -722,7 +730,7 @@ public final class BibleGetIO extends WeakBase
         return Integer.parseInt(version);
     }
     
-    private static void setNativeLibraryDir() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException, IOException {
+    private static void setNativeLibraryDir() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException, IOException, InvocationTargetException {
         String nativelibrarypath = "";
         String ziplibrarypath = "";
         String[] JCEFfiles = null;
@@ -982,7 +990,7 @@ public final class BibleGetIO extends WeakBase
                 System.out.println("usr_paths is now = " + String.join(";", paths2) );
                 System.out.println("java.library.path is now = " + System.getProperty("java.library.path") );
                 
-                Map<String,String> envVars = System.getenv();                
+                //Map<String,String> envVars = System.getenv();                
                 /* the following obviously is not working, it seems to be creating an exception... need to find another way...
                 Class processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
                 Lookup cl2 = MethodHandles.privateLookupIn(processEnvironmentClass, MethodHandles.lookup());
@@ -990,17 +998,20 @@ public final class BibleGetIO extends WeakBase
                 env_vars = cl2.findStaticVarHandle(processEnvironmentClass, "theEnvironment", Map.class);
                 final Map<String,String> envVars = (Map<String,String>) env_vars.get();
                 */
+                /*
                 envVars.entrySet().forEach((envVar) -> {
                     System.out.println(envVar.getKey() + " = " + envVar.getValue());
                 });
-                
+                */
                 
                 // Perform startup initialization on platforms that require it.
+                /*
                 if (!CefApp.startup(null)) {
                     System.out.println("JCEF Startup initialization failed!");
                 } else {
                     System.out.println("JCEF startup seems to have been successful...");
                 }
+                */
             } catch(ReflectiveOperationException e){
                 System.out.println("If you're seeing this, should you be worried? Native libs are not made available?");
             }
@@ -1012,7 +1023,7 @@ public final class BibleGetIO extends WeakBase
         System.out.println("starting downloadJCEF process...");
         //following URLs retrieved via the github api at
         //    https://api.github.com/repos/jcefbuild/jcefbuild/releases/30632029/assets
-        // actually the same informatino is present in:
+        // actually the same information is present in:
         //    https://api.github.com/repos/jcefbuild/jcefbuild/releases
         // use Accept header = application/vnd.github.v3+json in order to retrieve results in JSON notation
         // the result of this last API endpoint is an ARRAY of objects, the first of which should be the latest release

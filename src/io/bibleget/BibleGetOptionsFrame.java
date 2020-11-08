@@ -56,8 +56,8 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         
     private final FontFamilyListCellRenderer FFLCRenderer;
     private final DefaultComboBoxModel fontFamilies;
-    private final CefBrowser browser;
-    private final Component browserUI;
+    private CefBrowser browser = null;
+    private Component browserUI = null;
     private final String previewDocument;
     private final String previewDocStylesheet;
     private final String previewDocScript;
@@ -456,12 +456,16 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
                         
         //this.myMessages = BGetI18N.getMessages();
         //String HTMLStrWithStyles = String.format(HTMLStr,s);
-        browser = BibleGetIO.client.createBrowser( DataUri.create("text/html",previewDocument), OS.isLinux(), false);
-        browserUI = browser.getUIComponent();
-                
+        if(BibleGetIO.client != null){
+            browser = BibleGetIO.client.createBrowser( DataUri.create("text/html",previewDocument), OS.isLinux(), false, null);
+            browserUI = browser.getUIComponent();
+        }
         initComponents();
-        jInternalFrame1.getContentPane().add(browserUI, BorderLayout.CENTER);
-        //browser.loadURL(DataUri.create("text/html",previewDocument));
+        if(BibleGetIO.client != null && browserUI != null){
+            jInternalFrame1.getContentPane().add(browserUI, BorderLayout.CENTER);
+            browser.loadURL(DataUri.create("text/html",previewDocument));
+        }
+        
     }
 
     public static BibleGetOptionsFrame getInstance(XController m_xController) throws ClassNotFoundException, UnsupportedEncodingException, SQLException, Exception

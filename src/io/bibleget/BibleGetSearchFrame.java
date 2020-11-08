@@ -68,8 +68,8 @@ import org.cef.handler.CefMessageRouterHandlerAdapter;
  */
 public class BibleGetSearchFrame extends javax.swing.JFrame {
     
-    private final CefBrowser browser;
-    private final Component browserUI;
+    private CefBrowser browser = null;
+    private Component browserUI = null;
     private static BibleGetSearchFrame instance;
         
     private VersionsSelect jListBibleVersions;
@@ -315,9 +315,10 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 + "</body>";
         
         currentURL = DataUri.create("text/html", htmlStr);
-        browser = BibleGetIO.client.createBrowser( currentURL, OS.isLinux(), false);
-        browserUI = browser.getUIComponent();
-        
+        if(BibleGetIO.client != null){
+            browser = BibleGetIO.client.createBrowser( currentURL, OS.isLinux(), false, null);
+            browserUI = browser.getUIComponent();
+        }
         initComponents();
                
         try {
@@ -333,40 +334,42 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         MouseAdapter mAdapter = new VersionsHoverHandler(jListBibleVersions);
         jListBibleVersions.addMouseMotionListener(mAdapter);
         
-        jInternalFramePreviewArea.getContentPane().add(browserUI, BorderLayout.CENTER);
-        jTextFieldSearchForTerm.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                if (!browserFocus_) return;
-                browserFocus_ = false;
-                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
-                jTextFieldSearchForTerm.requestFocus();
-            }
-        });
-        jTextFieldFilterForTerm.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                if (!browserFocus_) return;
-                browserFocus_ = false;
-                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
-                jTextFieldFilterForTerm.requestFocus();
-            }
-        });
-        // Clear focus from the address field when the browser gains focus.
-        BibleGetIO.client.addFocusHandler(new CefFocusHandlerAdapter() {
-            @Override
-            public void onGotFocus(CefBrowser browser) {
-                if (browserFocus_) return;
-                browserFocus_ = true;
-                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
-                browser.setFocus(true);
-            }
+        if(BibleGetIO.client != null){
+            jInternalFramePreviewArea.getContentPane().add(browserUI, BorderLayout.CENTER);
+            jTextFieldSearchForTerm.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    if (!browserFocus_) return;
+                    browserFocus_ = false;
+                    KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                    jTextFieldSearchForTerm.requestFocus();
+                }
+            });
+            jTextFieldFilterForTerm.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    if (!browserFocus_) return;
+                    browserFocus_ = false;
+                    KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                    jTextFieldFilterForTerm.requestFocus();
+                }
+            });
+            // Clear focus from the address field when the browser gains focus.
+            BibleGetIO.client.addFocusHandler(new CefFocusHandlerAdapter() {
+                @Override
+                public void onGotFocus(CefBrowser browser) {
+                    if (browserFocus_) return;
+                    browserFocus_ = true;
+                    KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                    browser.setFocus(true);
+                }
 
-            @Override
-            public void onTakeFocus(CefBrowser browser, boolean next) {
-                browserFocus_ = false;
-            }
-        });
+                @Override
+                public void onTakeFocus(CefBrowser browser, boolean next) {
+                    browserFocus_ = false;
+                }
+            });
+        }
         
     }    
 
