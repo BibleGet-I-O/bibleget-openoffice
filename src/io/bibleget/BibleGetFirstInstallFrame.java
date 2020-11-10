@@ -17,8 +17,10 @@ package io.bibleget;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -51,32 +53,43 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
     private final ImageIcon xmarkIco = new ImageIcon(getClass().getResource("/io/bibleget/images/red-x-wrong-mark.png"));
     private static String nativelibrarypath = "";
     private static String ziplibrarypath = "";
+    private final ArrayList<JProgressBar> jProgressBars = new ArrayList<>();
+    private char[] passwd; //if user chooses to type their password to install dependencies, it will be wiped immediately
+    private ProcessBuilder builder = new ProcessBuilder();
+    private Process process;
+    BibleGetIO.StreamGobbler streamGobbler;
     
     /**
      * Creates new form BibleGetFirstInstallFrame
      */
-    public BibleGetFirstInstallFrame() throws IOException {
+    public BibleGetFirstInstallFrame() {
         
         initComponents();
         
-        ArrayList<JProgressBar> jProgressBars = new ArrayList<>();
-        jProgressBars.add(jProgressBar1);
-        jProgressBars.add(jProgressBar2);
-        jProgressBars.add(jProgressBar3);
-        jProgressBars.add(jProgressBar4);
+        jProgressBars.add(jProgressBarDownloading);
+        jProgressBars.add(jProgressBarCopying);
+        jProgressBars.add(jProgressBarInstalling);
+        jProgressBars.add(jProgressBarPreparing);
+        jProgressBars.add(jProgressBarTotal);
         Task_Force tf = null;
         switch(BibleGetIO.ADDONSTATE){
             case JCEFUNINITIALIZED:
                 tf = new Task_Force(jProgressBars,"DOWNLOADJCEF");
                 break;
             case JCEFDOWNLOADED:
+                jLabelDownloading.setIcon(checkmarkIco);
                 tf = new Task_Force(jProgressBars,"COPYJCEF");
                 break;
             case JCEFCOPIED:
+                jLabelCopying.setIcon(checkmarkIco);
+                tf = new Task_Force(jProgressBars,"INSTALLDEPENDENCIES");
                 break;
             case JCEFDEPENDENCIES:
+                jLabelInstalling.setIcon(checkmarkIco);
+                tf = new Task_Force(jProgressBars,"PREPAREENV");
                 break;
             case JCEFENVREADY:
+                jLabelPreparing.setIcon(checkmarkIco);
                 break;
         }
         if(null != tf){
@@ -93,43 +106,54 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jProgressBar1 = new javax.swing.JProgressBar();
+        jPanelIntro = new javax.swing.JPanel();
         jTextArea1 = new javax.swing.JTextArea();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel1.setHorizontalTextPosition(JLabel.LEFT);
-        jLabel2 = new javax.swing.JLabel();
-        jLabel2.setHorizontalTextPosition(JLabel.LEFT);
-        jLabel3 = new javax.swing.JLabel();
-        jLabel3.setHorizontalTextPosition(JLabel.LEFT);
-        jProgressBar2 = new javax.swing.JProgressBar();
-        jProgressBar3 = new javax.swing.JProgressBar();
-        jProgressBar4 = new javax.swing.JProgressBar();
-        jSeparator1 = new javax.swing.JSeparator();
-        jLabel4 = new javax.swing.JLabel();
+        jPanelDownloading = new javax.swing.JPanel();
+        jLabelDownloading = new javax.swing.JLabel();
+        jLabelDownloading.setHorizontalTextPosition(JLabel.LEFT);
+        jProgressBarDownloading = new javax.swing.JProgressBar();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextAreaDownloading = new javax.swing.JTextArea();
         DefaultCaret caret = (DefaultCaret)jTextAreaDownloading.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+        jPanelCopying = new javax.swing.JPanel();
+        jLabelCopying = new javax.swing.JLabel();
+        jLabelCopying.setHorizontalTextPosition(JLabel.LEFT);
+        jProgressBarCopying = new javax.swing.JProgressBar();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTextAreaCopying = new javax.swing.JTextArea();
-        jLabel5 = new javax.swing.JLabel();
-        jProgressBar5 = new javax.swing.JProgressBar();
+        DefaultCaret caret1 = (DefaultCaret)jTextAreaCopying.getCaret();
+        caret1.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+        jPanelInstalling = new javax.swing.JPanel();
+        jLabelInstalling = new javax.swing.JLabel();
+        jLabelInstalling.setHorizontalTextPosition(JLabel.LEFT);
+        jProgressBarInstalling = new javax.swing.JProgressBar();
+        jPanel1 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
-        jTextFieldPasswd = new javax.swing.JTextField();
+        jPasswordField1 = new javax.swing.JPasswordField();
         jButton1 = new javax.swing.JButton();
         jLabel7 = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTextAreaInstalling = new javax.swing.JTextArea();
+        jPanelPreparing = new javax.swing.JPanel();
+        jLabelPreparing = new javax.swing.JLabel();
+        jLabelPreparing.setHorizontalTextPosition(JLabel.LEFT);
+        jProgressBarPreparing = new javax.swing.JProgressBar();
         jScrollPane4 = new javax.swing.JScrollPane();
-        jTextArea2 = new javax.swing.JTextArea();
+        jTextAreaPreparing = new javax.swing.JTextArea();
+        jPanelBottom = new javax.swing.JPanel();
+        jLabelTotalProgress = new javax.swing.JLabel();
+        jProgressBarTotal = new javax.swing.JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("BibleGet installation");
         setAlwaysOnTop(true);
-        setMinimumSize(new java.awt.Dimension(700, 500));
-        setPreferredSize(new java.awt.Dimension(700, 500));
+        setMaximumSize(new java.awt.Dimension(700, 700));
+        setMinimumSize(new java.awt.Dimension(700, 700));
+        setPreferredSize(new java.awt.Dimension(700, 700));
+        getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.PAGE_AXIS));
 
-        jProgressBar1.setStringPainted(true);
+        jPanelIntro.setPreferredSize(new java.awt.Dimension(675, 50));
 
         jTextArea1.setEditable(false);
         jTextArea1.setColumns(20);
@@ -138,30 +162,34 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
         jTextArea1.setText("In order to function correctly, the BibleGet add-on for OpenOffice requires some additional components.\nPlease wait patiently while the setup process completes.");
         jTextArea1.setWrapStyleWord(true);
         jTextArea1.setOpaque(false);
+        jTextArea1.setPreferredSize(new java.awt.Dimension(675, 30));
 
-        jLabel1.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
-        jLabel1.setIcon(loadingIco);
-        jLabel1.setText("1. Downloading JCEF component...");
-        jLabel1.setPreferredSize(new java.awt.Dimension(347, 24));
+        javax.swing.GroupLayout jPanelIntroLayout = new javax.swing.GroupLayout(jPanelIntro);
+        jPanelIntro.setLayout(jPanelIntroLayout);
+        jPanelIntroLayout.setHorizontalGroup(
+            jPanelIntroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelIntroLayout.createSequentialGroup()
+                .addComponent(jTextArea1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 1329, Short.MAX_VALUE))
+        );
+        jPanelIntroLayout.setVerticalGroup(
+            jPanelIntroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jTextArea1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
 
-        jLabel2.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
-        jLabel2.setIcon(loadingIco);
-        jLabel2.setText("3. Installing system dependencies...");
-        jLabel2.setPreferredSize(new java.awt.Dimension(290, 24));
+        getContentPane().add(jPanelIntro);
 
-        jLabel3.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
-        jLabel3.setIcon(loadingIco);
-        jLabel3.setText("4. Preparing environment...");
-        jLabel3.setPreferredSize(new java.awt.Dimension(289, 24));
+        jPanelDownloading.setPreferredSize(new java.awt.Dimension(675, 140));
 
-        jProgressBar2.setStringPainted(true);
+        jLabelDownloading.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        jLabelDownloading.setIcon(loadingIco);
+        jLabelDownloading.setText("1. Downloading JCEF component...");
+        jLabelDownloading.setMaximumSize(new java.awt.Dimension(450, 22));
+        jLabelDownloading.setPreferredSize(new java.awt.Dimension(450, 24));
 
-        jProgressBar3.setStringPainted(true);
-
-        jProgressBar4.setStringPainted(true);
-
-        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel4.setText("Total progress");
+        jProgressBarDownloading.setMaximumSize(new java.awt.Dimension(675, 20));
+        jProgressBarDownloading.setPreferredSize(new java.awt.Dimension(675, 20));
+        jProgressBarDownloading.setStringPainted(true);
 
         jTextAreaDownloading.setEditable(false);
         jTextAreaDownloading.setColumns(20);
@@ -172,6 +200,42 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
         jTextAreaDownloading.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         jScrollPane1.setViewportView(jTextAreaDownloading);
 
+        javax.swing.GroupLayout jPanelDownloadingLayout = new javax.swing.GroupLayout(jPanelDownloading);
+        jPanelDownloading.setLayout(jPanelDownloadingLayout);
+        jPanelDownloadingLayout.setHorizontalGroup(
+            jPanelDownloadingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelDownloadingLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelDownloadingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane1)
+                    .addComponent(jLabelDownloading, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jProgressBarDownloading, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(1317, Short.MAX_VALUE))
+        );
+        jPanelDownloadingLayout.setVerticalGroup(
+            jPanelDownloadingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelDownloadingLayout.createSequentialGroup()
+                .addComponent(jLabelDownloading, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jProgressBarDownloading, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        getContentPane().add(jPanelDownloading);
+
+        jPanelCopying.setPreferredSize(new java.awt.Dimension(675, 140));
+
+        jLabelCopying.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        jLabelCopying.setIcon(loadingIco);
+        jLabelCopying.setText("2. Copying JCEF component files...");
+        jLabelCopying.setMaximumSize(new java.awt.Dimension(450, 22));
+        jLabelCopying.setPreferredSize(new java.awt.Dimension(450, 22));
+
+        jProgressBarCopying.setPreferredSize(new java.awt.Dimension(675, 20));
+        jProgressBarCopying.setStringPainted(true);
+
         jTextAreaCopying.setEditable(false);
         jTextAreaCopying.setColumns(20);
         jTextAreaCopying.setFont(new java.awt.Font("Dialog", 0, 10)); // NOI18N
@@ -179,16 +243,50 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
         jTextAreaCopying.setRows(5);
         jScrollPane2.setViewportView(jTextAreaCopying);
 
-        jLabel5.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
-        jLabel5.setText("2. Copying JCEF component files...");
+        javax.swing.GroupLayout jPanelCopyingLayout = new javax.swing.GroupLayout(jPanelCopying);
+        jPanelCopying.setLayout(jPanelCopyingLayout);
+        jPanelCopyingLayout.setHorizontalGroup(
+            jPanelCopyingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelCopyingLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelCopyingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jProgressBarCopying, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2)
+                    .addComponent(jLabelCopying, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(1317, Short.MAX_VALUE))
+        );
+        jPanelCopyingLayout.setVerticalGroup(
+            jPanelCopyingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelCopyingLayout.createSequentialGroup()
+                .addComponent(jLabelCopying, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jProgressBarCopying, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 72, Short.MAX_VALUE))
+        );
 
-        jProgressBar5.setStringPainted(true);
+        getContentPane().add(jPanelCopying);
 
-        jLabel6.setLabelFor(jTextFieldPasswd);
+        jPanelInstalling.setPreferredSize(new java.awt.Dimension(675, 190));
+
+        jLabelInstalling.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        jLabelInstalling.setIcon(loadingIco);
+        jLabelInstalling.setText("3. Installing system dependencies...");
+        jLabelInstalling.setMaximumSize(new java.awt.Dimension(450, 22));
+        jLabelInstalling.setMinimumSize(new java.awt.Dimension(450, 22));
+        jLabelInstalling.setPreferredSize(new java.awt.Dimension(450, 24));
+
+        jProgressBarInstalling.setMaximumSize(new java.awt.Dimension(675, 20));
+        jProgressBarInstalling.setPreferredSize(new java.awt.Dimension(675, 20));
+        jProgressBarInstalling.setStringPainted(true);
+
+        jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
         jLabel6.setText("System password:");
+        jPanel1.add(jLabel6);
 
-        jTextFieldPasswd.setFont(new java.awt.Font("Dialog", 0, 14)); // NOI18N
-        jTextFieldPasswd.setText("jTextField1");
+        jPasswordField1.setText("jPasswordField1");
+        jPanel1.add(jPasswordField1);
 
         jButton1.setText("OK");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -196,123 +294,142 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                 jButton1ActionPerformed(evt);
             }
         });
+        jPanel1.add(jButton1);
 
+        jLabel7.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
         jLabel7.setForeground(new java.awt.Color(153, 0, 0));
+        jLabel7.setMaximumSize(new java.awt.Dimension(20, 20));
+        jLabel7.setMinimumSize(new java.awt.Dimension(20, 20));
+        jLabel7.setPreferredSize(new java.awt.Dimension(350, 20));
+        jPanel1.add(jLabel7);
 
         jTextAreaInstalling.setEditable(false);
         jTextAreaInstalling.setColumns(20);
         jTextAreaInstalling.setFont(new java.awt.Font("Dialog", 0, 10)); // NOI18N
         jTextAreaInstalling.setForeground(new java.awt.Color(0, 102, 0));
         jTextAreaInstalling.setRows(5);
+        jTextAreaInstalling.setPreferredSize(new java.awt.Dimension(675, 65));
         jScrollPane3.setViewportView(jTextAreaInstalling);
 
-        jTextArea2.setEditable(false);
-        jTextArea2.setColumns(20);
-        jTextArea2.setFont(new java.awt.Font("Dialog", 0, 10)); // NOI18N
-        jTextArea2.setForeground(new java.awt.Color(0, 102, 0));
-        jTextArea2.setRows(5);
-        jScrollPane4.setViewportView(jTextArea2);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+        javax.swing.GroupLayout jPanelInstallingLayout = new javax.swing.GroupLayout(jPanelInstalling);
+        jPanelInstalling.setLayout(jPanelInstallingLayout);
+        jPanelInstallingLayout.setHorizontalGroup(
+            jPanelInstallingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelInstallingLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGroup(layout.createSequentialGroup()
-                                    .addGap(12, 12, 12)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                        .addGroup(layout.createSequentialGroup()
-                                            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                            .addComponent(jTextFieldPasswd, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                            .addComponent(jButton1)
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                            .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 247, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addComponent(jProgressBar2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 667, Short.MAX_VALUE)
-                                        .addComponent(jProgressBar3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jScrollPane4)))
-                                .addComponent(jTextArea1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addContainerGap())
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(12, 12, 12)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 667, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 667, Short.MAX_VALUE)))
-                            .addContainerGap()))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(12, 12, 12)
-                                .addComponent(jProgressBar5, javax.swing.GroupLayout.PREFERRED_SIZE, 667, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addComponent(jProgressBar4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 679, Short.MAX_VALUE)
-                                .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.LEADING)))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addGroup(jPanelInstallingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jProgressBarInstalling, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabelInstalling, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3))
+                .addGap(1317, 1317, 1317))
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+        jPanelInstallingLayout.setVerticalGroup(
+            jPanelInstallingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelInstallingLayout.createSequentialGroup()
+                .addComponent(jLabelInstalling, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jProgressBarInstalling, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+
+        getContentPane().add(jPanelInstalling);
+
+        jPanelPreparing.setPreferredSize(new java.awt.Dimension(675, 150));
+
+        jLabelPreparing.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        jLabelPreparing.setIcon(loadingIco);
+        jLabelPreparing.setText("4. Preparing environment...");
+        jLabelPreparing.setMaximumSize(new java.awt.Dimension(450, 22));
+        jLabelPreparing.setMinimumSize(new java.awt.Dimension(450, 22));
+        jLabelPreparing.setPreferredSize(new java.awt.Dimension(450, 24));
+
+        jProgressBarPreparing.setPreferredSize(new java.awt.Dimension(675, 20));
+        jProgressBarPreparing.setStringPainted(true);
+
+        jTextAreaPreparing.setEditable(false);
+        jTextAreaPreparing.setColumns(20);
+        jTextAreaPreparing.setFont(new java.awt.Font("Dialog", 0, 10)); // NOI18N
+        jTextAreaPreparing.setForeground(new java.awt.Color(0, 102, 0));
+        jTextAreaPreparing.setRows(5);
+        jTextAreaPreparing.setPreferredSize(new java.awt.Dimension(675, 65));
+        jScrollPane4.setViewportView(jTextAreaPreparing);
+
+        javax.swing.GroupLayout jPanelPreparingLayout = new javax.swing.GroupLayout(jPanelPreparing);
+        jPanelPreparing.setLayout(jPanelPreparingLayout);
+        jPanelPreparingLayout.setHorizontalGroup(
+            jPanelPreparingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelPreparingLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTextArea1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jProgressBar5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jProgressBar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextFieldPasswd, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel6)
-                    .addComponent(jButton1)
-                    .addComponent(jLabel7))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jProgressBar3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 71, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jProgressBar4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanelPreparingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabelPreparing, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanelPreparingLayout.createSequentialGroup()
+                        .addGroup(jPanelPreparingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jProgressBarPreparing, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jScrollPane4))
+                        .addGap(0, 1305, Short.MAX_VALUE)))
                 .addContainerGap())
         );
+        jPanelPreparingLayout.setVerticalGroup(
+            jPanelPreparingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelPreparingLayout.createSequentialGroup()
+                .addComponent(jLabelPreparing, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jProgressBarPreparing, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        getContentPane().add(jPanelPreparing);
+
+        jPanelBottom.setPreferredSize(new java.awt.Dimension(675, 50));
+
+        jLabelTotalProgress.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabelTotalProgress.setText("Total progress");
+        jLabelTotalProgress.setPreferredSize(new java.awt.Dimension(148, 15));
+
+        jProgressBarTotal.setStringPainted(true);
+
+        javax.swing.GroupLayout jPanelBottomLayout = new javax.swing.GroupLayout(jPanelBottom);
+        jPanelBottom.setLayout(jPanelBottomLayout);
+        jPanelBottomLayout.setHorizontalGroup(
+            jPanelBottomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelBottomLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelBottomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabelTotalProgress, javax.swing.GroupLayout.DEFAULT_SIZE, 671, Short.MAX_VALUE)
+                    .addComponent(jProgressBarTotal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(1321, Short.MAX_VALUE))
+        );
+        jPanelBottomLayout.setVerticalGroup(
+            jPanelBottomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelBottomLayout.createSequentialGroup()
+                .addComponent(jLabelTotalProgress, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jProgressBarTotal, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        getContentPane().add(jPanelBottom);
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+        passwd = jPasswordField1.getPassword();
+        jPasswordField1.setText("***************");
+        if( passwd != null && passwd.length > 0 ){
+            jLabel7.setText("");
+            Task_Force tf = new Task_Force(jProgressBars,"INSTALLDEPENDENCIES");
+            tf.execute();
+        } else {
+            jLabel7.setText("Password is empty, cannot continue. Please type password, or run shell script.");
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
@@ -345,36 +462,56 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                try {
-                    new BibleGetFirstInstallFrame().setVisible(true);
-                } catch (IOException ex) {
-                    Logger.getLogger(BibleGetFirstInstallFrame.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                new BibleGetFirstInstallFrame().setVisible(true);
             }
         });
     }
     
     private class Task_Force extends SwingWorker<Void, Integer> {
-        JProgressBar jProgressBar1;
-        JProgressBar jProgressBar2;
-        JProgressBar jProgressBar3;
-        JProgressBar jProgressBar4;
-        
+        JProgressBar jProgressBarDownloading;
+        JProgressBar jProgressBarCopying;
+        JProgressBar jProgressBarInstalling;
+        JProgressBar jProgressBarPreparing;
+        JProgressBar jProgressBarTotal;
+        ArrayList<JProgressBar> jProgressBars;
         String currentTask;
         
         public Task_Force(ArrayList<JProgressBar> jpbs,String task){
-            this.jProgressBar1 = jpbs.get(0);
-            this.jProgressBar2 = jpbs.get(1);
-            this.jProgressBar3 = jpbs.get(2);
-            this.jProgressBar4 = jpbs.get(3);
+            this.jProgressBarDownloading = jpbs.get(0);
+            this.jProgressBarCopying = jpbs.get(1);
+            this.jProgressBarInstalling = jpbs.get(2);
+            this.jProgressBarPreparing = jpbs.get(3);
+            this.jProgressBarTotal = jpbs.get(4);
+            this.jProgressBars = jpbs;
             this.currentTask = task;
         }
 
         @Override
         protected void process(List<Integer> chunks) {
             int i = chunks.get(chunks.size()-1);
-            jProgressBar1.setValue(i); // The last value in this array is all we care about.
-            jProgressBar4.setValue(Math.round(i/4));
+            Double totalProgress;
+            switch(this.currentTask){
+                case "DOWNLOADJCEF":
+                    this.jProgressBarDownloading.setValue(i); // The last value in this array is all we care about.
+                    totalProgress = Double.valueOf(i) / Double.valueOf(4);
+                    this.jProgressBarTotal.setValue((int) Math.round(totalProgress));
+                    break;
+                case "COPYJCEF":
+                    this.jProgressBarCopying.setValue(i);
+                    totalProgress = Double.valueOf(i) / Double.valueOf(4);
+                    this.jProgressBarTotal.setValue(25 + (int) Math.round(totalProgress));
+                    break;
+                case "INSTALLDEPENDENCIES":
+                    this.jProgressBarInstalling.setValue(i);
+                    totalProgress = Double.valueOf(i) / Double.valueOf(4);
+                    this.jProgressBarTotal.setValue(50 + (int) Math.round(totalProgress));
+                    break;
+                case "PREPAREENV":
+                    this.jProgressBarPreparing.setValue(i);
+                    totalProgress = Double.valueOf(i) / Double.valueOf(4);
+                    this.jProgressBarTotal.setValue(75 + (int) Math.round(totalProgress));
+                    break;
+            }
             //System.out.println(i);            
         }
         
@@ -423,14 +560,14 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                                     break;
                             }
                         }
-                        System.out.println("download URL was detected as " + downloadURL.toString());
+                        //System.out.println("download URL was detected as " + downloadURL.toString());
 
                         HttpsURLConnection con;
-                        con = (HttpsURLConnection) downloadURL.openConnection();            
+                        con = (HttpsURLConnection) downloadURL.openConnection();
+                        con.setConnectTimeout(1000);
                          // optional default is GET
                         con.setRequestMethod("GET");
                         con.setRequestProperty("Accept", "application/octet-stream");
-
 
                         //System.out.println("Sending 'GET' request to URL : " + url);
                         //System.out.println("Response Code : " + con.getResponseCode());
@@ -507,18 +644,23 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                                 }
                                 System.out.println("total entries = " + totalEntries);
                                 jTextAreaDownloading.append("Download of JCEF component and unzipping complete!");
-                                BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFDOWNLOADED;
                             }
                         }
                         con.disconnect();
-                        jLabel1.setIcon(checkmarkIco);
+                        BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFDOWNLOADED;
+                        System.out.println("ADDONSTATE changed to JCEFDOWNLOADED");
+                        jLabelDownloading.setIcon(checkmarkIco);
                     } catch (IOException ex) {
-                        jLabel1.setIcon(xmarkIco);
+                        jLabelDownloading.setIcon(xmarkIco);
                         Logger.getLogger(BibleGetFirstInstallFrame.class.getName()).log(Level.SEVERE, null, ex);
+                        //Task_Force tf = new Task_Force(jProgressBars,"DOWNLOADJCEF");
+                        //tf.execute();
                     }
                     break;
                 case "COPYJCEF":
-                    
+                    int totalFilesToCopy = 69;
+                    int currentTotalCopied = 0;
+                    Double progress;
                     String[] JCEFfiles = null;
                     String[] JCEFswiftshaderFiles = null;
                     if(SystemUtils.IS_OS_WINDOWS){
@@ -593,6 +735,7 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                         if(Files.notExists(JCEFpath)){
                             File jcefDirectory = new File(nativelibrarypath);
                             jcefDirectory.mkdirs();
+                            jTextAreaCopying.append("Creating directory " + JCEFpath.toString() + "...\n");
                         }
 
                         String tempDir = System.getProperty("java.io.tmpdir");
@@ -610,7 +753,16 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                                     //TODO: move this to BibleGetFirstInstallFrame.java
                                     if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFDOWNLOADED){
                                         Files.copy(tempFilePath,filePath);
+                                        currentTotalCopied++;
+                                        jTextAreaCopying.append("Copying " + fileName + " (" + currentTotalCopied + " of " + totalFilesToCopy + ")\n");
+                                        progress = (Double.valueOf(currentTotalCopied) / Double.valueOf(totalFilesToCopy)) * Double.valueOf(100);
+                                        publish((int) Math.round(progress));
                                     }
+                                } else {
+                                    currentTotalCopied++;
+                                    jTextAreaCopying.append("File already existed: " + fileName + " (" + currentTotalCopied + " of " + totalFilesToCopy + ")\n");
+                                    progress = (Double.valueOf(currentTotalCopied) / Double.valueOf(totalFilesToCopy)) * Double.valueOf(100);
+                                    publish((int) Math.round(progress));                                    
                                 }
                             }
                         } else {
@@ -623,6 +775,7 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                         if(Files.notExists(JCEFlocalespath) ){
                             File jcefLocalesDir = new File(nativelibrarypath, "locales");
                             jcefLocalesDir.mkdir();
+                            jTextAreaCopying.append("Creating directory " + JCEFlocalespath.toString() + "...\n");
                         }
 
                         //Define the files that should be in the 'locales' subfolder
@@ -695,7 +848,16 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                                 //TODO: move this to BibleGetFirstInstallFrame.java
                                 if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFDOWNLOADED){
                                     Files.copy(tempFilePath,filePath);
+                                    currentTotalCopied++;
+                                    jTextAreaCopying.append("Copying " + fileName + " (" + currentTotalCopied + " of " + totalFilesToCopy + ")\n");
+                                    progress = (Double.valueOf(currentTotalCopied) / Double.valueOf(totalFilesToCopy)) * Double.valueOf(100);
+                                    publish((int) Math.round(progress));
                                 }
+                            } else {
+                                currentTotalCopied++;
+                                jTextAreaCopying.append("File already existed: " + fileName + " (" + currentTotalCopied + " of " + totalFilesToCopy + ")\n");
+                                progress = (Double.valueOf(currentTotalCopied) / Double.valueOf(totalFilesToCopy)) * Double.valueOf(100);
+                                publish((int) Math.round(progress));                                    
                             }
                         }
 
@@ -705,6 +867,7 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                         if(Files.notExists(JCEFswshaderpath) ){
                             File jcefSwShaderDir = new File(nativelibrarypath, "swiftshader");
                             jcefSwShaderDir.mkdir();
+                            jTextAreaCopying.append("Creating directory " + JCEFswshaderpath.toString() + "...\n");
                         }
 
                         //check if the necessary files exist in the 'swiftshader subfolder
@@ -721,7 +884,16 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                                     //TODO: move this to BibleGetFirstInstallFrame.java
                                     if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFDOWNLOADED){
                                         Files.copy(tempFilePath,filePath);
+                                        currentTotalCopied++;
+                                        jTextAreaCopying.append("Copying " + fileName + " (" + currentTotalCopied + " of " + totalFilesToCopy + ")\n");
+                                        progress = (Double.valueOf(currentTotalCopied) / Double.valueOf(totalFilesToCopy)) * Double.valueOf(100);
+                                        publish((int) Math.round(progress));
                                     }
+                                } else {
+                                    currentTotalCopied++;
+                                    jTextAreaCopying.append("File already existed: " + fileName + " (" + currentTotalCopied + " of " + totalFilesToCopy + ")\n");
+                                    progress = (Double.valueOf(currentTotalCopied) / Double.valueOf(totalFilesToCopy)) * Double.valueOf(100);
+                                    publish((int) Math.round(progress));                                    
                                 }
                             }
                         } else {
@@ -741,20 +913,102 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                         }
 
                     }
-
-        
                     
+                    if (SystemUtils.IS_OS_LINUX) {
+                        System.out.println("Now copying shell script from jar to disk...");
+                        InputStream firstInstall = getClass().getResourceAsStream("/io/bibleget/firstrun.txt");
+                        Path outFile = Paths.get(System.getProperty("user.home"),".BibleGetOpenOfficePlugin","firstinstall.sh");
+                        FileWriter writer = new FileWriter(outFile.toFile());
+                        BufferedWriter bf = new BufferedWriter(writer);
+                        bf.write("apt-get update && apt-get install -qq gconf-service libasound2 libatk1.0-0 libatk-bridge2.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgbm-dev libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxcursor-dev libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils");
+                        bf.newLine();
+                        bf.write("cp /usr/lib/x86_64-linux-gnu/libnss3.so /opt/openoffice4/program/libnss3.so");
+                        bf.newLine();
+                        bf.write("cp /usr/lib/x86_64-linux-gnu/libnssutil3.so /opt/openoffice4/program/libnssutil3.so");
+                        bf.newLine();
+                        bf.write("echo \"export LD_LIBRARY_PATH=~/.BibleGetOpenOfficePlugin/JCEF\" | sudo -u %s tee -a ~/.bashrc");
+                        bf.newLine();
+                        bf.write("echo \"export LD_PRELOAD=libcef.so\" | sudo -u %s tee -a ~/.bashrc");
+                        
+                        if(Files.exists(outFile)){
+                            String systemUser = System.getProperty("user.name");
+                        } else {
+                            System.out.println("Houston we have a problem. firstrun.txt was not copied to disk.");
+                        }
+                        
+                    }
                     
-                    Path tempFilePath = Paths.get(System.getProperty("java.io.tmpdir"), "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", BibleGetIO.ziplibrarypath);
-                    ProcessBuilder builder = new ProcessBuilder();
-                    builder.directory(tempFilePath.toFile());
-                    builder.command("/bin/bash","-c","chmod +x jcef_helper; chmod +x chrome-sandbox;");
-                    Process process;
+                    builder.directory(Paths.get(nativelibrarypath).toFile());
+                    builder.command("/bin/bash","-c","chmod +x jcef_helper; chmod +x chrome-sandbox; chmod +x ../firstinstall.sh");
                     process = builder.start();
-                    BibleGetIO.StreamGobbler streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), System.out::println);
+                    streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), System.out::println);
                     Executors.newSingleThreadExecutor().submit(streamGobbler);
                     int exitCode = process.waitFor();
-                    System.out.println(exitCode == 0 ? "process was successful" : "process was not successful");
+                    if(exitCode == 0){
+                        jTextAreaCopying.append("Making jcef_helper and chrome-sandbox files executable: SUCCESS!");
+                        BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFCOPIED;
+                        jLabelCopying.setIcon(checkmarkIco);
+                    } else {
+                        jTextAreaCopying.append("Making jcef_helper and chrome-sandbox files executable: ERROR");
+                        //maybe but just maybe they exist and are already executable? let's check
+                        if(Files.exists(Paths.get(nativelibrarypath,"jcef_helper")) && Files.exists(Paths.get(nativelibrarypath,"chrome-sandbox"))){
+                            if(Files.isExecutable(Paths.get(nativelibrarypath,"jcef_helper")) && Files.isExecutable(Paths.get(nativelibrarypath,"chrome-sandbox")) ){
+                                jTextAreaCopying.append("Making jcef_helper and chrome-sandbox files executable: SUCCESS!");
+                                BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFCOPIED;
+                                jLabelCopying.setIcon(checkmarkIco);                                
+                            }
+                        }
+                        jLabelCopying.setIcon(xmarkIco);
+                    }
+                    
+                    //System.out.println(exitCode == 0 ? "process was successful" : "process was not successful");
+                    
+                    break;
+                case "INSTALLDEPENDENCIES":
+                    publish(25);
+                    builder.command("/bin/bash","-c","echo " + new String(passwd) + "| sudo -S apt-get update && sudo -S apt-get install -qq gconf-service libasound2 libatk1.0-0 libatk-bridge2.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgbm-dev libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxcursor-dev libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils");
+                    process = builder.start();
+                    streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), jTextAreaInstalling::append);
+                    Executors.newSingleThreadExecutor().submit(streamGobbler);
+                    int exitCode1 = process.waitFor();
+                    if(exitCode1 == 0){
+                        publish(75);
+                        jTextAreaInstalling.append("Packages installed: SUCCESS!\n");
+                        builder.command("/bin/bash","-c","echo " + new String(passwd) + "| sudo -S cp /usr/lib/x86_64-linux-gnu/libnss3.so /opt/openoffice4/program/libnss3.so && sudo -S cp /usr/lib/x86_64-linux-gnu/libnssutil3.so /opt/openoffice4/program/libnssutil3.so");
+                        process = builder.start();
+                        Executors.newSingleThreadExecutor().submit(streamGobbler);
+                        int exitCode2 = process.waitFor();
+                        if(exitCode2 == 0){
+                            publish(100);
+                            jTextAreaInstalling.append("libnss3.so and libnssutil3.so copied successfully to /opt/openoffice4/program\n");
+                            jLabelInstalling.setIcon(checkmarkIco);
+                            BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFDEPENDENCIES;
+                        } else {
+                            jLabelInstalling.setIcon(xmarkIco);
+                        }
+                    } else {
+                        jTextAreaInstalling.append("Packages installed: ERROR\n");
+                        jLabelInstalling.setIcon(xmarkIco);
+                    }
+                    passwd = null;
+                    break;
+                case "PREPAREENV":
+                    publish(50);
+                    builder.directory(Paths.get(System.getProperty("user.home")).toFile());
+                    builder.command("/bin/bash","-c","echo \"export LD_LIBRARY_PATH=~/.BibleGetOpenOfficePlugin/JCEF\" >> .bashrc; echo \"export LD_PRELOAD=libcef.so\" >> .bashrc;");
+                    process = builder.start();
+                    streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), System.out::println);
+                    Executors.newSingleThreadExecutor().submit(streamGobbler);
+                    int exitCode3 = process.waitFor();
+                    if(exitCode3 == 0){
+                        publish(100);
+                        jTextAreaPreparing.append("Environment variables LD_LIBRARY_PATH and LD_PRELOAD have been set in user bash profile \n");
+                        jLabelPreparing.setIcon(checkmarkIco);
+                        BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFENVREADY;
+                    } else {
+                        jLabelPreparing.setIcon(xmarkIco);
+                    }
+                    
                     break;
             }
             return null;
@@ -762,35 +1016,79 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
         
         @Override
         protected void done(){
-            System.out.println("Background worker has finished");
+            System.out.println("Background worker has finished task " + this.currentTask);
+            Task_Force tf;
+            switch(this.currentTask){
+                case "DOWNLOADJCEF":
+                    if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFDOWNLOADED){
+                        System.out.println("Seeing that ADDONSTATE changed successfully to JCEFDOWNLOADED, we can continue with the COPYJCEF task");
+                        tf = new Task_Force(jProgressBars,"COPYJCEF");
+                        tf.execute();
+                    } else {
+                        System.out.println("ADDON is not in a state to continue with the next task. We expected to find JCEFDOWNLOADED state, instead we have " + BibleGetIO.ADDONSTATE.name());
+                    }
+                    break;
+                case "COPYJCEF":
+                    if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFCOPIED){
+                        System.out.println("Seeing that ADDONSTATE changed successfully to JCEFCOPIED, we can continue with the INSTALLDEPENDENCIES task");
+                        jTextAreaInstalling.append("Some system dependencies need to be installed. This requires your system password.\n");
+                        jTextAreaInstalling.append("You can type your password here for an automatic installation,\n");
+                        jTextAreaInstalling.append("or if you prefer you can manually run the script at " + System.getProperty("user.home") + "/.BibleGetOpenOfficePlugin/firstinstall.sh\n");
+                        jLabel7.setText("Please type system password to install system dependencies.");
+                    } else {
+                        System.out.println("ADDON is not in a state to continue with the next task. We expected to find JCEFCOPIED state, instead we have " + BibleGetIO.ADDONSTATE.name());
+                    }
+                    break;
+                case "INSTALLDEPENDENCIES":
+                    if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFDEPENDENCIES){
+                        System.out.println("Seeing that ADDONSTATE changed successfully to JCEFDEPENDENCIES, we can continue with the PREPAREENV task");
+                        tf = new Task_Force(jProgressBars,"PREPAREENV");
+                        tf.execute();
+                    } else {
+                        System.out.println("ADDON is not in a state to continue with the next task. We expected to find JCEFDEPENDENCIES state, instead we have " + BibleGetIO.ADDONSTATE.name());
+                    }
+                    break;
+                case "PREPAREENV":
+                    if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFENVREADY){
+                        //what should we do to celebrate?
+                        jTextAreaPreparing.append("Installation is complete. Please restart OpenOffice to enjoy full functionality.");
+                    }
+                    break;
+            }
         }
     }
 
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JProgressBar jProgressBar1;
-    private javax.swing.JProgressBar jProgressBar2;
-    private javax.swing.JProgressBar jProgressBar3;
-    private javax.swing.JProgressBar jProgressBar4;
-    private javax.swing.JProgressBar jProgressBar5;
+    private javax.swing.JLabel jLabelCopying;
+    private javax.swing.JLabel jLabelDownloading;
+    private javax.swing.JLabel jLabelInstalling;
+    private javax.swing.JLabel jLabelPreparing;
+    private javax.swing.JLabel jLabelTotalProgress;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanelBottom;
+    private javax.swing.JPanel jPanelCopying;
+    private javax.swing.JPanel jPanelDownloading;
+    private javax.swing.JPanel jPanelInstalling;
+    private javax.swing.JPanel jPanelIntro;
+    private javax.swing.JPanel jPanelPreparing;
+    private javax.swing.JPasswordField jPasswordField1;
+    private javax.swing.JProgressBar jProgressBarCopying;
+    private javax.swing.JProgressBar jProgressBarDownloading;
+    private javax.swing.JProgressBar jProgressBarInstalling;
+    private javax.swing.JProgressBar jProgressBarPreparing;
+    private javax.swing.JProgressBar jProgressBarTotal;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextArea jTextArea2;
     private javax.swing.JTextArea jTextAreaCopying;
     private javax.swing.JTextArea jTextAreaDownloading;
     private javax.swing.JTextArea jTextAreaInstalling;
-    private javax.swing.JTextField jTextFieldPasswd;
+    private javax.swing.JTextArea jTextAreaPreparing;
     // End of variables declaration//GEN-END:variables
 }

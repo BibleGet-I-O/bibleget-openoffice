@@ -21,7 +21,6 @@ import java.awt.Desktop;
 import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -35,21 +34,16 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import org.apache.commons.lang3.SystemUtils;
 import org.cef.CefApp;
 import org.cef.CefApp.CefAppState;
@@ -101,7 +95,7 @@ public final class BibleGetIO extends WeakBase
     private static CefApp cefApp;
     public static CefClient client;
     public static boolean FIRSTINSTALL = true; //true until proved false
-    public static BGET.ADDONSTATE ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED; //uninitialized until proved otherwise
+    public static BGET.ADDONSTATE ADDONSTATE = BGET.ADDONSTATE.JCEFDOWNLOADED; //uninitialized until proved otherwise
     public static String nativelibrarypath = "";
     public static String ziplibrarypath = "";
     
@@ -622,14 +616,6 @@ public final class BibleGetIO extends WeakBase
                     });
                     */
                     
-                    //if this is the first installation, we need to make sure the environment can handle JCEF
-                    /*URL resource = getClass().getResource("/io/bibleget/firstrun.txt");
-                    if (resource != null && OS.isLinux()) {
-                        BibleGetIO.FIRSTINSTALL = true;
-                        runFirstInstall();
-                    }*/
-                    
-                    
                     if(BibleGetIO.FIRSTINSTALL == false && CefApp.startup(new String[]{"--disable-gpu"})){
                         if (CefApp.getState() != CefApp.CefAppState.INITIALIZED) {
                             System.out.println("Creating CefSettings...");
@@ -1132,39 +1118,6 @@ public final class BibleGetIO extends WeakBase
         public void run() {
             new BufferedReader(new InputStreamReader(inputStream)).lines()
               .forEach(consumer);
-        }
-    }
-    
-    private void runFirstInstall() throws IOException, InterruptedException{
-        InputStream firstRun = getClass().getResourceAsStream("/io/bibleget/firstrun.txt");
-        String userHome = System.getProperty("user.home");
-        String firstInstallScript = userHome + "/.BibleGetOpenOfficePlugin/firstinstall.sh";
-        Files.createDirectories( Paths.get(firstInstallScript).getParent() );
-        Files.copy(firstRun, Paths.get(firstInstallScript));
-        String systemUser = System.getProperty("user.name");
-        FileReader filereader = new FileReader(firstInstallScript);
-        BufferedReader reader = new BufferedReader(filereader);
-        String line = reader.readLine();
-        ArrayList<String> newLines = new ArrayList<>();
-        while(line != null){
-            newLines.add(String.format(line, systemUser));
-            line = reader.readLine();
-        }
-        reader.close();
-        filereader.close();
-        Files.write(Paths.get(firstInstallScript), newLines, Charset.defaultCharset());
-        
-        JFrame f = new JFrame();
-        f.setTitle("First time install of the BibleGet add-on for OpenOffice");
-        String password = JOptionPane.showInputDialog(f,"Some additional components need to be installed in order for the add-on to function properly. The installation of these components in your system requires your user password. If instead you would like to run the installer yourself, navigate in the Terminal to the following path: ~/.BibleGetOpenOfficePlugin/ , make the firstinstall.sh script executable and run it. Otherwise input your system password here (it will not be saved in any way, it will be discarded as soon as the installtion is complete):");
-        if(null != password && "".equals(password) == false){
-            ProcessBuilder builder = new ProcessBuilder();
-            builder.command("/bin/bash","-c","chmod +x ~/.BibleGetOpenOfficePlugin/firstinstall.sh; echo \"" + password + "\"| sudo -S ~/.BibleGetOpenOfficePlugin/firstinstall.sh");
-            Process process = builder.start();
-            StreamGobbler streamGobbler = new StreamGobbler(process.getInputStream(), System.out::println);
-            Executors.newSingleThreadExecutor().submit(streamGobbler);
-            int exitCode = process.waitFor();
-            System.out.println(exitCode == 0 ? "process was successful" : "process was not successful");
         }
     }
     

@@ -378,12 +378,8 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
                 });
             }
         } else {
-            try {
-                JFrame firstInstallFrame = new BibleGetFirstInstallFrame();
-                firstInstallFrame.setVisible(true);
-            } catch (IOException ex) {
-                Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            JFrame firstInstallFrame = new BibleGetFirstInstallFrame();
+            firstInstallFrame.setVisible(true);
         }
         
     }    
