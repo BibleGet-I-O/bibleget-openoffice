@@ -19,11 +19,9 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.view.XViewSettingsSupplier;
 import java.awt.Desktop;
 import java.awt.GraphicsEnvironment;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -37,19 +35,21 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import javax.net.ssl.HttpsURLConnection;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import org.apache.commons.lang3.SystemUtils;
 import org.cef.CefApp;
 import org.cef.CefApp.CefAppState;
@@ -69,7 +69,7 @@ public final class BibleGetIO extends WeakBase
               com.sun.star.lang.XInitialization
 {
     public static final double VERSION = 2.8;
-    public static final String PLUGINVERSION = "v" + String.valueOf(BibleGetIO.VERSION).replace(".", "_") ;
+    public static final String PLUGINVERSION = "v" + String.valueOf(BibleGetIO.VERSION).replace(".", "_");
 
     private final XComponentContext m_xContext;
     private com.sun.star.frame.XFrame m_xFrame;
@@ -100,6 +100,10 @@ public final class BibleGetIO extends WeakBase
 
     private static CefApp cefApp;
     public static CefClient client;
+    public static boolean FIRSTINSTALL = true; //true until proved false
+    public static BGET.ADDONSTATE ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED; //uninitialized until proved otherwise
+    public static String nativelibrarypath = "";
+    public static String ziplibrarypath = "";
     
     private static BibleGetIO instance;
     
@@ -546,7 +550,24 @@ public final class BibleGetIO extends WeakBase
                         POINT = 6
                         PICA = 7
                     */
-                    int mUnit = (int)xNameAccess1.getByName("MeasureUnit");
+                    int mUnit = 8;
+                    if(null == xNameAccess1.getByName("MeasureUnit").getClass().getTypeName()){
+                        System.out.println("could not determine the type of the MeasureUnit for the document ruler!");
+                    } else switch (xNameAccess1.getByName("MeasureUnit").getClass().getTypeName()) {
+                        case "com.sun.star.uno.Any":
+                            System.out.println("The type of this Any = " + AnyConverter.getType(xNameAccess1.getByName("MeasureUnit")));
+                            if(AnyConverter.isInt(xNameAccess1.getByName("MeasureUnit"))){
+                                mUnit = AnyConverter.toInt(xNameAccess1.getByName("MeasureUnit"));
+                            } else if (AnyConverter.isString(xNameAccess1.getByName("MeasureUnit"))){
+                                mUnit = Integer.valueOf( AnyConverter.toString(xNameAccess1.getByName("MeasureUnit")) );
+                            }   break;
+                        case "java.lang.Integer":
+                            mUnit = (int)xNameAccess1.getByName("MeasureUnit");
+                            break;
+                        default:
+                            System.out.println("could not determine the type of the MeasureUnit for the document ruler!");
+                            break;
+                    }
                     BibleGetIO.measureUnit = BGET.MEASUREUNIT.valueOf(mUnit);
                     try {
                         XViewSettingsSupplier xViewSettings = (XViewSettingsSupplier) UnoRuntime.queryInterface(XViewSettingsSupplier.class,instance.m_xController);
@@ -600,7 +621,16 @@ public final class BibleGetIO extends WeakBase
                         System.out.println(envVar.getKey() + " = " + envVar.getValue());
                     });
                     */
-                    if(CefApp.startup(new String[]{"--disable-gpu"})){
+                    
+                    //if this is the first installation, we need to make sure the environment can handle JCEF
+                    /*URL resource = getClass().getResource("/io/bibleget/firstrun.txt");
+                    if (resource != null && OS.isLinux()) {
+                        BibleGetIO.FIRSTINSTALL = true;
+                        runFirstInstall();
+                    }*/
+                    
+                    
+                    if(BibleGetIO.FIRSTINSTALL == false && CefApp.startup(new String[]{"--disable-gpu"})){
                         if (CefApp.getState() != CefApp.CefAppState.INITIALIZED) {
                             System.out.println("Creating CefSettings...");
                             CefSettings settings = new CefSettings();
@@ -643,10 +673,69 @@ public final class BibleGetIO extends WeakBase
                         }
 
                     } else {
-                        System.out.println("Startup initialization failed!");
+                        if(BibleGetIO.FIRSTINSTALL){
+                            System.out.println("Not starting JCEF since this is the first install run.");
+                        } else{
+                            System.out.println("JCEF startup initialization failed!");
+                        }
                     }
                     BibleGetIO.biblegetDB = DBHelper.getInstance();
                     if(BibleGetIO.biblegetDB != null){ 
+                        
+                        //Check from the database if this is a fresh install. 
+                        //If it is, don't try to instantiate the JCEF component because it still needs to be installed
+                        //this will happen as soon as the user opens the Search for Verses menu item or the Preferences menu item
+                        
+                        if(BibleGetIO.FIRSTINSTALL == false && CefApp.startup(new String[]{"--disable-gpu"})){
+                            if (CefApp.getState() != CefApp.CefAppState.INITIALIZED) {
+                                System.out.println("Creating CefSettings...");
+                                CefSettings settings = new CefSettings();
+                                settings.windowless_rendering_enabled = OS.isLinux();
+                                settings.log_severity = LogSeverity.LOGSEVERITY_VERBOSE;
+                                cefApp = CefApp.getInstance(new String[]{"--disable-gpu"}, settings);
+
+                                if(cefApp != null){
+                                    System.out.println("we seem to have an instance of CefApp:");
+                                    System.out.println(cefApp.getVersion());
+
+                                    CefApp.addAppHandler(new CefAppHandlerAdapter(null) {
+                                        @Override
+                                        public void stateHasChanged(CefAppState state) {
+                                            System.out.println("CefAppState has changed : " + state.name());
+                                        }
+                                    });
+                                }
+                            } else {
+                                cefApp = CefApp.getInstance();
+                            }
+
+                            client = cefApp.createClient();
+                            if(client != null){
+                                System.out.println("we seem to have a client instance of cefApp");
+
+                                client.addLoadHandler(new CefLoadHandlerAdapter() {
+                                    @Override
+                                    public void onLoadingStateChange(CefBrowser browser, boolean isLoading,
+                                            boolean canGoBack, boolean canGoForward) {
+                                        if (!isLoading) {
+                                            //browser_ready = true;
+                                            System.out.println("Browser has finished loading!");
+                                        }
+                                    }
+                                });
+
+                                client.addContextMenuHandler(new JCEFContextMenuHandler());
+
+                            }
+
+                        } else {
+                            if(BibleGetIO.FIRSTINSTALL){
+                                System.out.println("Not starting JCEF since this is the first install run.");
+                            } else{
+                                System.out.println("JCEF startup initialization failed!");
+                            }
+                        }
+                        
                         //System.out.println("BibleGetIO main class : We have an instance of database!"); 
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.myFrame"); 
                         BibleGetIO.myFrame = BibleGetQuoteFrame.getInstance(instance.m_xController);
@@ -659,9 +748,11 @@ public final class BibleGetIO extends WeakBase
                         //System.out.println("BibleGetIO main class : Now loading BibleGetIO.myOptionFrame"); 
                         BibleGetIO.myOptionFrame = BibleGetOptionsFrame.getInstance(instance.m_xController);
                         BibleGetIO.bibleGetSearch = BibleGetSearchFrame.getInstance();
-                        CefMessageRouter msgRouter = CefMessageRouter.create();
-                        msgRouter.addHandler(BibleGetIO.bibleGetSearch.new MessageRouterHandler(), true);
-                        client.addMessageRouter(msgRouter);
+                        if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFENVREADY && null != client){
+                            CefMessageRouter msgRouter = CefMessageRouter.create();
+                            msgRouter.addHandler(BibleGetIO.bibleGetSearch.new MessageRouterHandler(), true);
+                            client.addMessageRouter(msgRouter);
+                        }
                     }
                     else{ 
                         System.out.println("Sorry, no database instance here."); 
@@ -732,9 +823,7 @@ public final class BibleGetIO extends WeakBase
         return Integer.parseInt(version);
     }
     
-    private static void setNativeLibraryDir() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException, IOException, InvocationTargetException {
-        String nativelibrarypath = "";
-        String ziplibrarypath = "";
+    private static void setNativeLibraryDir() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException, IOException, InvocationTargetException, InterruptedException {
         String[] JCEFfiles = null;
         String[] JCEFswiftshaderFiles = null;
         if(SystemUtils.IS_OS_WINDOWS){
@@ -820,10 +909,13 @@ public final class BibleGetIO extends WeakBase
                         Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, fileName);
                         if(Files.notExists(tempFilePath)){
                             //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
-                            BibleGetIO.downloadJCEF();
+                            BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
                         }
                         //now we can copy the missing file from the tempDir
-                        Files.copy(tempFilePath,filePath);
+                        //TODO: move this to BibleGetFirstInstallFrame.java
+                        if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFDOWNLOADED){
+                            Files.copy(tempFilePath,filePath);
+                        }
                     }
                 }
             } else {
@@ -902,10 +994,13 @@ public final class BibleGetIO extends WeakBase
                     Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "locales", fileName);
                     if(Files.notExists(tempFilePath)){
                         //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
-                        BibleGetIO.downloadJCEF();
+                        BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
                     }
                     //now we can copy the missing file from the tempDir
-                    Files.copy(tempFilePath,filePath);
+                    //TODO: move this to BibleGetFirstInstallFrame.java
+                    if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFDOWNLOADED){
+                        Files.copy(tempFilePath,filePath);
+                    }
                 }
             }
             
@@ -925,10 +1020,13 @@ public final class BibleGetIO extends WeakBase
                         Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "swiftshader", fileName);
                         if(Files.notExists(tempFilePath)){
                             //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
-                            BibleGetIO.downloadJCEF();
+                            BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
                         }
                         //now we can copy the missing file from the tempDir
-                        Files.copy(tempFilePath,filePath);
+                        //TODO: move this to BibleGetFirstInstallFrame.java
+                        if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFDOWNLOADED){
+                            Files.copy(tempFilePath,filePath);
+                        }
                     }
                 }
             } else {
@@ -944,7 +1042,7 @@ public final class BibleGetIO extends WeakBase
                 //File jcefDirectory = new File(nativelibrarypath);
                 //jcefDirectory.mkdirs();
                 //The directory will be created when reading the zip file!
-                BibleGetIO.downloadJCEF();
+                BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
             }
             
         }
@@ -1020,115 +1118,8 @@ public final class BibleGetIO extends WeakBase
         }
         
     }
-    
-    private static void downloadJCEF() throws MalformedURLException, IOException{
-        System.out.println("starting downloadJCEF process...");
-        //following URLs retrieved via the github api at
-        //    https://api.github.com/repos/jcefbuild/jcefbuild/releases/30632029/assets
-        // actually the same information is present in:
-        //    https://api.github.com/repos/jcefbuild/jcefbuild/releases
-        // use Accept header = application/vnd.github.v3+json in order to retrieve results in JSON notation
-        // the result of this last API endpoint is an ARRAY of objects, the first of which should be the latest release
-        // but in order to target a specific release, search for "tag_name" (or "name", should be the same) 
-        //     as indicated in the following JCEFbuild String
-        //     The object that has this "tag_name" will also have an "assets" property at the same level as "tag_name"
-        //     "assets" is again an ARRAY of OBJECTS
-        //     We must search for objects that have "name" of: {"linux32.zip", "linux64.zip", "macosx64.zip", "win32.zip"}
-        //     and get their "url" and perhaps "content_type"
         
-        String JCEFbuild = "v1.0.10-84.3.8+gc8a556f+chromium-84.0.4147.105";
-        String[] targetOS = new String[]{"linux32.zip", "linux64.zip", "macosx64.zip", "win32.zip"};
-        
-        //Until we automate the process, here are the hardcoded URLs for the target OSs, for the indicated release:
-        String linux32URL = "https://api.github.com/repos/jcefbuild/jcefbuild/releases/assets/24791124";
-        String linux64URL = "https://api.github.com/repos/jcefbuild/jcefbuild/releases/assets/24791106";
-        String macosx64URL = "https://api.github.com/repos/jcefbuild/jcefbuild/releases/assets/24791232";
-        String win32URL = "https://api.github.com/repos/jcefbuild/jcefbuild/releases/assets/24791067";
-        
-        URL downloadURL = null;
-        if(SystemUtils.IS_OS_WINDOWS){
-            downloadURL = new URL(win32URL);
-        } else if (SystemUtils.IS_OS_MAC_OSX){
-            downloadURL = new URL(macosx64URL);
-        } else if (SystemUtils.IS_OS_LINUX){
-            switch(System.getProperty("sun.arch.data.model")){
-                case "64":
-                    downloadURL = new URL(linux64URL);
-                    break;
-                case "32":
-                    downloadURL = new URL(linux32URL);
-                    break;
-            }
-        }
-        System.out.println("download URL was detected as " + downloadURL.toString());
-        
-        HttpsURLConnection con;
-        try{
-            con = (HttpsURLConnection) downloadURL.openConnection();            
-             // optional default is GET
-            con.setRequestMethod("GET");
-            con.setRequestProperty("Accept", "application/octet-stream");
-
-
-            //System.out.println("Sending 'GET' request to URL : " + url);
-            //System.out.println("Response Code : " + con.getResponseCode());
-            int respCode;
-            respCode = con.getResponseCode();
-            Path outDir = null;
-            if(HttpsURLConnection.HTTP_OK == respCode) {
-                if(SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_WINDOWS ){
-                    outDir = Paths.get(System.getProperty("java.io.tmpdir"),"BibleGetJCEF");
-                    System.out.println("Temp directory where JCEF should or will be stored was detected as " + outDir.toString());
-                    if(Files.notExists(outDir)){
-                        System.out.println("The BibleGetJCEF directory in the temp folder was not found, now creating...");
-                        File jcefDirectoryTMP = new File(outDir.toString());
-                        jcefDirectoryTMP.mkdir();
-                    }
-                } else if( SystemUtils.IS_OS_MAC_OSX ){
-                    outDir = Paths.get(System.getProperty("user.home"), "Library", "BibleGetOpenOfficePlugin" );
-                }
-                
-                byte[] buffer = new byte[2048];
-                try ( 
-                        InputStream conInStr = con.getInputStream();
-                        BufferedInputStream buffInStr = new BufferedInputStream(conInStr);
-                        ZipInputStream zipInStream = new ZipInputStream(buffInStr);
-                    ) {
-                    System.out.println("We seem to have a stream of data from the github assets...");
-                    
-                    ZipEntry entry;
-                    while ((entry = zipInStream.getNextEntry()) != null && outDir != null) {
-                        if(entry.isDirectory()){
-                            File entryFile = new File(outDir.toString(), entry.getName());
-                            if(entryFile.exists() == false){
-                                System.out.println("directory " + entryFile.getCanonicalPath() + " did not exist, now creating...");
-                                entryFile.mkdirs();
-                            }
-                        } else {
-                            Path filePath = outDir.resolve(entry.getName());
-                            //instead of checking whether the file exists, we'll simply overwrite by passing false as second parameter to FileOutputStream
-                            //let's keep life simple, it doesn't take that long
-                            //File entryFile = new File(outDir.toString(), entry.getName());
-                            //if(entryFile.exists() == false){
-                                try (FileOutputStream fos = new FileOutputStream(filePath.toFile(), false);
-                                        BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length)) {
-                                    int len;
-                                    while ((len = zipInStream.read(buffer)) > 0) {
-                                        bos.write(buffer, 0, len);
-                                    }
-                                }
-                            //}
-                        }
-                    }
-                }
-            }
-            con.disconnect();
-        } catch(NullPointerException ex){
-            Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, "downloadJCEF() : We were not able to determine the correct URL to communicate with.");
-        }
-    }
-    
-    private static class StreamGobbler implements Runnable {
+    public static class StreamGobbler implements Runnable {
         private final InputStream inputStream;
         private final Consumer<String> consumer;
 
@@ -1142,6 +1133,39 @@ public final class BibleGetIO extends WeakBase
             new BufferedReader(new InputStreamReader(inputStream)).lines()
               .forEach(consumer);
         }
-    }    
+    }
+    
+    private void runFirstInstall() throws IOException, InterruptedException{
+        InputStream firstRun = getClass().getResourceAsStream("/io/bibleget/firstrun.txt");
+        String userHome = System.getProperty("user.home");
+        String firstInstallScript = userHome + "/.BibleGetOpenOfficePlugin/firstinstall.sh";
+        Files.createDirectories( Paths.get(firstInstallScript).getParent() );
+        Files.copy(firstRun, Paths.get(firstInstallScript));
+        String systemUser = System.getProperty("user.name");
+        FileReader filereader = new FileReader(firstInstallScript);
+        BufferedReader reader = new BufferedReader(filereader);
+        String line = reader.readLine();
+        ArrayList<String> newLines = new ArrayList<>();
+        while(line != null){
+            newLines.add(String.format(line, systemUser));
+            line = reader.readLine();
+        }
+        reader.close();
+        filereader.close();
+        Files.write(Paths.get(firstInstallScript), newLines, Charset.defaultCharset());
+        
+        JFrame f = new JFrame();
+        f.setTitle("First time install of the BibleGet add-on for OpenOffice");
+        String password = JOptionPane.showInputDialog(f,"Some additional components need to be installed in order for the add-on to function properly. The installation of these components in your system requires your user password. If instead you would like to run the installer yourself, navigate in the Terminal to the following path: ~/.BibleGetOpenOfficePlugin/ , make the firstinstall.sh script executable and run it. Otherwise input your system password here (it will not be saved in any way, it will be discarded as soon as the installtion is complete):");
+        if(null != password && "".equals(password) == false){
+            ProcessBuilder builder = new ProcessBuilder();
+            builder.command("/bin/bash","-c","chmod +x ~/.BibleGetOpenOfficePlugin/firstinstall.sh; echo \"" + password + "\"| sudo -S ~/.BibleGetOpenOfficePlugin/firstinstall.sh");
+            Process process = builder.start();
+            StreamGobbler streamGobbler = new StreamGobbler(process.getInputStream(), System.out::println);
+            Executors.newSingleThreadExecutor().submit(streamGobbler);
+            int exitCode = process.waitFor();
+            System.out.println(exitCode == 0 ? "process was successful" : "process was not successful");
+        }
+    }
     
 }

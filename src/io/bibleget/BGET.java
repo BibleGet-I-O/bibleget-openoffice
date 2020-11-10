@@ -276,5 +276,13 @@ public class BGET {
             return value;
         }
     }
+    
+    public enum ADDONSTATE{
+        JCEFUNINITIALIZED,
+        JCEFDOWNLOADED,
+        JCEFCOPIED,
+        JCEFDEPENDENCIES,
+        JCEFENVREADY
+    }
    
 }

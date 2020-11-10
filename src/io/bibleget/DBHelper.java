@@ -202,8 +202,20 @@ public class DBHelper {
         final String metadataTableInitialData = "INSERT INTO METADATA (ID) VALUES (0)";
         final int MetadataTableSchemaVersion = 1;
         
+        String initializationTableSchema = "CREATE TABLE ADDONSTATE (";
+        initializationTableSchema += "ID INT, ";
+        initializationTableSchema += "JCEFDOWNLOADED BOOLEAN, ";    //whether JCEF has been downloaded to the temp directory
+        initializationTableSchema += "JCEFCOPIED BOOLEAN, ";        //whether JCEF has been copied to the user home folder
+        initializationTableSchema += "JCEFDEPENDENCIES BOOLEAN, ";  //whether JCEF system dependencies have been installed
+        initializationTableSchema += "JCEFENVREADY BOOLEAN";        //whether the environment variables for JCEF have been set
+        initializationTableSchema += ")";
+        
+        final String initializationTableInitialData = "INSERT INTO ADDONSTATE (ID, JCEFDOWNLOADED, JCEFCOPIED, JCEFDEPENDENCIES, JCEFENVREADY) VALUES (0, false, false, false, false)";
+        final int InitializationTableSchemaVersion = 1;
+        
         DBHelper.tableSchemas.put("OPTIONS", new SimpleEntry<>(OptionsTableSchemaVersion, new SimpleEntry<>(optionsTableSchema,optionsTableInitialData)));
         DBHelper.tableSchemas.put("METADATA", new SimpleEntry<>(MetadataTableSchemaVersion, new SimpleEntry<>(metadataTableSchema,metadataTableInitialData)));
+        DBHelper.tableSchemas.put("ADDONSTATE", new SimpleEntry<>(InitializationTableSchemaVersion, new SimpleEntry<>(initializationTableSchema,initializationTableInitialData)));
     }
     
     public static DBHelper getInstance() throws ClassNotFoundException, SQLException, Exception {
@@ -1256,6 +1268,23 @@ public class DBHelper {
             dataUpdateOK = false;
         }
         return dataUpdateOK;
+    }
+    
+    public Boolean getAddonState(String option){
+        if(instance.connect()){
+            try (Statement stmt = instance.conn.createStatement()) {
+                String sqlexec = "SELECT "+option+" FROM ADDONSTATE WHERE ID=0";
+                try (ResultSet rsOps = stmt.executeQuery(sqlexec)) {
+                    if(rsOps.next()){
+                        return rsOps.getBoolean(option);
+                    }
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
+                return null;
+            }
+        }
+        return null;
     }
     
 }

@@ -25,6 +25,7 @@ import java.awt.Toolkit;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
@@ -156,169 +157,174 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
             //System.out.println("selectedVersion = " + selectedVersion);
         }
         
-        previewDocumentHead = "<!DOCTYPE html>"
-            + "<head>"
-            + "<meta charset=\"UTF-8\">"
-            + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-            + "<style type=\"text/css\">"
-            + "html,body { margin: 0; padding: 0; }"
-            + "body, body * {"
-            + "-webkit-touch-callout: none;" +
-            "-webkit-user-select: none;" +
-            " -khtml-user-select: none;" +
-            "   -moz-user-select: none;" +
-            "    -ms-user-select: none;" +
-            "        user-select: none;" +
-            "}"
-            //+ "body { border: 1px solid Black; }"
-            + "#bibleGetSearchResultsTableContainer {"
-            + "	 border: 1px solid #963;"
-            + "}"
-            + ""
-            + "#bibleGetSearchResultsTableContainer table {"
-            + "  width: 100%;"
-            + "}"
-            + ""
-            + "#bibleGetSearchResultsTableContainer th, td { padding: 8px 16px; }"
-            + "#bibleGetSearchResultsTableContainer thead th {"
-            + "	 position: sticky;"
-            + "  top: 0;"
-            + "	 background: #C96;"
-            + "	 border-left: 1px solid #EB8;"
-            + "	 border-right: 1px solid #B74;"
-            + "	 border-top: 1px solid #EB8;"
-            + "	 font-weight: normal;"
-            + "	 text-align: center;"
-            + "  color: White;"
-            + "  font-weight: bold;"
-            + "}"
-            + ""
-            + "#bibleGetSearchResultsTableContainer tbody td {"
-            + "  border-bottom: 1px groove White;"
-            + "  background-color: #EFEFEF;"
-            + "}"
-            + ""
-            + "#bibleGetSearchResultsTableContainer mark {"
-            + "  font-weight: bold;"
-            + "}"
-            + ""
-            + "a.mark { background-color: yellow; font-weight: bold; padding: 2px 4px; }"
-            + "a.submark { background-color: lightyellow; padding: 2px 0px; }"
-            + "#bibleGetSearchResultsTableContainer table span.button { padding: 6px; color: DarkBlue; font-weight: bold; background-color: LightBlue; border: 2px outset Blue; border-radius: 3px; display: inline-block; cursor: pointer; text-decoration: none; }" //box-shadow: 2px 2px 2px 2px DarkBlue; 
-            + "#bibleGetSearchResultsTableContainer table span.button:hover { background-color: #EEF; }"
-            + "#bibleGetSearchResultsTableContainer table span.button.rowinserted { color: Grey; background-color: LightGrey; border: 2px outset DarkGray; cursor: not-allowed; }" //box-shadow: 2px 2px 2px 2px DarkBlue; 
-            + "#bibleGetSearchResultsTableContainer table span.button:hover { background-color: LightGrey; }"
-            + "</style>"
-            + "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>"
-            + "<script>(function($){"
-            + "  let insertedIndexes = [" + insertedIndexes.stream().map(Object::toString).collect(Collectors.joining(",")) + "];"
-            + "  $(document).ready(function(){"
-            + "    $(document).on('click', '#bibleGetSearchResultsTableContainer table span.button', function(){"
-            + "        if($(this).hasClass('rowinserted') === false){ "
-            + "          let idx = parseInt($(this).attr('id').replace('row',''));"
-            + "          console.log('Insert button for IDX '+idx+' was clicked...');"
-            + "          cefQuery({"
-            + "            request: 'INSERT:'+idx,"
-            + "            onSuccess: function(response){"
-            + "              if(response.startsWith('INJECTIONCOMPLETE:') ){"
-            + "                let row = 'row'+response.replace('INJECTIONCOMPLETE:','');"
-            + "                $('#'+row).text('INSERTED').addClass('rowinserted');"
-            + "              }"
-            //+ "              document.getElementById('response').innerHTML = '<b>Response</b>: '+response;"
-            + "            },"
-            + "            onFailure: function(error_code, error_message) {"
-            + "              console.log('Error code: '+error_code+', Message: '+error_message);"
-            //+ "              document.getElementById('error').innerHTML = '<b>Error code:</b> '+error_code+'<br /><b>Message:</b> '+error_message;"
-            + "            }"
-            + "          });"
-            + "        }"
-            + "    });"
-            + "  }); "
-            + "})(jQuery);</script>"
-            + "</head>";
-
-        previewDocumentBodyOpen = "<body><div id=\"bibleGetSearchResultsTableContainer\">"
-            + "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" class=\"scrollTable\" id=\"SearchResultsTable\">"
-            + "	<thead class=\"fixedHeader\">"
-            + "		<tr class=\"alternateRow\"><th>Action</th><th>Verse Reference</th><th>" + __("Verse Text") + "</th></tr>"
-            + "	</thead>"
-            + "	<tbody class=\"scrollContent\">";
-
-        previewDocumentBodyClose = "</tbody></table></div></body>";
-        
-        spinnerPage = "<!DOCTYPE html"
-                + "<head><meta charset=\"utf-8\">"
-                + "<style>"
-                + "body { background-color: gray; text-align: center; }"
-                + ".lds-dual-ring {" +
-                "  display: inline-block;" +
-                "  width: 80px;" +
-                "  height: 80px;" +
-                "  position: absolute;" +
-                "  top: 50%;" +
-                "  margin-top: -40px;" +
-                "  left: 50%;" +
-                "  margin-left: -40px;" +
-                "}" +
-                ".lds-dual-ring:after {" +
-                "  content: \" \";" +
-                "  display: block;" +
-                "  width: 64px;" +
-                "  height: 64px;" +
-                "  margin: 8px;" +
-                "  border-radius: 50%;" +
-                "  border: 6px solid #fff;" +
-                "  border-color: #fff transparent #fff transparent;" +
-                "  animation: lds-dual-ring 1.2s linear infinite;" +
-                "}" +
-                "@keyframes lds-dual-ring {" +
-                "  0% {" +
-                "    transform: rotate(0deg);" +
-                "  }" +
-                "  100% {" +
-                "    transform: rotate(360deg);" +
-                "  }" +
-                "}</style></head>"
-                + "<body><div class=\"lds-dual-ring\"></div></body>";
-        
-        String htmlStr = "<!DOCTYPE html>"
-                + "<head><meta charset=\"utf-8\">"
-                + "<style>"
-                + "  #response { min-height:30px; background-color: lightyellow; color: DarkGreen; padding: 6px 12px; }"
-                + "  #error { min-height: 30px; background-color: pink; color: DarkRed; padding: 6px 12px; }"
+        if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFENVREADY){
+            previewDocumentHead = "<!DOCTYPE html>"
+                + "<head>"
+                + "<meta charset=\"UTF-8\">"
+                + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+                + "<style type=\"text/css\">"
+                + "html,body { margin: 0; padding: 0; }"
+                + "body, body * {"
+                + "-webkit-touch-callout: none;" +
+                "-webkit-user-select: none;" +
+                " -khtml-user-select: none;" +
+                "   -moz-user-select: none;" +
+                "    -ms-user-select: none;" +
+                "        user-select: none;" +
+                "}"
+                //+ "body { border: 1px solid Black; }"
+                + "#bibleGetSearchResultsTableContainer {"
+                + "	 border: 1px solid #963;"
+                + "}"
+                + ""
+                + "#bibleGetSearchResultsTableContainer table {"
+                + "  width: 100%;"
+                + "}"
+                + ""
+                + "#bibleGetSearchResultsTableContainer th, td { padding: 8px 16px; }"
+                + "#bibleGetSearchResultsTableContainer thead th {"
+                + "	 position: sticky;"
+                + "  top: 0;"
+                + "	 background: #C96;"
+                + "	 border-left: 1px solid #EB8;"
+                + "	 border-right: 1px solid #B74;"
+                + "	 border-top: 1px solid #EB8;"
+                + "	 font-weight: normal;"
+                + "	 text-align: center;"
+                + "  color: White;"
+                + "  font-weight: bold;"
+                + "}"
+                + ""
+                + "#bibleGetSearchResultsTableContainer tbody td {"
+                + "  border-bottom: 1px groove White;"
+                + "  background-color: #EFEFEF;"
+                + "}"
+                + ""
+                + "#bibleGetSearchResultsTableContainer mark {"
+                + "  font-weight: bold;"
+                + "}"
+                + ""
+                + "a.mark { background-color: yellow; font-weight: bold; padding: 2px 4px; }"
+                + "a.submark { background-color: lightyellow; padding: 2px 0px; }"
+                + "#bibleGetSearchResultsTableContainer table span.button { padding: 6px; color: DarkBlue; font-weight: bold; background-color: LightBlue; border: 2px outset Blue; border-radius: 3px; display: inline-block; cursor: pointer; text-decoration: none; }" //box-shadow: 2px 2px 2px 2px DarkBlue; 
+                + "#bibleGetSearchResultsTableContainer table span.button:hover { background-color: #EEF; }"
+                + "#bibleGetSearchResultsTableContainer table span.button.rowinserted { color: Grey; background-color: LightGrey; border: 2px outset DarkGray; cursor: not-allowed; }" //box-shadow: 2px 2px 2px 2px DarkBlue; 
+                + "#bibleGetSearchResultsTableContainer table span.button:hover { background-color: LightGrey; }"
                 + "</style>"
                 + "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>"
                 + "<script>(function($){"
+                + "  let insertedIndexes = [" + insertedIndexes.stream().map(Object::toString).collect(Collectors.joining(",")) + "];"
                 + "  $(document).ready(function(){"
-                + "    $(document).on('click', '.helloworld', function(){"
-                + "        console.log('Hello World button was clicked...');"
-                + "        cefQuery({"
-                + "          request: 'SEARCH:Ave Maria gratia plena Dominus tecum',"
-                + "          onSuccess: function(response){"
-                + "            document.getElementById('response').innerHTML = '<b>Response</b>: '+response;"
-                + "          },"
-                + "          onFailure: function(error_code, error_message) {"
-                + "            document.getElementById('error').innerHTML = '<b>Error code:</b> '+error_code+'<br /><b>Message:</b> '+error_message;"
-                + "          }"
-                + "        });"
+                + "    $(document).on('click', '#bibleGetSearchResultsTableContainer table span.button', function(){"
+                + "        if($(this).hasClass('rowinserted') === false){ "
+                + "          let idx = parseInt($(this).attr('id').replace('row',''));"
+                + "          console.log('Insert button for IDX '+idx+' was clicked...');"
+                + "          cefQuery({"
+                + "            request: 'INSERT:'+idx,"
+                + "            onSuccess: function(response){"
+                + "              if(response.startsWith('INJECTIONCOMPLETE:') ){"
+                + "                let row = 'row'+response.replace('INJECTIONCOMPLETE:','');"
+                + "                $('#'+row).text('INSERTED').addClass('rowinserted');"
+                + "              }"
+                //+ "              document.getElementById('response').innerHTML = '<b>Response</b>: '+response;"
+                + "            },"
+                + "            onFailure: function(error_code, error_message) {"
+                + "              console.log('Error code: '+error_code+', Message: '+error_message);"
+                //+ "              document.getElementById('error').innerHTML = '<b>Error code:</b> '+error_code+'<br /><b>Message:</b> '+error_message;"
+                + "            }"
+                + "          });"
+                + "        }"
                 + "    });"
                 + "  }); "
                 + "})(jQuery);</script>"
-                + "</head>"
-                + "<body>"
-                + "<h1>Welcome to the BibleGet verses search</h1>"
-                + "<p class=\"helloworld\">You can perform a partial word search, which is the default (i.e. a search for 'Spirit' will find verses with the word 'Spirit' as well as verses with the word 'spiritual'). In this case you cannot search for three letter words (i.e. a search for 'God' will not find verses with 'God' but only with 'godly').</p>"
-                + "<p class=\"helloworld\">You can also choose to perform a search for an exact match, which means that when searching for 'Spirit' only verses that have the exact match for 'Spirit' will be returned, whereas verses with the word 'spiritual' will not. In this case you can search for three letter words such as 'God', but not for two letter words.</p>"
-                + "<p class=\"helloworld\">In any case you cannot search for parts of speech such as pronouns or articles, only words that contain the searched term will be returned in this case. For example, an exact match search for 'her' will return verses containing 'herd', but not verses containing 'her'.</p>"
-                + "<div id=\"response\"><i>(test area for internal communications... clicking on any paragraph above should perform the test)</i></div>"
-                + "<div id=\"error\"><i>(errors for internal communications would show here if there were any...)</i></div>"
-                + "</body>";
-        
-        currentURL = DataUri.create("text/html", htmlStr);
-        if(BibleGetIO.client != null){
-            browser = BibleGetIO.client.createBrowser( currentURL, OS.isLinux(), false, null);
-            browserUI = browser.getUIComponent();
+                + "</head>";
+
+            previewDocumentBodyOpen = "<body><div id=\"bibleGetSearchResultsTableContainer\">"
+                + "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" class=\"scrollTable\" id=\"SearchResultsTable\">"
+                + "	<thead class=\"fixedHeader\">"
+                + "		<tr class=\"alternateRow\"><th>Action</th><th>Verse Reference</th><th>" + __("Verse Text") + "</th></tr>"
+                + "	</thead>"
+                + "	<tbody class=\"scrollContent\">";
+
+            previewDocumentBodyClose = "</tbody></table></div></body>";
+
+            spinnerPage = "<!DOCTYPE html"
+                    + "<head><meta charset=\"utf-8\">"
+                    + "<style>"
+                    + "body { background-color: gray; text-align: center; }"
+                    + ".lds-dual-ring {" +
+                    "  display: inline-block;" +
+                    "  width: 80px;" +
+                    "  height: 80px;" +
+                    "  position: absolute;" +
+                    "  top: 50%;" +
+                    "  margin-top: -40px;" +
+                    "  left: 50%;" +
+                    "  margin-left: -40px;" +
+                    "}" +
+                    ".lds-dual-ring:after {" +
+                    "  content: \" \";" +
+                    "  display: block;" +
+                    "  width: 64px;" +
+                    "  height: 64px;" +
+                    "  margin: 8px;" +
+                    "  border-radius: 50%;" +
+                    "  border: 6px solid #fff;" +
+                    "  border-color: #fff transparent #fff transparent;" +
+                    "  animation: lds-dual-ring 1.2s linear infinite;" +
+                    "}" +
+                    "@keyframes lds-dual-ring {" +
+                    "  0% {" +
+                    "    transform: rotate(0deg);" +
+                    "  }" +
+                    "  100% {" +
+                    "    transform: rotate(360deg);" +
+                    "  }" +
+                    "}</style></head>"
+                    + "<body><div class=\"lds-dual-ring\"></div></body>";
+
+            String htmlStr = "<!DOCTYPE html>"
+                    + "<head><meta charset=\"utf-8\">"
+                    + "<style>"
+                    + "  #response { min-height:30px; background-color: lightyellow; color: DarkGreen; padding: 6px 12px; }"
+                    + "  #error { min-height: 30px; background-color: pink; color: DarkRed; padding: 6px 12px; }"
+                    + "</style>"
+                    + "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>"
+                    + "<script>(function($){"
+                    + "  $(document).ready(function(){"
+                    + "    $(document).on('click', '.helloworld', function(){"
+                    + "        console.log('Hello World button was clicked...');"
+                    + "        cefQuery({"
+                    + "          request: 'SEARCH:Ave Maria gratia plena Dominus tecum',"
+                    + "          onSuccess: function(response){"
+                    + "            document.getElementById('response').innerHTML = '<b>Response</b>: '+response;"
+                    + "          },"
+                    + "          onFailure: function(error_code, error_message) {"
+                    + "            document.getElementById('error').innerHTML = '<b>Error code:</b> '+error_code+'<br /><b>Message:</b> '+error_message;"
+                    + "          }"
+                    + "        });"
+                    + "    });"
+                    + "  }); "
+                    + "})(jQuery);</script>"
+                    + "</head>"
+                    + "<body>"
+                    + "<h1>Welcome to the BibleGet verses search</h1>"
+                    + "<p class=\"helloworld\">You can perform a partial word search, which is the default (i.e. a search for 'Spirit' will find verses with the word 'Spirit' as well as verses with the word 'spiritual'). In this case you cannot search for three letter words (i.e. a search for 'God' will not find verses with 'God' but only with 'godly').</p>"
+                    + "<p class=\"helloworld\">You can also choose to perform a search for an exact match, which means that when searching for 'Spirit' only verses that have the exact match for 'Spirit' will be returned, whereas verses with the word 'spiritual' will not. In this case you can search for three letter words such as 'God', but not for two letter words.</p>"
+                    + "<p class=\"helloworld\">In any case you cannot search for parts of speech such as pronouns or articles, only words that contain the searched term will be returned in this case. For example, an exact match search for 'her' will return verses containing 'herd', but not verses containing 'her'.</p>"
+                    + "<div id=\"response\"><i>(test area for internal communications... clicking on any paragraph above should perform the test)</i></div>"
+                    + "<div id=\"error\"><i>(errors for internal communications would show here if there were any...)</i></div>"
+                    + "</body>";
+
+            currentURL = DataUri.create("text/html", htmlStr);
+            if(BibleGetIO.client != null){
+                browser = BibleGetIO.client.createBrowser( currentURL, OS.isLinux(), false, null);
+                browserUI = browser.getUIComponent();
+            }
+        } else {
+            System.out.println("BibleGetSearchFrame: system dependencies and environment not ready for JCEF");
         }
+        
         initComponents();
                
         try {
@@ -334,41 +340,50 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
         MouseAdapter mAdapter = new VersionsHoverHandler(jListBibleVersions);
         jListBibleVersions.addMouseMotionListener(mAdapter);
         
-        if(BibleGetIO.client != null){
-            jInternalFramePreviewArea.getContentPane().add(browserUI, BorderLayout.CENTER);
-            jTextFieldSearchForTerm.addFocusListener(new FocusAdapter() {
-                @Override
-                public void focusGained(FocusEvent e) {
-                    if (!browserFocus_) return;
-                    browserFocus_ = false;
-                    KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
-                    jTextFieldSearchForTerm.requestFocus();
-                }
-            });
-            jTextFieldFilterForTerm.addFocusListener(new FocusAdapter() {
-                @Override
-                public void focusGained(FocusEvent e) {
-                    if (!browserFocus_) return;
-                    browserFocus_ = false;
-                    KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
-                    jTextFieldFilterForTerm.requestFocus();
-                }
-            });
-            // Clear focus from the address field when the browser gains focus.
-            BibleGetIO.client.addFocusHandler(new CefFocusHandlerAdapter() {
-                @Override
-                public void onGotFocus(CefBrowser browser) {
-                    if (browserFocus_) return;
-                    browserFocus_ = true;
-                    KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
-                    browser.setFocus(true);
-                }
+        if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFENVREADY){
+            if(BibleGetIO.client != null){
+                jInternalFramePreviewArea.getContentPane().add(browserUI, BorderLayout.CENTER);
+                jTextFieldSearchForTerm.addFocusListener(new FocusAdapter() {
+                    @Override
+                    public void focusGained(FocusEvent e) {
+                        if (!browserFocus_) return;
+                        browserFocus_ = false;
+                        KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                        jTextFieldSearchForTerm.requestFocus();
+                    }
+                });
+                jTextFieldFilterForTerm.addFocusListener(new FocusAdapter() {
+                    @Override
+                    public void focusGained(FocusEvent e) {
+                        if (!browserFocus_) return;
+                        browserFocus_ = false;
+                        KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                        jTextFieldFilterForTerm.requestFocus();
+                    }
+                });
+                // Clear focus from the address field when the browser gains focus.
+                BibleGetIO.client.addFocusHandler(new CefFocusHandlerAdapter() {
+                    @Override
+                    public void onGotFocus(CefBrowser browser) {
+                        if (browserFocus_) return;
+                        browserFocus_ = true;
+                        KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                        browser.setFocus(true);
+                    }
 
-                @Override
-                public void onTakeFocus(CefBrowser browser, boolean next) {
-                    browserFocus_ = false;
-                }
-            });
+                    @Override
+                    public void onTakeFocus(CefBrowser browser, boolean next) {
+                        browserFocus_ = false;
+                    }
+                });
+            }
+        } else {
+            try {
+                JFrame firstInstallFrame = new BibleGetFirstInstallFrame();
+                firstInstallFrame.setVisible(true);
+            } catch (IOException ex) {
+                Logger.getLogger(BibleGetSearchFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         
     }    
