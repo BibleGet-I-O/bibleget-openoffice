@@ -916,24 +916,22 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                     
                     if (SystemUtils.IS_OS_LINUX) {
                         System.out.println("Now copying shell script from jar to disk...");
-                        InputStream firstInstall = getClass().getResourceAsStream("/io/bibleget/firstrun.txt");
                         Path outFile = Paths.get(System.getProperty("user.home"),".BibleGetOpenOfficePlugin","firstinstall.sh");
+                        String systemUser = System.getProperty("user.name");
                         FileWriter writer = new FileWriter(outFile.toFile());
                         BufferedWriter bf = new BufferedWriter(writer);
-                        bf.write("apt-get update && apt-get install -qq gconf-service libasound2 libatk1.0-0 libatk-bridge2.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgbm-dev libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxcursor-dev libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils");
+                        bf.write("apt-get update && apt-get install gconf-service libasound2 libatk1.0-0 libatk-bridge2.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgbm-dev libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxcursor-dev libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils");
                         bf.newLine();
-                        bf.write("cp /usr/lib/x86_64-linux-gnu/libnss3.so /opt/openoffice4/program/libnss3.so");
+                        bf.write(String.format("echo \"export LD_LIBRARY_PATH=~/.BibleGetOpenOfficePlugin/JCEF\" | sudo -u %s tee -a ~/.bashrc",systemUser) );
                         bf.newLine();
-                        bf.write("cp /usr/lib/x86_64-linux-gnu/libnssutil3.so /opt/openoffice4/program/libnssutil3.so");
+                        bf.write(String.format("echo \"export LD_PRELOAD=libcef.so\" | sudo -u %s tee -a ~/.bashrc",systemUser));
                         bf.newLine();
-                        bf.write("echo \"export LD_LIBRARY_PATH=~/.BibleGetOpenOfficePlugin/JCEF\" | sudo -u %s tee -a ~/.bashrc");
-                        bf.newLine();
-                        bf.write("echo \"export LD_PRELOAD=libcef.so\" | sudo -u %s tee -a ~/.bashrc");
-                        
+                        bf.close();
                         if(Files.exists(outFile)){
-                            String systemUser = System.getProperty("user.name");
+                            jTextAreaCopying.append("firstinstall.sh created successfully in user folder");
+                            jTextAreaCopying.append(System.lineSeparator());
                         } else {
-                            System.out.println("Houston we have a problem. firstrun.txt was not copied to disk.");
+                            System.out.println("Houston we have a problem. firstinstall.sh was not created in the user folder.");
                         }
                         
                     }
@@ -966,28 +964,28 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                     break;
                 case "INSTALLDEPENDENCIES":
                     publish(25);
-                    builder.command("/bin/bash","-c","echo " + new String(passwd) + "| sudo -S apt-get update && sudo -S apt-get install -qq gconf-service libasound2 libatk1.0-0 libatk-bridge2.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgbm-dev libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxcursor-dev libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils");
+                    builder.command("/bin/bash","-c","echo " + new String(passwd) + "| sudo -S apt-get update && sudo -S apt-get install -y gconf-service libasound2 libatk1.0-0 libatk-bridge2.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgbm-dev libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxcursor-dev libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils");
                     process = builder.start();
                     streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), jTextAreaInstalling::append);
                     Executors.newSingleThreadExecutor().submit(streamGobbler);
                     int exitCode1 = process.waitFor();
                     if(exitCode1 == 0){
                         publish(75);
-                        jTextAreaInstalling.append("Packages installed: SUCCESS!\n");
-                        builder.command("/bin/bash","-c","echo " + new String(passwd) + "| sudo -S cp /usr/lib/x86_64-linux-gnu/libnss3.so /opt/openoffice4/program/libnss3.so && sudo -S cp /usr/lib/x86_64-linux-gnu/libnssutil3.so /opt/openoffice4/program/libnssutil3.so");
-                        process = builder.start();
-                        Executors.newSingleThreadExecutor().submit(streamGobbler);
-                        int exitCode2 = process.waitFor();
-                        if(exitCode2 == 0){
+                        jTextAreaInstalling.append("Packages installed: SUCCESS!");
+                        //builder.command("/bin/bash","-c","echo " + new String(passwd) + "| sudo -S cp /usr/lib/x86_64-linux-gnu/libnss3.so /opt/openoffice4/program/libnss3.so && sudo -S cp /usr/lib/x86_64-linux-gnu/libnssutil3.so /opt/openoffice4/program/libnssutil3.so");
+                        //process = builder.start();
+                        //Executors.newSingleThreadExecutor().submit(streamGobbler);
+                        //int exitCode2 = process.waitFor();
+                        //if(exitCode2 == 0){
                             publish(100);
-                            jTextAreaInstalling.append("libnss3.so and libnssutil3.so copied successfully to /opt/openoffice4/program\n");
+                            //jTextAreaInstalling.append("libnss3.so and libnssutil3.so copied successfully to /opt/openoffice4/program\n");
                             jLabelInstalling.setIcon(checkmarkIco);
                             BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFDEPENDENCIES;
-                        } else {
-                            jLabelInstalling.setIcon(xmarkIco);
-                        }
+                        //} else {
+                        //    jLabelInstalling.setIcon(xmarkIco);
+                        //}
                     } else {
-                        jTextAreaInstalling.append("Packages installed: ERROR\n");
+                        jTextAreaInstalling.append("Packages installed: ERROR");
                         jLabelInstalling.setIcon(xmarkIco);
                     }
                     passwd = null;

@@ -1286,6 +1286,39 @@ public class DBHelper {
         }
         return null;
     }
+
+    public Boolean setAddonState(String option, boolean value){
+        if(instance.connect()){
+            try (Statement stmt = instance.conn.createStatement()) {
+                int count;
+                String sqlexec = "UPDATE ADDONSTATE SET "+option+"=" + (value?"true":"false") + " WHERE ID=0";
+                boolean rowsUpdated = stmt.execute(sqlexec);
+                if(rowsUpdated==false) {
+                    count = stmt.getUpdateCount();
+                    if(count==-1){
+                        //System.out.println("The result is a ResultSet object or there are no more results.");
+                        return false;
+                    }
+                    else{
+                        //should have affected only one row
+                        if(count==1){
+                            //System.out.println(sql1+" seems to have returned true");
+                            stmt.close();
+                            return true;
+                        }
+                    }
+                }
+                else{
+                    //returns true only when returning a resultset; should not be the case here
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(DBHelper.class.getName()).log(Level.SEVERE, null, ex);
+                return false;
+            }
+        }
+        return false;
+    }
+
     
 }
 

@@ -94,8 +94,7 @@ public final class BibleGetIO extends WeakBase
 
     private static CefApp cefApp;
     public static CefClient client;
-    public static boolean FIRSTINSTALL = true; //true until proved false
-    public static BGET.ADDONSTATE ADDONSTATE = BGET.ADDONSTATE.JCEFDOWNLOADED; //uninitialized until proved otherwise
+    public static BGET.ADDONSTATE ADDONSTATE = BGET.ADDONSTATE.JCEFENVREADY; //BGET.ADDONSTATE.JCEFDOWNLOADED; //uninitialized until proved otherwise
     public static String nativelibrarypath = "";
     public static String ziplibrarypath = "";
     
@@ -616,55 +615,6 @@ public final class BibleGetIO extends WeakBase
                     });
                     */
                     
-                    if(BibleGetIO.FIRSTINSTALL == false && CefApp.startup(new String[]{"--disable-gpu"})){
-                        if (CefApp.getState() != CefApp.CefAppState.INITIALIZED) {
-                            System.out.println("Creating CefSettings...");
-                            CefSettings settings = new CefSettings();
-                            settings.windowless_rendering_enabled = OS.isLinux();
-                            settings.log_severity = LogSeverity.LOGSEVERITY_VERBOSE;
-                            cefApp = CefApp.getInstance(new String[]{"--disable-gpu"}, settings);
-                        
-                            if(cefApp != null){
-                                System.out.println("we seem to have an instance of CefApp:");
-                                System.out.println(cefApp.getVersion());
-                    
-                                CefApp.addAppHandler(new CefAppHandlerAdapter(null) {
-                                    @Override
-                                    public void stateHasChanged(CefAppState state) {
-                                        System.out.println("CefAppState has changed : " + state.name());
-                                    }
-                                });
-                            }
-                        } else {
-                            cefApp = CefApp.getInstance();
-                        }
-                        
-                        client = cefApp.createClient();
-                        if(client != null){
-                            System.out.println("we seem to have a client instance of cefApp");
-                            
-                            client.addLoadHandler(new CefLoadHandlerAdapter() {
-                                @Override
-                                public void onLoadingStateChange(CefBrowser browser, boolean isLoading,
-                                        boolean canGoBack, boolean canGoForward) {
-                                    if (!isLoading) {
-                                        //browser_ready = true;
-                                        System.out.println("Browser has finished loading!");
-                                    }
-                                }
-                            });
-
-                            client.addContextMenuHandler(new JCEFContextMenuHandler());
-                            
-                        }
-
-                    } else {
-                        if(BibleGetIO.FIRSTINSTALL){
-                            System.out.println("Not starting JCEF since this is the first install run.");
-                        } else{
-                            System.out.println("JCEF startup initialization failed!");
-                        }
-                    }
                     BibleGetIO.biblegetDB = DBHelper.getInstance();
                     if(BibleGetIO.biblegetDB != null){ 
                         
@@ -672,7 +622,7 @@ public final class BibleGetIO extends WeakBase
                         //If it is, don't try to instantiate the JCEF component because it still needs to be installed
                         //this will happen as soon as the user opens the Search for Verses menu item or the Preferences menu item
                         
-                        if(BibleGetIO.FIRSTINSTALL == false && CefApp.startup(new String[]{"--disable-gpu"})){
+                        if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFENVREADY && CefApp.startup(new String[]{"--disable-gpu"})){
                             if (CefApp.getState() != CefApp.CefAppState.INITIALIZED) {
                                 System.out.println("Creating CefSettings...");
                                 CefSettings settings = new CefSettings();
@@ -715,10 +665,10 @@ public final class BibleGetIO extends WeakBase
                             }
 
                         } else {
-                            if(BibleGetIO.FIRSTINSTALL){
-                                System.out.println("Not starting JCEF since this is the first install run.");
-                            } else{
+                            if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFENVREADY){
                                 System.out.println("JCEF startup initialization failed!");
+                            } else{
+                                System.out.println("Not starting JCEF since this is the first install run.");
                             }
                         }
                         
