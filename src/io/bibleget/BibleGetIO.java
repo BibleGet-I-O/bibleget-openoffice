@@ -1117,7 +1117,7 @@ public final class BibleGetIO extends WeakBase
         @Override
         public void run() {
             new BufferedReader(new InputStreamReader(inputStream)).lines()
-              .forEach(consumer);
+              .forEach(line -> { consumer.accept(line); consumer.accept(System.lineSeparator()); } );
         }
     }
     
