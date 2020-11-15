@@ -8,6 +8,8 @@ buildscript {
 }
 
 apply plugin: 'java'
+apply plugin: 'java-library'
+apply plugin: 'java-library-distribution'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
@@ -32,11 +34,11 @@ sourceSets {
 }
 
 dependencies {
-    implementation "org.openoffice:juh:$openOfficeVersion"
-    implementation "org.openoffice:ridl:$openOfficeVersion"
-    implementation "org.openoffice:unoil:$openOfficeVersion"
-    implementation "org.openoffice:jurt:$openOfficeVersion"
-    implementation "org.openoffice:officebean:$openOfficeVersion"
+    compileOnly "org.openoffice:juh:$openOfficeVersion"
+    compileOnly "org.openoffice:ridl:$openOfficeVersion"
+    compileOnly "org.openoffice:unoil:$openOfficeVersion"
+    compileOnly "org.openoffice:jurt:$openOfficeVersion"
+    compileOnly "org.openoffice:officebean:$openOfficeVersion"
 
     implementation 'org.apache.commons:commons-text:1.9'
     implementation "javax.json:javax.json-api:1.1.4"
@@ -51,3 +53,42 @@ dependencies {
 //    withSourcesJar()
 //    withJavadocJar()
 //}
+
+jar {
+    manifest {
+        attributes('UNO-Type-Path': '${project_class_name}_IDL_types.jar',
+                'RegistrationClassName': '${project_package}.CentralRegistrationClass',
+                'Class-Path': configurations.runtimeClasspath.collect { "lib/" + it.getName() }.join(' '))
+        // we need this for new section named ${package_path}/CentralRegistrationClass.class
+        attributes('RegistrationClasses': '${project_package}.${project_class_name}Impl', '${package_path}/CentralRegistrationClass.class')
+    }
+}
+
+//tasks.named('compileGroovy') {
+//    // add IDL type classes to the classpath
+//    classpath += files("build/classes")
+//}
+
+// fix for extra top dir in OXT
+//distributions {
+//    main {
+//        // distributionBaseName = '${project_name}'
+//        contents {
+//            from {
+//                "${build}/distribution-files/application"
+//            }
+//            into '/'
+//            // filesMatching("**/*.xml") {
+//            //     expand(project.properties)
+//            // }
+//        }
+//    }
+//}
+
+distZip {
+    archiveExtension = 'oxt'
+    entryCompression = ZipEntryCompression.STORED
+}
+
+//compileJava.dependsOn("clean")
+//compileJava.dependsOn("jar-idl-types")
