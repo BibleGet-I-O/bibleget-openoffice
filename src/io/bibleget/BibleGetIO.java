@@ -1157,9 +1157,9 @@ public final class BibleGetIO extends WeakBase
             //builder.redirectInput(ProcessBuilder.Redirect.INHERIT);
             //builder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
             Process process = builder.start();
-            InputStream errStream = process.getErrorStream();
+            //InputStream errStream = process.getErrorStream();
             InputStream inStream = process.getInputStream();
-            OutputStream outStream = process.getOutputStream();
+            //OutputStream outStream = process.getOutputStream();
             
             BufferedReader bf = new BufferedReader(new InputStreamReader(inStream));
             bf.lines().forEach(BibleGetIO::checkDependencyInstalled);
@@ -1204,6 +1204,7 @@ public final class BibleGetIO extends WeakBase
                 Executors.newSingleThreadExecutor().submit(streamGobbler);
                 int exitCode = process.waitFor();
                 if(exitCode == 0){
+                    Thread.sleep(10);
                     //we have the path to the soffice launcher, which is probably a symlink
                     System.out.println("soffice launch file = " + BibleGetIO.sofficeLaunch);
                     if(Files.exists(Paths.get(BibleGetIO.sofficeLaunch)) && Files.isSymbolicLink(Paths.get(BibleGetIO.sofficeLaunch)) ){
