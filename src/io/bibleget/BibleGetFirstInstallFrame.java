@@ -279,7 +279,7 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
         jProgressBarInstalling.setPreferredSize(new java.awt.Dimension(675, 20));
         jProgressBarInstalling.setStringPainted(true);
 
-        jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel1.setLayout(new java.awt.FlowLayout(0));
 
         jLabel6.setText("System password:");
         jPanel1.add(jLabel6);
@@ -821,7 +821,7 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                             bf.newLine();
                             bf.write("apt-get update && apt-get install " + String.join(" ", BibleGetIO.sysPkgsNeeded) );
                             bf.newLine();
-                            bf.write("ln -sfn ~/.BibleGetOpenOfficePlugin/launch.sh " + BibleGetIO.sofficeLaunch.substring(1) );
+                            bf.write("ln -sfn ~/.BibleGetOpenOfficePlugin/launch.sh " + BibleGetIO.sofficeLaunch );
                             bf.newLine();
                             //bf.write(String.format("echo \"export LD_LIBRARY_PATH=~/.BibleGetOpenOfficePlugin/JCEF\" | sudo -u %s tee -a ~/.bashrc",systemUser) );
                             //bf.newLine();
@@ -912,7 +912,7 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                     break;
                 case "PREPAREENV":
                     publish(50);
-                    String command = "echo " + new String(passwd) + "| sudo -S ln -sfn " + System.getProperty("user.home").substring(1) + "/.BibleGetOpenOfficePlugin/launch.sh " + BibleGetIO.sofficeLaunch.substring(1);
+                    String command = "echo " + new String(passwd) + "| sudo -S ln -sfn " + System.getProperty("user.home") + "/.BibleGetOpenOfficePlugin/launch.sh " + BibleGetIO.sofficeLaunch;
                     System.out.println("attempting to run command:");
                     System.out.println(command);
                     builder.command("/bin/bash","-c", command);
