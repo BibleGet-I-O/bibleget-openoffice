@@ -30,6 +30,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -51,10 +52,8 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
     private final ImageIcon loadingIco = new ImageIcon(getClass().getResource("/io/bibleget/images/loading.gif"));
     private final ImageIcon checkmarkIco = new ImageIcon(getClass().getResource("/io/bibleget/images/green-checkmark.png"));
     private final ImageIcon xmarkIco = new ImageIcon(getClass().getResource("/io/bibleget/images/red-x-wrong-mark.png"));
-    private static String nativelibrarypath = "";
-    private static String ziplibrarypath = "";
     private final ArrayList<JProgressBar> jProgressBars = new ArrayList<>();
-    private char[] passwd; //if user chooses to type their password to install dependencies, it will be wiped immediately
+    private char[] passwd; //if user chooses to type their password to install dependencies, it will be forgotten immediately after for security
     private ProcessBuilder builder = new ProcessBuilder();
     private Process process;
     BibleGetIO.StreamGobbler streamGobbler;
@@ -661,90 +660,25 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                     int totalFilesToCopy = 69;
                     int currentTotalCopied = 0;
                     Double progress;
-                    String[] JCEFfiles = null;
-                    String[] JCEFswiftshaderFiles = null;
-                    if(SystemUtils.IS_OS_WINDOWS){
-                        nativelibrarypath = "/AppData/Roaming/BibleGetOpenOfficePlugin/JCEF";
-                        ziplibrarypath = "win32";
-                        JCEFfiles = new String[]{
-                            "cef.pak",
-                            "cef_100_percent.pak",
-                            "cef_200_percent.pak",
-                            "cef_extensions.pak",
-                            "chrome_elf.dll",
-                            "d3dcompiler_47.dll",
-                            "devtools_resources.pak",
-                            "icudtl.dat",
-                            "jcef.dll",
-                            "jcef_helper.exe",
-                            "libEGL.dll",
-                            "libGLESv2.dll",
-                            "libcef.dll",
-                            "snapshot_blob.bin",
-                            "v8_context_snapshot.bin"
-                        };
-                        JCEFswiftshaderFiles = new String[]{
-                            "libEGL.dll",
-                            "libGLESv2.dll"
-                        };
-                    }
-                    else if(SystemUtils.IS_OS_LINUX){
-                        nativelibrarypath = "/.BibleGetOpenOfficePlugin/JCEF";
-                        switch(System.getProperty("sun.arch.data.model")){
-                            case "64":
-                                ziplibrarypath = "linux64";
-                                break;
-                            case "32":
-                                ziplibrarypath = "linux32";
-                                break;
-                        }
-                        JCEFfiles = new String[]{
-                            "cef.pak",
-                            "cef_100_percent.pak",
-                            "cef_200_percent.pak",
-                            "cef_extensions.pak",
-                            "chrome-sandbox",
-                            "devtools_resources.pak",
-                            "icudtl.dat",
-                            "jcef_helper",
-                            "libcef.so",
-                            "libEGL.so",
-                            "libGLESv2.so",
-                            "libjcef.so",
-                            "snapshot_blob.bin",
-                            "v8_context_snapshot.bin"
-                        };
-                        JCEFswiftshaderFiles = new String[]{
-                            "libEGL.so",
-                            "libGLESv2.so"
-                        };
-                    }
-                    else if(SystemUtils.IS_OS_MAC_OSX){
-                        nativelibrarypath = "/Library/BibleGetOpenOfficePlugin/jcef_app.app";
-                        ziplibrarypath = "java-cef-build-bin/bin/jcef_app.app"; //(??? double check how macOS is supposed to work)
-                    }
-
-                    nativelibrarypath = System.getProperty("user.home") + nativelibrarypath;
-
-
+                    
                     if(SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_WINDOWS){
 
                         //first let's check if the JCEF directory exists in the user's home under our BibleGetOpenOfficePlugin directory
                         //and if not, we create it
-                        Path JCEFpath = Paths.get(nativelibrarypath);
+                        Path JCEFpath = Paths.get(BibleGetIO.nativelibrarypath);
                         if(Files.notExists(JCEFpath)){
-                            File jcefDirectory = new File(nativelibrarypath);
+                            File jcefDirectory = new File(BibleGetIO.nativelibrarypath);
                             jcefDirectory.mkdirs();
                             jTextAreaCopying.append("Creating directory " + JCEFpath.toString() + "...\n");
                         }
 
                         String tempDir = System.getProperty("java.io.tmpdir");
                         //check if the necessary files exist in the user.path BibleGetIOOpenOffice/JCEF folder
-                        if(JCEFfiles != null){
-                            for(String fileName : JCEFfiles ){
-                                Path filePath = Paths.get(nativelibrarypath, fileName);
+                        if(BibleGetIO.JCEFfiles != null){
+                            for(String fileName : BibleGetIO.JCEFfiles ){
+                                Path filePath = Paths.get(BibleGetIO.nativelibrarypath, fileName);
                                 if(Files.notExists(filePath) ){
-                                    Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, fileName);
+                                    Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", BibleGetIO.ziplibrarypath, fileName);
                                     if(Files.notExists(tempFilePath)){
                                         //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
                                         BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
@@ -771,75 +705,18 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
 
                         //check if the 'locales' subfolder exists in the user.path BibleGetIOOpenOffice/JCEF folder
                         //and if not create it
-                        Path JCEFlocalespath = Paths.get(nativelibrarypath, "locales");
+                        Path JCEFlocalespath = Paths.get(BibleGetIO.nativelibrarypath, "locales");
                         if(Files.notExists(JCEFlocalespath) ){
-                            File jcefLocalesDir = new File(nativelibrarypath, "locales");
+                            File jcefLocalesDir = new File(BibleGetIO.nativelibrarypath, "locales");
                             jcefLocalesDir.mkdir();
                             jTextAreaCopying.append("Creating directory " + JCEFlocalespath.toString() + "...\n");
                         }
 
-                        //Define the files that should be in the 'locales' subfolder
-                        String[] JCEFlocaleFiles = new String[]{
-                            "am.pak",
-                            "ar.pak",
-                            "bg.pak",
-                            "bn.pak",
-                            "ca.pak",
-                            "cs.pak",
-                            "da.pak",
-                            "de.pak",
-                            "el.pak",
-                            "en-GB.pak",
-                            "en-US.pak",
-                            "es-419.pak",
-                            "es.pak",
-                            "et.pak",
-                            "fa.pak",
-                            "fi.pak",
-                            "fil.pak",
-                            "fr.pak",
-                            "gu.pak",
-                            "he.pak",
-                            "hi.pak",
-                            "hr.pak",
-                            "hu.pak",
-                            "id.pak",
-                            "it.pak",
-                            "ja.pak",
-                            "kn.pak",
-                            "ko.pak",
-                            "lt.pak",
-                            "lv.pak",
-                            "ml.pak",
-                            "mr.pak",
-                            "ms.pak",
-                            "nb.pak",
-                            "nl.pak",
-                            "pl.pak",
-                            "pt-BR.pak",
-                            "pt-PT.pak",
-                            "ro.pak",
-                            "ru.pak",
-                            "sk.pak",
-                            "sl.pak",
-                            "sr.pak",
-                            "sv.pak",
-                            "sw.pak",
-                            "ta.pak",
-                            "te.pak",
-                            "th.pak",
-                            "tr.pak",
-                            "uk.pak",
-                            "vi.pak",
-                            "zh-CN.pak",
-                            "zh-TW.pak"
-                        };
-
                         //check if the necessary files exist in the 'locales' subfolder of the user.path BibleGetIOOpenOffice/JCEF folder
-                        for(String fileName : JCEFlocaleFiles ){
-                            Path filePath = Paths.get(nativelibrarypath, "locales", fileName);
+                        for(String fileName : BibleGetIO.JCEFlocaleFiles ){
+                            Path filePath = Paths.get(BibleGetIO.nativelibrarypath, "locales", fileName);
                             if(Files.notExists(filePath) ){
-                                Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "locales", fileName);
+                                Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", BibleGetIO.ziplibrarypath, "locales", fileName);
                                 if(Files.notExists(tempFilePath)){
                                     //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
                                     BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
@@ -863,19 +740,19 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
 
                         //check if the 'swiftshader' subfolder exists in the user.path BibleGetIOOpenOffice/JCEF folder
                         //and if not create it
-                        Path JCEFswshaderpath = Paths.get(nativelibrarypath, "swiftshader");
+                        Path JCEFswshaderpath = Paths.get(BibleGetIO.nativelibrarypath, "swiftshader");
                         if(Files.notExists(JCEFswshaderpath) ){
-                            File jcefSwShaderDir = new File(nativelibrarypath, "swiftshader");
+                            File jcefSwShaderDir = new File(BibleGetIO.nativelibrarypath, "swiftshader");
                             jcefSwShaderDir.mkdir();
                             jTextAreaCopying.append("Creating directory " + JCEFswshaderpath.toString() + "...\n");
                         }
 
                         //check if the necessary files exist in the 'swiftshader subfolder
-                        if(JCEFswiftshaderFiles != null){
-                            for(String fileName : JCEFswiftshaderFiles ){
-                                Path filePath = Paths.get(nativelibrarypath, "swiftshader", fileName);
+                        if(BibleGetIO.JCEFswiftshaderFiles != null){
+                            for(String fileName : BibleGetIO.JCEFswiftshaderFiles ){
+                                Path filePath = Paths.get(BibleGetIO.nativelibrarypath, "swiftshader", fileName);
                                 if(Files.notExists(filePath) ){
-                                    Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "swiftshader", fileName);
+                                    Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", BibleGetIO.ziplibrarypath, "swiftshader", fileName);
                                     if(Files.notExists(tempFilePath)){
                                         //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
                                         BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
@@ -904,7 +781,7 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
 
                         //first let's check if the JCEF directory exists in the user's home under our BibleGetOpenOfficePlugin directory
                         //and if not, we create it
-                        Path JCEFpath = Paths.get(nativelibrarypath);
+                        Path JCEFpath = Paths.get(BibleGetIO.nativelibrarypath);
                         if(Files.notExists(JCEFpath)){
                             //File jcefDirectory = new File(nativelibrarypath);
                             //jcefDirectory.mkdirs();
@@ -917,96 +794,142 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                     if (SystemUtils.IS_OS_LINUX) {
                         System.out.println("Now copying shell script from jar to disk...");
                         Path outFile = Paths.get(System.getProperty("user.home"),".BibleGetOpenOfficePlugin","firstinstall.sh");
-                        String systemUser = System.getProperty("user.name");
-                        FileWriter writer = new FileWriter(outFile.toFile());
-                        BufferedWriter bf = new BufferedWriter(writer);
-                        bf.write("apt-get update && apt-get install gconf-service libasound2 libatk1.0-0 libatk-bridge2.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgbm-dev libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxcursor-dev libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils");
-                        bf.newLine();
-                        bf.write(String.format("echo \"export LD_LIBRARY_PATH=~/.BibleGetOpenOfficePlugin/JCEF\" | sudo -u %s tee -a ~/.bashrc",systemUser) );
-                        bf.newLine();
-                        bf.write(String.format("echo \"export LD_PRELOAD=libcef.so\" | sudo -u %s tee -a ~/.bashrc",systemUser));
-                        bf.newLine();
-                        bf.close();
+                        //String systemUser = System.getProperty("user.name");
+                        if(BibleGetIO.sofficeLaunch == null || BibleGetIO.sofficeLaunch.isEmpty() ){
+                            try {
+                                ProcessBuilder builder = new ProcessBuilder();
+                                builder.command("/bin/bash","-c","which soffice");
+                                Process process = builder.start();
+                                BibleGetIO.StreamGobbler streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), BibleGetIO::getLauncherPath);
+                                Executors.newSingleThreadExecutor().submit(streamGobbler);
+                                int exitCode = process.waitFor();
+                                if(exitCode == 0){
+                                    Thread.sleep(10);
+                                    //we have the path to the soffice launcher, which is probably a symlink
+                                    System.out.println("soffice launch file = " + BibleGetIO.sofficeLaunch);
+                                } else {
+                                    System.out.println("BibleGetFirstInstallFrame: COPYJCEF: could not get detect soffice launch file");
+                                }
+                            } catch (IOException | InterruptedException ex) {
+                                Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        
+                        }
+                        System.out.println("value of BibleGetIO.sofficeLaunch = " + BibleGetIO.sofficeLaunch);
+                        try (FileWriter writer = new FileWriter(outFile.toFile()); BufferedWriter bf = new BufferedWriter(writer)) {
+                            bf.write("#!/bin/bash");
+                            bf.newLine();
+                            bf.write("apt-get update && apt-get install " + String.join(" ", BibleGetIO.sysPkgsNeeded) );
+                            bf.newLine();
+                            bf.write("ln -sfn ~/.BibleGetOpenOfficePlugin/launch.sh " + BibleGetIO.sofficeLaunch.substring(1) );
+                            bf.newLine();
+                            //bf.write(String.format("echo \"export LD_LIBRARY_PATH=~/.BibleGetOpenOfficePlugin/JCEF\" | sudo -u %s tee -a ~/.bashrc",systemUser) );
+                            //bf.newLine();
+                            //bf.write(String.format("echo \"export LD_PRELOAD=libcef.so\" | sudo -u %s tee -a ~/.bashrc",systemUser));
+                            //bf.newLine();
+                            bf.close();
+                        }
                         if(Files.exists(outFile)){
                             jTextAreaCopying.append("firstinstall.sh created successfully in user folder");
                             jTextAreaCopying.append(System.lineSeparator());
                         } else {
                             System.out.println("Houston we have a problem. firstinstall.sh was not created in the user folder.");
                         }
-                        
-                    }
-                    
-                    builder.directory(Paths.get(nativelibrarypath).toFile());
-                    builder.command("/bin/bash","-c","chmod +x jcef_helper; chmod +x chrome-sandbox; chmod +x ../firstinstall.sh");
-                    process = builder.start();
-                    streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), System.out::println);
-                    Executors.newSingleThreadExecutor().submit(streamGobbler);
-                    int exitCode = process.waitFor();
-                    if(exitCode == 0){
-                        jTextAreaCopying.append("Making jcef_helper and chrome-sandbox files executable: SUCCESS!");
-                        BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFCOPIED;
-                        jLabelCopying.setIcon(checkmarkIco);
-                    } else {
-                        jTextAreaCopying.append("Making jcef_helper and chrome-sandbox files executable: ERROR");
-                        //maybe but just maybe they exist and are already executable? let's check
-                        if(Files.exists(Paths.get(nativelibrarypath,"jcef_helper")) && Files.exists(Paths.get(nativelibrarypath,"chrome-sandbox"))){
-                            if(Files.isExecutable(Paths.get(nativelibrarypath,"jcef_helper")) && Files.isExecutable(Paths.get(nativelibrarypath,"chrome-sandbox")) ){
-                                jTextAreaCopying.append("Making jcef_helper and chrome-sandbox files executable: SUCCESS!");
-                                BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFCOPIED;
-                                jLabelCopying.setIcon(checkmarkIco);                                
+                        //we have to make sure we don't overwrite a good launch file with the wrong values, let's check if it doesn't already exist
+                        Path outFile2 = Paths.get(System.getProperty("user.home"),".BibleGetOpenOfficePlugin","launch.sh");
+                        if( Files.exists(outFile2) ){
+                            jTextAreaCopying.append("launch.sh seems to exist already? not writing");
+                            jTextAreaCopying.append(System.lineSeparator());
+                            System.out.println("this is so strange, why does it exist?");
+                        } else {
+                            try (FileWriter writer = new FileWriter(outFile2.toFile()); BufferedWriter bf = new BufferedWriter(writer)) {
+                                bf.write("#!/bin/bash");
+                                bf.newLine();
+                                bf.write("LD_LIBRARY_PATH=~/.BibleGetOpenOfficePlugin/JCEF LD_PRELOAD=~/.BibleGetOpenOfficePlugin/JCEF/libcef.so " + BibleGetIO.sofficeLaunchSymlink + " &" );
+                                bf.newLine();
+                                bf.close();
+                                if(Files.exists(outFile2)){
+                                    jTextAreaCopying.append("launch.sh created successfully in user folder");
+                                    jTextAreaCopying.append(System.lineSeparator());
+                                } else {
+                                    System.out.println("Houston we have a problem. launch.sh was not created in the user folder.");
+                                }
                             }
                         }
-                        jLabelCopying.setIcon(xmarkIco);
-                    }
                     
-                    //System.out.println(exitCode == 0 ? "process was successful" : "process was not successful");
+                        builder.directory(Paths.get(BibleGetIO.nativelibrarypath).toFile());
+                        builder.command("/bin/bash","-c","chmod +x jcef_helper; chmod +x chrome-sandbox; chmod +x ../firstinstall.sh; chmod +x ../launch.sh");
+                        process = builder.start();
+                        streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), System.out::println);
+                        Executors.newSingleThreadExecutor().submit(streamGobbler);
+                        int exitCode = process.waitFor();
+                        if(exitCode == 0){
+                            jTextAreaCopying.append("Making jcef_helper, chrome-sandbox, and launch.sh files executable: SUCCESS!");
+                        } else {
+                            jTextAreaCopying.append("Making jcef_helper, chrome-sandbox, and launch.sh files executable: ERROR");
+                        }
+                        //the real test is whether the files actually exist and are executable
+                        if(Files.exists(Paths.get(BibleGetIO.nativelibrarypath,"jcef_helper")) && Files.exists(Paths.get(BibleGetIO.nativelibrarypath,"chrome-sandbox")) && Files.exists(Paths.get(System.getProperty("user.home"),".BibleGetOpenOfficePlugin","launch.sh")) ){
+                            if(Files.isExecutable(Paths.get(BibleGetIO.nativelibrarypath,"jcef_helper")) && Files.isExecutable(Paths.get(BibleGetIO.nativelibrarypath,"chrome-sandbox")) && Files.isExecutable(Paths.get(System.getProperty("user.home"),".BibleGetOpenOfficePlugin","launch.sh")) ){
+                                jTextAreaCopying.append(System.lineSeparator());
+                                jTextAreaCopying.append("jcef_helper, chrome-sandbox, and launch.sh files are confirmed executable");
+                                BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFCOPIED;
+                                jLabelCopying.setIcon(checkmarkIco);                                
+                            } else {
+                                jLabelCopying.setIcon(xmarkIco);
+                            }
+                        } else {
+                            jLabelCopying.setIcon(xmarkIco);
+                        }
+                        
+                    }
                     
                     break;
                 case "INSTALLDEPENDENCIES":
                     publish(25);
-                    builder.command("/bin/bash","-c","echo " + new String(passwd) + "| sudo -S apt-get update && sudo -S apt-get install -y gconf-service libasound2 libatk1.0-0 libatk-bridge2.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgbm-dev libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxcursor-dev libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils");
-                    process = builder.start();
-                    streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), jTextAreaInstalling::append);
-                    Executors.newSingleThreadExecutor().submit(streamGobbler);
-                    int exitCode1 = process.waitFor();
-                    if(exitCode1 == 0){
-                        publish(75);
-                        jTextAreaInstalling.append("Packages installed: SUCCESS!");
-                        //builder.command("/bin/bash","-c","echo " + new String(passwd) + "| sudo -S cp /usr/lib/x86_64-linux-gnu/libnss3.so /opt/openoffice4/program/libnss3.so && sudo -S cp /usr/lib/x86_64-linux-gnu/libnssutil3.so /opt/openoffice4/program/libnssutil3.so");
-                        //process = builder.start();
-                        //Executors.newSingleThreadExecutor().submit(streamGobbler);
-                        //int exitCode2 = process.waitFor();
-                        //if(exitCode2 == 0){
+                    if(BibleGetIO.sysPkgsNeeded.size() > 0){
+                        builder.command("/bin/bash","-c","echo " + new String(passwd) + "| sudo -S apt-get update && sudo -S apt-get install -y " + String.join(" ", BibleGetIO.sysPkgsNeeded) );
+                        process = builder.start();
+                        streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), jTextAreaInstalling::append, true);
+                        Executors.newSingleThreadExecutor().submit(streamGobbler);
+                        int exitCode1 = process.waitFor();
+                        if(exitCode1 == 0){
+                            publish(75);
+                            jTextAreaInstalling.append("Packages installed: SUCCESS!");
                             publish(100);
-                            //jTextAreaInstalling.append("libnss3.so and libnssutil3.so copied successfully to /opt/openoffice4/program\n");
                             jLabelInstalling.setIcon(checkmarkIco);
                             BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFDEPENDENCIES;
-                        //} else {
-                        //    jLabelInstalling.setIcon(xmarkIco);
-                        //}
+                        } else {
+                            jTextAreaInstalling.append("Packages installed: ERROR");
+                            jLabelInstalling.setIcon(xmarkIco);
+                        }
                     } else {
-                        jTextAreaInstalling.append("Packages installed: ERROR");
-                        jLabelInstalling.setIcon(xmarkIco);
+                        jTextAreaInstalling.append("Packages seem to have already been installed, skipping...");
+                        publish(100);
+                        jLabelInstalling.setIcon(checkmarkIco);
+                        BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFDEPENDENCIES;                        
                     }
-                    passwd = null;
                     break;
                 case "PREPAREENV":
                     publish(50);
-                    builder.directory(Paths.get(System.getProperty("user.home")).toFile());
-                    builder.command("/bin/bash","-c","echo \"export LD_LIBRARY_PATH=~/.BibleGetOpenOfficePlugin/JCEF\" >> .bashrc; echo \"export LD_PRELOAD=libcef.so\" >> .bashrc;");
+                    String command = "echo " + new String(passwd) + "| sudo -S ln -sfn " + System.getProperty("user.home").substring(1) + "/.BibleGetOpenOfficePlugin/launch.sh " + BibleGetIO.sofficeLaunch.substring(1);
+                    System.out.println("attempting to run command:");
+                    System.out.println(command);
+                    builder.command("/bin/bash","-c", command);
                     process = builder.start();
-                    streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), System.out::println);
+                    streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), jTextAreaInstalling::append, true);
                     Executors.newSingleThreadExecutor().submit(streamGobbler);
-                    int exitCode3 = process.waitFor();
-                    if(exitCode3 == 0){
-                        publish(100);
-                        jTextAreaPreparing.append("Environment variables LD_LIBRARY_PATH and LD_PRELOAD have been set in user bash profile \n");
+                    int exitCode2 = process.waitFor();
+                    if(exitCode2 == 0){
+                        publish(50);
+                        jTextAreaPreparing.append("soffice symlink updated: SUCCESS!");
                         jLabelPreparing.setIcon(checkmarkIco);
                         BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFENVREADY;
                     } else {
+                        jTextAreaPreparing.append("soffice symlink updated: ERROR");
                         jLabelPreparing.setIcon(xmarkIco);
                     }
-                    
+                    passwd = null;
                     break;
             }
             return null;

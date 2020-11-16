@@ -106,44 +106,44 @@ public class Preferences {
         }
         switch(tree.getValueType()) {
             case OBJECT:
-                System.out.println("OBJECT");
+                //System.out.println("OBJECT");
                 JsonObject object = (JsonObject) tree;
                 for (String name : object.keySet())
                    navigateTree(object.get(name), name);
                 break;
             case ARRAY:
-                System.out.println("ARRAY");
+                //System.out.println("ARRAY");
                 JsonArray array = (JsonArray) tree;
                 for (JsonValue val : array)
                    navigateTree(val, null);
                 break;
             case STRING:
                 JsonString st = (JsonString) tree;
-                System.out.println("key " + key + " | STRING " + st.getString());
+                //System.out.println("key " + key + " | STRING " + st.getString());
                 getStringOption(key,st.getString());
                 break;
             case NUMBER:
                 JsonNumber num = (JsonNumber) tree;
-                System.out.println("key " + key + " | NUMBER " + num.toString());
+                //System.out.println("key " + key + " | NUMBER " + num.toString());
                 
                 if(num.isIntegral()){ //num.toString().contains(".") || num.toString().contains(",")
-                    System.out.println(key + " is an integer");
+                    //System.out.println(key + " is an integer");
                     getNumberOption(key,num.intValue());
                 } else {
-                    System.out.println(key + " is a double");
+                    //System.out.println(key + " is a double");
                     getNumberOption(key,num.doubleValue());
                 }
                 break;
             case TRUE:
                 getBooleanOption(key,true);
-                System.out.println("key " + key + " | BOOLEAN " + tree.getValueType().toString());
+                //System.out.println("key " + key + " | BOOLEAN " + tree.getValueType().toString());
                 break;
             case FALSE:
                 getBooleanOption(key,false);
-                System.out.println("key " + key + " | BOOLEAN " + tree.getValueType().toString());
+                //System.out.println("key " + key + " | BOOLEAN " + tree.getValueType().toString());
                 break;
             case NULL:
-                System.out.println("key " + key + " | NULL " + tree.getValueType().toString());
+                //System.out.println("key " + key + " | NULL " + tree.getValueType().toString());
                 break;
         }
     }

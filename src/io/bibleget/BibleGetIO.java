@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
@@ -39,7 +40,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -94,9 +99,16 @@ public final class BibleGetIO extends WeakBase
 
     private static CefApp cefApp;
     public static CefClient client;
-    public static BGET.ADDONSTATE ADDONSTATE = BGET.ADDONSTATE.JCEFENVREADY; //BGET.ADDONSTATE.JCEFDOWNLOADED; //uninitialized until proved otherwise
+    public static BGET.ADDONSTATE ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED; //uninitialized until proved otherwise
     public static String nativelibrarypath = "";
     public static String ziplibrarypath = "";
+    public static String[] JCEFfiles = null;
+    public static String[] JCEFswiftshaderFiles = null;
+    public static String[] JCEFlocaleFiles = null;
+    private static boolean depsInstalled = true;
+    public static String sofficeLaunch = "";
+    public static String sofficeLaunchSymlink = "";
+    public static List<String> sysPkgsNeeded;
     
     private static BibleGetIO instance;
     
@@ -603,21 +615,21 @@ public final class BibleGetIO extends WeakBase
                     Locale.setDefault(BibleGetIO.uiLocale);
                     //instance.myMessages = BibleGetI18N.getMessages();
                     
-                    try{
-                        BibleGetIO.setNativeLibraryDir();
-                    } catch (InvocationTargetException ex){
-                        System.out.println( ex.getCause() );
-                    }
-                    /*
-                    Map<String,String> envVars = System.getenv();                
-                    envVars.entrySet().forEach((envVar) -> {
-                        System.out.println(envVar.getKey() + " = " + envVar.getValue());
-                    });
-                    */
                     
                     BibleGetIO.biblegetDB = DBHelper.getInstance();
                     if(BibleGetIO.biblegetDB != null){ 
                         
+                        try{
+                            BibleGetIO.setNativeLibraryDir();
+                        } catch (InvocationTargetException ex){
+                            System.out.println( ex.getCause() );
+                        }
+                        /*
+                        Map<String,String> envVars = System.getenv();                
+                        envVars.entrySet().forEach((envVar) -> {
+                            System.out.println(envVar.getKey() + " = " + envVar.getValue());
+                        });
+                        */
                         //Check from the database if this is a fresh install. 
                         //If it is, don't try to instantiate the JCEF component because it still needs to be installed
                         //this will happen as soon as the user opens the Search for Verses menu item or the Preferences menu item
@@ -668,7 +680,7 @@ public final class BibleGetIO extends WeakBase
                             if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFENVREADY){
                                 System.out.println("JCEF startup initialization failed!");
                             } else{
-                                System.out.println("Not starting JCEF since this is the first install run.");
+                                System.out.println("Not starting JCEF since this the installation is not yet complete.");
                             }
                         }
                         
@@ -760,114 +772,139 @@ public final class BibleGetIO extends WeakBase
     }
     
     private static void setNativeLibraryDir() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException, IOException, InvocationTargetException, InterruptedException {
-        String[] JCEFfiles = null;
-        String[] JCEFswiftshaderFiles = null;
+        System.out.println("setNativeLibraryDir() starting...");
         if(SystemUtils.IS_OS_WINDOWS){
-            nativelibrarypath = "/AppData/Roaming/BibleGetOpenOfficePlugin/JCEF";
-            ziplibrarypath = "win32";
-            JCEFfiles = new String[]{
-                "cef.pak",
-                "cef_100_percent.pak",
-                "cef_200_percent.pak",
-                "cef_extensions.pak",
-                "chrome_elf.dll",
-                "d3dcompiler_47.dll",
-                "devtools_resources.pak",
-                "icudtl.dat",
-                "jcef.dll",
-                "jcef_helper.exe",
-                "libEGL.dll",
-                "libGLESv2.dll",
-                "libcef.dll",
-                "snapshot_blob.bin",
-                "v8_context_snapshot.bin"
-            };
-            JCEFswiftshaderFiles = new String[]{
-                "libEGL.dll",
-                "libGLESv2.dll"
-            };
+            BibleGetIO.nativelibrarypath = "/AppData/Roaming/BibleGetOpenOfficePlugin/JCEF";
         }
         else if(SystemUtils.IS_OS_LINUX){
-            nativelibrarypath = "/.BibleGetOpenOfficePlugin/JCEF";
-            switch(System.getProperty("sun.arch.data.model")){
-                case "64":
-                    ziplibrarypath = "linux64";
-                    break;
-                case "32":
-                    ziplibrarypath = "linux32";
-                    break;
-            }
-            JCEFfiles = new String[]{
-                "cef.pak",
-                "cef_100_percent.pak",
-                "cef_200_percent.pak",
-                "cef_extensions.pak",
-                "chrome-sandbox",
-                "devtools_resources.pak",
-                "icudtl.dat",
-                "jcef_helper",
-                "libcef.so",
-                "libEGL.so",
-                "libGLESv2.so",
-                "libjcef.so",
-                "snapshot_blob.bin",
-                "v8_context_snapshot.bin"
-            };
-            JCEFswiftshaderFiles = new String[]{
-                "libEGL.so",
-                "libGLESv2.so"
-            };
+            BibleGetIO.nativelibrarypath = "/.BibleGetOpenOfficePlugin/JCEF";
         }
         else if(SystemUtils.IS_OS_MAC_OSX){
-            nativelibrarypath = "/Library/BibleGetOpenOfficePlugin/jcef_app.app";
-            ziplibrarypath = "java-cef-build-bin/bin/jcef_app.app"; //(??? double check how macOS is supposed to work)
+            BibleGetIO.nativelibrarypath = "/Library/BibleGetOpenOfficePlugin/jcef_app.app";
+            BibleGetIO.ziplibrarypath = "java-cef-build-bin/bin/jcef_app.app"; //(??? double check how macOS is supposed to work)
         }
         
-        nativelibrarypath = System.getProperty("user.home") + nativelibrarypath;
-        
-        
-        if(SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_WINDOWS){
+        BibleGetIO.nativelibrarypath = System.getProperty("user.home") + BibleGetIO.nativelibrarypath;
+        System.out.println("nativelibrarypath = " + nativelibrarypath);
+        //before we proceed, we need to verify the initialization state of the JCEF component
 
-            //first let's check if the JCEF directory exists in the user's home under our BibleGetOpenOfficePlugin directory
-            //and if not, we create it
-            Path JCEFpath = Paths.get(nativelibrarypath);
-            if(Files.notExists(JCEFpath)){
-                File jcefDirectory = new File(nativelibrarypath);
-                jcefDirectory.mkdirs();
-            }
+        String[] sysPkgsArr = {"gconf-service","libasound2","libatk1.0-0","libatk-bridge2.0-0","libc6","libcairo2","libcups2","libdbus-1-3","libexpat1","libfontconfig1","libgcc1","libgconf-2-4","libgdk-pixbuf2.0-0","libglib2.0-0","libgbm-dev","libgtk-3-0","libnspr4","libpango-1.0-0","libpangocairo-1.0-0","libstdc++6","libx11-6","libx11-xcb1","libxcb1","libxcomposite1","libxcursor1","libxcursor-dev","libxdamage1","libxext6","libxfixes3","libxi6","libxrandr2","libxrender1","libxss1","libxtst6","ca-certificates","fonts-liberation","libappindicator1","libnss3","lsb-release","xdg-utils"};
+        BibleGetIO.sysPkgsNeeded = Arrays.asList(sysPkgsArr);
         
-            String tempDir = System.getProperty("java.io.tmpdir");
-            //check if the necessary files exist in the user.path BibleGetIOOpenOffice/JCEF folder
-            if(JCEFfiles != null){
-                for(String fileName : JCEFfiles ){
-                    Path filePath = Paths.get(nativelibrarypath, fileName);
-                    if(Files.notExists(filePath) ){
-                        Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, fileName);
-                        if(Files.notExists(tempFilePath)){
-                            //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
-                            BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
-                        }
-                        //now we can copy the missing file from the tempDir
-                        //TODO: move this to BibleGetFirstInstallFrame.java
-                        if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFDOWNLOADED){
-                            Files.copy(tempFilePath,filePath);
-                        }
+        System.out.println("setNativeLibraryDir : will now proceed to checkJCEFisReady...");
+        BibleGetIO.checkJCEFisReady();
+        
+        if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFENVREADY){
+            if(JAVAVERSION == 8){
+
+                final Field usrPathsField = ClassLoader.class.getDeclaredField("usr_paths");
+                usrPathsField.setAccessible(true);
+                //get array of paths
+                final String[] paths = (String[])usrPathsField.get(null);
+                System.out.println("Java version is 8 and usr_paths at start of runtime = " + String.join(File.separator, paths) );
+                //check if the path to add is already present
+                for(String path : paths) {
+                    if(path.equals(nativelibrarypath)) {
+                        return;
                     }
                 }
-            } else {
-                Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, "setNativeLibraryDir() : We were not able to determine the correct folder structure for this system in order to ensure the correct functioning of the Chrome Embedded Framework.");
+                System.out.println(nativelibrarypath + " was not among the usr_paths, now trying to add it..." );
+                //add the new path
+                final String[] newPaths = Arrays.copyOf(paths, paths.length + 1);
+                newPaths[newPaths.length-1] = nativelibrarypath;
+                System.setProperty("java.library.path", String.join(";", newPaths) );
+                usrPathsField.set(null, newPaths);
+                final String[] paths2 = (String[])usrPathsField.get(null);
+                System.out.println("usr_paths is now = " + String.join(";", paths2) );
+            } else if (JAVAVERSION >= 9){
+                try {
+                    Lookup cl = MethodHandles.privateLookupIn(ClassLoader.class, MethodHandles.lookup());
+                    VarHandle usr_paths = cl.findStaticVarHandle(ClassLoader.class, "usr_paths", String[].class);
+
+                    final String[] paths = (String[]) usr_paths.get();
+                    System.out.println("Java version is >= 9 and usr_paths at start of runtime = " + String.join(File.pathSeparator, paths) );
+                    for(String path : paths) {
+                        if(path.equals(nativelibrarypath)) {
+                            return;
+                        }
+                    }
+                    System.out.println(nativelibrarypath + " was not among the usr_paths, now trying to add it..." );
+                    //add the new path
+                    final String[] newPaths = Arrays.copyOf(paths, paths.length + 1);
+                    newPaths[newPaths.length-1] = nativelibrarypath;
+                    System.setProperty("java.library.path", String.join(File.pathSeparator, newPaths) );
+                    usr_paths.set(newPaths);
+                    final String[] paths2 = (String[]) usr_paths.get();
+                    System.out.println("usr_paths is now = " + String.join(File.pathSeparator, paths2) );
+                    System.out.println("java.library.path is now = " + System.getProperty("java.library.path") );
+                } catch(ReflectiveOperationException e){
+                    System.out.println("If you're seeing this, should you be worried? Native libs are not made available?");
+                }
             }
+        }
+    }
+    
+    private static void checkJCEFisReady(){
+        System.out.println("entered checkJCEFisReady()");
+        boolean continueChecking = true;
+        if(SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_WINDOWS){
             
-            //check if the 'locales' subfolder exists in the user.path BibleGetIOOpenOffice/JCEF folder
-            //and if not create it
-            Path JCEFlocalespath = Paths.get(nativelibrarypath, "locales");
-            if(Files.notExists(JCEFlocalespath) ){
-                File jcefLocalesDir = new File(nativelibrarypath, "locales");
-                jcefLocalesDir.mkdir();
+            if(SystemUtils.IS_OS_WINDOWS){
+                BibleGetIO.ziplibrarypath = "win32";
+                BibleGetIO.JCEFfiles = new String[]{
+                    "cef.pak",
+                    "cef_100_percent.pak",
+                    "cef_200_percent.pak",
+                    "cef_extensions.pak",
+                    "chrome_elf.dll",
+                    "d3dcompiler_47.dll",
+                    "devtools_resources.pak",
+                    "icudtl.dat",
+                    "jcef.dll",
+                    "jcef_helper.exe",
+                    "libEGL.dll",
+                    "libGLESv2.dll",
+                    "libcef.dll",
+                    "snapshot_blob.bin",
+                    "v8_context_snapshot.bin"
+                };
+                BibleGetIO.JCEFswiftshaderFiles = new String[]{
+                    "libEGL.dll",
+                    "libGLESv2.dll"
+                };
+            } else if(SystemUtils.IS_OS_LINUX){
+                switch(System.getProperty("sun.arch.data.model")){
+                    case "64":
+                        BibleGetIO.ziplibrarypath = "linux64";
+                        break;
+                    case "32":
+                        BibleGetIO.ziplibrarypath = "linux32";
+                        break;
+                }
+                BibleGetIO.JCEFfiles = new String[]{
+                    "cef.pak",
+                    "cef_100_percent.pak",
+                    "cef_200_percent.pak",
+                    "cef_extensions.pak",
+                    "chrome-sandbox",
+                    "devtools_resources.pak",
+                    "icudtl.dat",
+                    "jcef_helper",
+                    "libcef.so",
+                    "libEGL.so",
+                    "libGLESv2.so",
+                    "libjcef.so",
+                    "snapshot_blob.bin",
+                    "v8_context_snapshot.bin"
+                };
+                BibleGetIO.JCEFswiftshaderFiles = new String[]{
+                    "libEGL.so",
+                    "libGLESv2.so"
+                };
             }
-            
-            //Define the files that should be in the 'locales' subfolder
-            String[] JCEFlocaleFiles = new String[]{
+
+            //Define the files that should be in the 'locales' subfolder on Linux and Windows
+            JCEFlocaleFiles = new String[]{
                 "am.pak",
                 "ar.pak",
                 "bg.pak",
@@ -922,52 +959,142 @@ public final class BibleGetIO extends WeakBase
                 "zh-CN.pak",
                 "zh-TW.pak"
             };
-
-            //check if the necessary files exist in the 'locales' subfolder of the user.path BibleGetIOOpenOffice/JCEF folder
-            for(String fileName : JCEFlocaleFiles ){
-                Path filePath = Paths.get(nativelibrarypath, "locales", fileName);
-                if(Files.notExists(filePath) ){
-                    Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "locales", fileName);
-                    if(Files.notExists(tempFilePath)){
-                        //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
-                        BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
-                    }
-                    //now we can copy the missing file from the tempDir
-                    //TODO: move this to BibleGetFirstInstallFrame.java
-                    if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFDOWNLOADED){
-                        Files.copy(tempFilePath,filePath);
-                    }
-                }
-            }
             
+            //first let's check if the JCEF directory exists in the user's home under our BibleGetOpenOfficePlugin directory
+            //check if the 'locales' subfolder exists in the user.path BibleGetIOOpenOffice/JCEF folder
             //check if the 'swiftshader' subfolder exists in the user.path BibleGetIOOpenOffice/JCEF folder
-            //and if not create it
-            Path JCEFswshaderpath = Paths.get(nativelibrarypath, "swiftshader");
-            if(Files.notExists(JCEFswshaderpath) ){
-                File jcefSwShaderDir = new File(nativelibrarypath, "swiftshader");
-                jcefSwShaderDir.mkdir();
-            }
+            //and if even one of these three doesn't exist, we know that ADDONSTATE is certainly not JCEFCOPIED
+            Path JCEFpath = Paths.get(BibleGetIO.nativelibrarypath);
+            Path JCEFlocalespath = Paths.get(BibleGetIO.nativelibrarypath, "locales");
+            Path JCEFswshaderpath = Paths.get(BibleGetIO.nativelibrarypath, "swiftshader");
             
-            //check if the necessary files exist in the 'swiftshader subfolder
-            if(JCEFswiftshaderFiles != null){
-                for(String fileName : JCEFswiftshaderFiles ){
-                    Path filePath = Paths.get(nativelibrarypath, "swiftshader", fileName);
-                    if(Files.notExists(filePath) ){
-                        Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "swiftshader", fileName);
-                        if(Files.notExists(tempFilePath)){
-                            //if the file doesn't even exist in the temp path then we need to download or re-download the package from github
-                            BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
-                        }
-                        //now we can copy the missing file from the tempDir
-                        //TODO: move this to BibleGetFirstInstallFrame.java
-                        if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFDOWNLOADED){
-                            Files.copy(tempFilePath,filePath);
-                        }
-                    }
+            if(Files.notExists(JCEFpath) || Files.notExists(JCEFlocalespath) || Files.notExists(JCEFswshaderpath)){
+                System.out.println("checkJCEFisReady: one of the necessary JCEF paths is not present in the user folder! Copy is not complete...");
+                BibleGetIO.biblegetDB.setAddonState("JCEFCOPIED", false);
+                continueChecking = false;
+                //so we know that JCEFCOPIED is false, what about JCEFDOWNLOADED?
+                if(BibleGetIO.checkJCEFisDownloaded()){
+                    System.out.println("checkJCEFisDownloaded returned true");
+                    BibleGetIO.biblegetDB.setAddonState("JCEFDOWNLOADED", true);
+                    BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFDOWNLOADED; // still needs to be verified, might even be unitinitialized
+                } else {
+                    System.out.println("checkJCEFisDownloaded returned false");
+                    BibleGetIO.biblegetDB.setAddonState("JCEFDOWNLOADED", false);
+                    BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
                 }
             } else {
-                Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, "setNativeLibraryDir() : We were not able to determine the correct folder structure for this system in order to ensure the correct functioning of the Chrome Embedded Framework.");
+                System.out.println("the necessary JCEF paths are present in the user home, now checking if all files are present...");
+                //if the necessary paths exist, we should still check if all the necessary JCEF files exist
+                //in the user.path BibleGetIOOpenOffice/JCEF folder
+                if(BibleGetIO.JCEFfiles != null && BibleGetIO.JCEFlocaleFiles != null && BibleGetIO.JCEFswiftshaderFiles != null){
+                    for(String fileName : BibleGetIO.JCEFfiles ){
+                        Path filePath = Paths.get(BibleGetIO.nativelibrarypath, fileName);
+                        //if even one of the files does not exist in the user path JCEF folder, then we know that state is COPIED false
+                        if(Files.notExists(filePath) ){
+                            System.out.println(filePath.toString() + " is missing, will now proceed to checkJCEFisDownloaded...");
+                            BibleGetIO.biblegetDB.setAddonState("JCEFCOPIED", false);
+                            continueChecking = false;
+                            if(BibleGetIO.checkJCEFisDownloaded()){
+                                System.out.println("checkJCEFisDownloaded returned true");
+                                BibleGetIO.biblegetDB.setAddonState("JCEFDOWNLOADED", true);
+                                BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFDOWNLOADED; // still needs to be verified, might even be unitinitialized
+                            } else {
+                                System.out.println("checkJCEFisDownloaded returned false");
+                                BibleGetIO.biblegetDB.setAddonState("JCEFDOWNLOADED", false);
+                                BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
+                            }
+                            break;
+                        }
+                    }
+                    
+                    if(continueChecking){
+                        //check if the necessary files exist in the 'locales' subfolder of the user.path BibleGetIOOpenOffice/JCEF folder
+                        for(String fileName : BibleGetIO.JCEFlocaleFiles ){
+                            Path filePath = Paths.get(BibleGetIO.nativelibrarypath, "locales", fileName);
+                            //if even one of the files does not exist in the 'locales' subfolder of the user.path BibleGetIOOpenOffice/JCEF folder,
+                            //then we know that state is JCEFCOPIED false
+                            if(Files.notExists(filePath) ){
+                                System.out.println(filePath.toString() + " is missing, will now proceed to checkJCEFisDownloaded...");
+                                BibleGetIO.biblegetDB.setAddonState("JCEFCOPIED", false);
+                                continueChecking = false;
+                                //let's check if the files are at least downloaded?
+                                if(BibleGetIO.checkJCEFisDownloaded()){
+                                    System.out.println("checkJCEFisDownloaded returned true");
+                                    BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFDOWNLOADED; // still needs to be verified, might even be unitinitialized
+                                } else {
+                                    System.out.println("checkJCEFisDownloaded returned false");
+                                    BibleGetIO.biblegetDB.setAddonState("JCEFDOWNLOADED", false);
+                                    BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if(continueChecking){
+                        //check if the necessary files exist in the 'swiftshader' subfolder
+                        for(String fileName : BibleGetIO.JCEFswiftshaderFiles ){
+                            Path filePath = Paths.get(BibleGetIO.nativelibrarypath, "swiftshader", fileName);
+                            //if even one of the files does not exist in the 'swiftshader' subfolder  of the user.path BibleGetIOOpenOffice/JCEF folder,
+                            //then we know that state is JCEFCOPIED false
+                            if(Files.notExists(filePath) ){
+                                System.out.println(filePath.toString() + " is missing, will now proceed to checkJCEFisDownloaded...");
+                                continueChecking = false;
+                                BibleGetIO.biblegetDB.setAddonState("JCEFCOPIED", false);
+                                if(BibleGetIO.checkJCEFisDownloaded()){
+                                    System.out.println("checkJCEFisDownloaded returned true");
+                                    BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFDOWNLOADED; // still needs to be verified, might even be unitinitialized
+                                } else {
+                                    System.out.println("checkJCEFisDownloaded returned false");
+                                    BibleGetIO.biblegetDB.setAddonState("JCEFDOWNLOADED", false);
+                                    BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    
+                } else {
+                    BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFUNINITIALIZED;
+                    Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, "setNativeLibraryDir() : We were not able to determine the correct folder structure for this system in order to ensure the correct functioning of the Chrome Embedded Framework.");
+                }
             }
+        
+            if(continueChecking){
+                BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFDOWNLOADED;
+                System.out.println("it seems that all necessary JCEF paths and files are present in the user home!");
+                System.out.println("BibleGetIO.ADDONSTATE is currently " + BibleGetIO.ADDONSTATE.name() );
+                //now that we are sure that the necessary files are all downloaded and copied,
+                //we need to check if the right files are executable
+                if(Files.exists(Paths.get(System.getProperty("user.home"),".BibleGetOpenOfficePlugin","launch.sh")) && Files.isExecutable(Paths.get(BibleGetIO.nativelibrarypath,"jcef_helper") ) && Files.isExecutable(Paths.get(BibleGetIO.nativelibrarypath,"chrome-sandbox") ) && Files.isExecutable(Paths.get(System.getProperty("user.home"),".BibleGetOpenOfficePlugin","launch.sh") ) ){
+                    System.out.println("all the necessary files are not only copied, but those that need to be executable are executable");
+                    BibleGetIO.biblegetDB.setAddonState("JCEFCOPIED", true);
+                    BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFCOPIED;
+                    
+                    //so far so good, let's continue checking if the necessary system packages are installed
+                    if(BibleGetIO.JCEFisSysDepsSatisfied()){
+                        System.out.println("System dependencies have all been met");
+                        BibleGetIO.biblegetDB.setAddonState("JCEFDEPENDENCIES", true);
+                        BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFDEPENDENCIES;
+                        
+                        //and now for the last check, if the correct symbolic link to launch OpenOffice is set
+                        if(BibleGetIO.JCEFisEnvReady()){
+                            BibleGetIO.biblegetDB.setAddonState("JCEFENVREADY", true);
+                            BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFENVREADY;
+                        } else {
+                            BibleGetIO.biblegetDB.setAddonState("JCEFENVREADY", false);
+                        }
+                        
+                    } else {
+                        System.out.println("Not all system dependencies have been met");
+                        BibleGetIO.biblegetDB.setAddonState("JCEFDEPENDENCIES", false);
+                    }
+                } else {
+                    System.out.println("all the necessary files are copied, but those that need to be executable are not all executable");
+                    BibleGetIO.biblegetDB.setAddonState("JCEFCOPIED", false);
+                }
+            }
+            
         } else if(SystemUtils.IS_OS_MAC_OSX){
             //basically we don't nee the TEMP storage, because the app structure is exactly the same between the zip file and the user folder
             
@@ -982,92 +1109,154 @@ public final class BibleGetIO extends WeakBase
             }
             
         }
-        
-        if(JAVAVERSION == 8){
-        
-            final Field usrPathsField = ClassLoader.class.getDeclaredField("usr_paths");
-            usrPathsField.setAccessible(true);
-            //get array of paths
-            final String[] paths = (String[])usrPathsField.get(null);
-            System.out.println("Java version is 8 and usr_paths at start of runtime = " + String.join(File.separator, paths) );
-            //check if the path to add is already present
-            for(String path : paths) {
-                if(path.equals(nativelibrarypath)) {
-                    return;
+    }
+    
+    private static Boolean checkJCEFisDownloaded(){
+        System.out.println("entering checkJCEFisDownloaded()");
+        String tempDir = System.getProperty("java.io.tmpdir");
+        if(SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_WINDOWS){
+            Path tempFilePathBase = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath);
+            Path tempFilePathLocales = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "locales");
+            Path tempFilePathSwiftshader = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "swiftshader");
+            if(Files.notExists(tempFilePathBase) || Files.notExists(tempFilePathLocales) || Files.notExists(tempFilePathSwiftshader) ){
+                return false;
+            }
+            
+            for(String fileName : BibleGetIO.JCEFfiles ){
+                Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, fileName);
+                if(Files.notExists(tempFilePath)){
+                    return false;
                 }
             }
-            System.out.println(nativelibrarypath + " was not among the usr_paths, now trying to add it..." );
-            //add the new path
-            final String[] newPaths = Arrays.copyOf(paths, paths.length + 1);
-            newPaths[newPaths.length-1] = nativelibrarypath;
-            System.setProperty("java.library.path", String.join(";", newPaths) );
-            usrPathsField.set(null, newPaths);
-            final String[] paths2 = (String[])usrPathsField.get(null);
-            System.out.println("usr_paths is now = " + String.join(";", paths2) );
-        } else if (JAVAVERSION >= 9){
-            try {
-                Lookup cl = MethodHandles.privateLookupIn(ClassLoader.class, MethodHandles.lookup());
-                VarHandle usr_paths = cl.findStaticVarHandle(ClassLoader.class, "usr_paths", String[].class);
-
-                final String[] paths = (String[]) usr_paths.get();
-                System.out.println("Java version is >= 9 and usr_paths at start of runtime = " + String.join(File.pathSeparator, paths) );
-                for(String path : paths) {
-                    if(path.equals(nativelibrarypath)) {
-                        return;
-                    }
+            
+            for(String fileName : BibleGetIO.JCEFlocaleFiles ){
+                Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "locales", fileName);
+                if(Files.notExists(tempFilePath)){
+                    return false;
                 }
-                System.out.println(nativelibrarypath + " was not among the usr_paths, now trying to add it..." );
-                //add the new path
-                final String[] newPaths = Arrays.copyOf(paths, paths.length + 1);
-                newPaths[newPaths.length-1] = nativelibrarypath;
-                System.setProperty("java.library.path", String.join(File.pathSeparator, newPaths) );
-                usr_paths.set(newPaths);
-                final String[] paths2 = (String[]) usr_paths.get();
-                System.out.println("usr_paths is now = " + String.join(File.pathSeparator, paths2) );
-                System.out.println("java.library.path is now = " + System.getProperty("java.library.path") );
-                
-                //Map<String,String> envVars = System.getenv();                
-                /* the following obviously is not working, it seems to be creating an exception... need to find another way...
-                Class processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
-                Lookup cl2 = MethodHandles.privateLookupIn(processEnvironmentClass, MethodHandles.lookup());
-                VarHandle env_vars;
-                env_vars = cl2.findStaticVarHandle(processEnvironmentClass, "theEnvironment", Map.class);
-                final Map<String,String> envVars = (Map<String,String>) env_vars.get();
-                */
-                /*
-                envVars.entrySet().forEach((envVar) -> {
-                    System.out.println(envVar.getKey() + " = " + envVar.getValue());
-                });
-                */
-                
-                // Perform startup initialization on platforms that require it.
-                /*
-                if (!CefApp.startup(null)) {
-                    System.out.println("JCEF Startup initialization failed!");
-                } else {
-                    System.out.println("JCEF startup seems to have been successful...");
+            }
+            
+            for(String fileName: BibleGetIO.JCEFswiftshaderFiles ){
+                Path tempFilePath = Paths.get(tempDir, "BibleGetJCEF", "java-cef-build-bin", "bin", "lib", ziplibrarypath, "swiftshader", fileName);
+                if(Files.notExists(tempFilePath)){
+                    return false;
                 }
-                */
-            } catch(ReflectiveOperationException e){
-                System.out.println("If you're seeing this, should you be worried? Native libs are not made available?");
             }
         }
+        return true;
+    }
+    
+    private static boolean JCEFisSysDepsSatisfied(){
+        System.out.println("entering JCEFisSysDepsSatisfied()...");
         
+        try {
+            ProcessBuilder builder = new ProcessBuilder().inheritIO();
+            String command = "apt -qq list " + String.join(" ", BibleGetIO.sysPkgsNeeded ) ;
+            System.out.println("now issuing command:");
+            System.out.println(command);
+            builder.command("/bin/bash","-c",command);
+            //builder.redirectInput(ProcessBuilder.Redirect.INHERIT);
+            //builder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+            Process process = builder.start();
+            //InputStream errStream = process.getErrorStream();
+            //InputStream inStream = process.getInputStream();
+            //OutputStream outStream = process.getOutputStream();
+            
+            BibleGetIO.StreamGobbler streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), BibleGetIO::checkDependencyInstalled);
+            Future future = Executors.newSingleThreadExecutor().submit(streamGobbler);
+            //streamGobbler.start();
+            int exitCode = process.waitFor();
+            //streamGobbler.join();
+            if(exitCode == 0){
+                System.out.println("apt -qq list process returned successfully");
+                System.out.println(BibleGetIO.sysPkgsNeeded.isEmpty() ? "all packages seem to be installed already" : "we still have " + BibleGetIO.sysPkgsNeeded.size() + " dependencies that need to be met: " + String.join(" ", BibleGetIO.sysPkgsNeeded) );
+                return ( BibleGetIO.depsInstalled && BibleGetIO.sysPkgsNeeded.isEmpty() );
+            } else {
+                System.out.println("apt -qq list process returned an error");
+                return false;
+            }
+            
+        } catch (IOException | InterruptedException ex) {
+            Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+    
+    private static void checkDependencyInstalled(String line){
+        String pkg = line;
+        if(line.contains("/")){
+            pkg = line.split("/")[0];
+        }
+        if(line.contains("[installed]") ){
+            BibleGetIO.sysPkgsNeeded.remove(pkg);
+            System.out.println(pkg + " is installed!");
+        } else {
+            BibleGetIO.depsInstalled = false;
+            System.out.println(pkg + " is not installed...");
+        }
+    }
+    
+    private static boolean JCEFisEnvReady(){
+        Path launchFile = Paths.get(System.getProperty("user.home"),".BibleGetOpenOfficePlugin","launch.sh");
+        if(Files.exists(launchFile) && Files.isExecutable(launchFile)){
+            try {
+                ProcessBuilder builder = new ProcessBuilder();
+                builder.command("/bin/bash","-c","which soffice");
+                Process process = builder.start();
+                BibleGetIO.StreamGobbler streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), BibleGetIO::getLauncherPath);
+                Executors.newSingleThreadExecutor().submit(streamGobbler);
+                int exitCode = process.waitFor();
+                if(exitCode == 0){
+                    //we have the path to the soffice launcher, which is probably a symlink
+                    System.out.println("soffice launch file = " + BibleGetIO.sofficeLaunch);
+                    if(Files.exists(Paths.get(BibleGetIO.sofficeLaunch)) && Files.isSymbolicLink(Paths.get(BibleGetIO.sofficeLaunch)) ){
+                        //let's get the target path for the symbolic link
+                        Path realPath = Paths.get(BibleGetIO.sofficeLaunch).toRealPath();
+                        System.out.println("which is a symbolic link to : " + realPath.toString() + " (should equal: " + launchFile.toString() + ")");
+                        return realPath.compareTo(launchFile) == 0;
+                    }
+                } else {
+                    return false;
+                }
+            } catch (IOException | InterruptedException ex) {
+                Logger.getLogger(BibleGetIO.class.getName()).log(Level.SEVERE, null, ex);
+                return false;
+            }
+        }
+        return false;
+    }
+    
+    public static void getLauncherPath(String line){
+        System.out.println("BibleGetIO::getLauncherPath : " + line);
+        if(line != null && false == line.isEmpty() ){
+            BibleGetIO.sofficeLaunch = line;
+            System.out.println("BibleGetIO::getLauncherPath : " + BibleGetIO.sofficeLaunch);
+        } else {
+            System.out.println("BibleGetIO::getLauncherPath : why does it seem that the value return is null or empty?");
+        }
     }
         
     public static class StreamGobbler implements Runnable {
         private final InputStream inputStream;
         private final Consumer<String> consumer;
+        private final boolean newline;
 
         public StreamGobbler(InputStream inputStream, Consumer<String> consumer) {
             this.inputStream = inputStream;
             this.consumer = consumer;
+            this.newline = false;
+        }
+        
+        public StreamGobbler(InputStream inputStream, Consumer<String> consumer, boolean newline) {
+            this.inputStream = inputStream;
+            this.consumer = consumer;
+            this.newline = newline;
         }
 
         @Override
         public void run() {
             new BufferedReader(new InputStreamReader(inputStream)).lines()
-              .forEach(line -> { consumer.accept(line); consumer.accept(System.lineSeparator()); } );
+              .forEach(line -> { consumer.accept(line); if(this.newline){ consumer.accept(System.lineSeparator()); } } );
         }
     }
     
