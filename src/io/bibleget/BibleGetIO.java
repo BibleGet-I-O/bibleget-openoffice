@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -547,7 +546,6 @@ public final class BibleGetIO extends WeakBase
                     //System.out.println(xNameAccess1.getByName("MeasureUnit").toString());
                     System.out.println("MeasureUnit Class name =" + xNameAccess1.getByName("MeasureUnit").getClass().getName());
                     System.out.println("MeasureUnit Class TypeName =" + xNameAccess1.getByName("MeasureUnit").getClass().getTypeName());
-                    System.out.println( (int)xNameAccess1.getByName("MeasureUnit"));
                     /*
                         MM = 1
                         CM = 2
@@ -567,6 +565,7 @@ public final class BibleGetIO extends WeakBase
                                 mUnit = Integer.valueOf( AnyConverter.toString(xNameAccess1.getByName("MeasureUnit")) );
                             }   break;
                         case "java.lang.Integer":
+                            System.out.println( (int)xNameAccess1.getByName("MeasureUnit"));
                             mUnit = (int)xNameAccess1.getByName("MeasureUnit");
                             break;
                         default:
@@ -1158,15 +1157,13 @@ public final class BibleGetIO extends WeakBase
             //builder.redirectInput(ProcessBuilder.Redirect.INHERIT);
             //builder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
             Process process = builder.start();
-            //InputStream errStream = process.getErrorStream();
-            //InputStream inStream = process.getInputStream();
-            //OutputStream outStream = process.getOutputStream();
+            InputStream errStream = process.getErrorStream();
+            InputStream inStream = process.getInputStream();
+            OutputStream outStream = process.getOutputStream();
             
-            BibleGetIO.StreamGobbler streamGobbler = new BibleGetIO.StreamGobbler(process.getInputStream(), BibleGetIO::checkDependencyInstalled);
-            Future future = Executors.newSingleThreadExecutor().submit(streamGobbler);
-            //streamGobbler.start();
+            BufferedReader bf = new BufferedReader(new InputStreamReader(inStream));
+            bf.lines().forEach(BibleGetIO::checkDependencyInstalled);
             int exitCode = process.waitFor();
-            //streamGobbler.join();
             if(exitCode == 0){
                 System.out.println("apt -qq list process returned successfully");
                 System.out.println(BibleGetIO.sysPkgsNeeded.isEmpty() ? "all packages seem to be installed already" : "we still have " + BibleGetIO.sysPkgsNeeded.size() + " dependencies that need to be met: " + String.join(" ", BibleGetIO.sysPkgsNeeded) );
