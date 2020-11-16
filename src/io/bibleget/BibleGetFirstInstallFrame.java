@@ -933,8 +933,9 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                     Executors.newSingleThreadExecutor().submit(streamGobbler);
                     int exitCode2 = process.waitFor();
                     if(exitCode2 == 0){
-                        publish(50);
+                        publish(100);
                         jTextAreaPreparing.append("soffice symlink updated: SUCCESS!");
+                        jTextAreaPreparing.append(System.lineSeparator());
                         jLabelPreparing.setIcon(checkmarkIco);
                         BibleGetIO.ADDONSTATE = BGET.ADDONSTATE.JCEFENVREADY;
                     } else {
@@ -984,7 +985,7 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                 case "PREPAREENV":
                     if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFENVREADY){
                         //what should we do to celebrate?
-                        jTextAreaPreparing.append("Installation is complete. Please restart OpenOffice to enjoy full functionality.");
+                        jTextAreaPreparing.append("Installation is complete.\nPlease restart OpenOffice to enjoy full functionality.");
                     }
                     break;
             }
