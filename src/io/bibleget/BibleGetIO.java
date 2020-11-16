@@ -1210,7 +1210,13 @@ public final class BibleGetIO extends WeakBase
                         //let's get the target path for the symbolic link
                         Path realPath = Paths.get(BibleGetIO.sofficeLaunch).toRealPath();
                         System.out.println("which is a symbolic link to : " + realPath.toString() + " (should equal: " + launchFile.toString() + ")");
-                        return realPath.compareTo(launchFile) == 0;
+                        if(realPath.compareTo(launchFile) == 0){
+                            return true;
+                        } else {
+                            //we only need to record the SymLink while it is still pointing at OpenOffice
+                            BibleGetIO.sofficeLaunchSymlink = realPath.toString();
+                            return false;
+                        }
                     }
                 } else {
                     return false;

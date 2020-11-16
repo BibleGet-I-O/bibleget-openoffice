@@ -796,6 +796,7 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                         Path outFile = Paths.get(System.getProperty("user.home"),".BibleGetOpenOfficePlugin","firstinstall.sh");
                         //String systemUser = System.getProperty("user.name");
                         if(BibleGetIO.sofficeLaunch == null || BibleGetIO.sofficeLaunch.isEmpty() ){
+                            Path launchFile = Paths.get(System.getProperty("user.home"),".BibleGetOpenOfficePlugin","launch.sh");
                             try {
                                 ProcessBuilder builder = new ProcessBuilder();
                                 builder.command("/bin/bash","-c","which soffice");
@@ -807,6 +808,16 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                                     Thread.sleep(10);
                                     //we have the path to the soffice launcher, which is probably a symlink
                                     System.out.println("soffice launch file = " + BibleGetIO.sofficeLaunch);
+                                    if(Files.exists(Paths.get(BibleGetIO.sofficeLaunch)) && Files.isSymbolicLink(Paths.get(BibleGetIO.sofficeLaunch)) ){
+                                        //let's get the target path for the symbolic link
+                                        Path realPath = Paths.get(BibleGetIO.sofficeLaunch).toRealPath();
+                                        System.out.println("which is a symbolic link to : " + realPath.toString() + " (should equal: " + launchFile.toString() + ")");
+                                        if(realPath.compareTo(launchFile) == 0){
+                                            //SymLink is already pointing at launch.sh!
+                                        } else {
+                                            BibleGetIO.sofficeLaunchSymlink = realPath.toString();
+                                        }
+                                    }
                                 } else {
                                     System.out.println("BibleGetFirstInstallFrame: COPYJCEF: could not get detect soffice launch file");
                                 }
@@ -816,6 +827,7 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                         
                         }
                         System.out.println("value of BibleGetIO.sofficeLaunch = " + BibleGetIO.sofficeLaunch);
+                        System.out.println("value of BibleGetIO.sofficeLaunchSymlink = " + BibleGetIO.sofficeLaunchSymlink);
                         try (FileWriter writer = new FileWriter(outFile.toFile()); BufferedWriter bf = new BufferedWriter(writer)) {
                             bf.write("#!/bin/bash");
                             bf.newLine();
