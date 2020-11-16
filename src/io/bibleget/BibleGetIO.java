@@ -39,11 +39,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -107,7 +107,7 @@ public final class BibleGetIO extends WeakBase
     private static boolean depsInstalled = true;
     public static String sofficeLaunch = "";
     public static String sofficeLaunchSymlink = "";
-    public static List<String> sysPkgsNeeded;
+    public static ArrayList<String> sysPkgsNeeded;
     
     private static BibleGetIO instance;
     
@@ -788,7 +788,7 @@ public final class BibleGetIO extends WeakBase
         //before we proceed, we need to verify the initialization state of the JCEF component
 
         String[] sysPkgsArr = {"gconf-service","libasound2","libatk1.0-0","libatk-bridge2.0-0","libc6","libcairo2","libcups2","libdbus-1-3","libexpat1","libfontconfig1","libgcc1","libgconf-2-4","libgdk-pixbuf2.0-0","libglib2.0-0","libgbm-dev","libgtk-3-0","libnspr4","libpango-1.0-0","libpangocairo-1.0-0","libstdc++6","libx11-6","libx11-xcb1","libxcb1","libxcomposite1","libxcursor1","libxcursor-dev","libxdamage1","libxext6","libxfixes3","libxi6","libxrandr2","libxrender1","libxss1","libxtst6","ca-certificates","fonts-liberation","libappindicator1","libnss3","lsb-release","xdg-utils"};
-        BibleGetIO.sysPkgsNeeded = Arrays.asList(sysPkgsArr);
+        BibleGetIO.sysPkgsNeeded = new ArrayList<>(Arrays.asList(sysPkgsArr));
         
         System.out.println("setNativeLibraryDir : will now proceed to checkJCEFisReady...");
         BibleGetIO.checkJCEFisReady();
@@ -1149,7 +1149,7 @@ public final class BibleGetIO extends WeakBase
         System.out.println("entering JCEFisSysDepsSatisfied()...");
         
         try {
-            ProcessBuilder builder = new ProcessBuilder().inheritIO();
+            ProcessBuilder builder = new ProcessBuilder();
             String command = "apt -qq list " + String.join(" ", BibleGetIO.sysPkgsNeeded ) ;
             System.out.println("now issuing command:");
             System.out.println(command);
