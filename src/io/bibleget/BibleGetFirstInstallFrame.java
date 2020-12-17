@@ -30,7 +30,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -80,14 +79,20 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                 tf = new Task_Force(jProgressBars,"COPYJCEF");
                 break;
             case JCEFCOPIED:
+                jLabelDownloading.setIcon(checkmarkIco);
                 jLabelCopying.setIcon(checkmarkIco);
                 tf = new Task_Force(jProgressBars,"INSTALLDEPENDENCIES");
                 break;
             case JCEFDEPENDENCIES:
+                jLabelDownloading.setIcon(checkmarkIco);
+                jLabelCopying.setIcon(checkmarkIco);
                 jLabelInstalling.setIcon(checkmarkIco);
                 tf = new Task_Force(jProgressBars,"PREPAREENV");
                 break;
             case JCEFENVREADY:
+                jLabelDownloading.setIcon(checkmarkIco);
+                jLabelCopying.setIcon(checkmarkIco);
+                jLabelInstalling.setIcon(checkmarkIco);
                 jLabelPreparing.setIcon(checkmarkIco);
                 break;
         }
@@ -261,7 +266,7 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jProgressBarCopying, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 72, Short.MAX_VALUE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 71, Short.MAX_VALUE))
         );
 
         getContentPane().add(jPanelCopying);
@@ -459,10 +464,8 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new BibleGetFirstInstallFrame().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new BibleGetFirstInstallFrame().setVisible(true);
         });
     }
     
@@ -496,16 +499,22 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                     this.jProgressBarTotal.setValue((int) Math.round(totalProgress));
                     break;
                 case "COPYJCEF":
+                    this.jProgressBarDownloading.setValue(100);
                     this.jProgressBarCopying.setValue(i);
                     totalProgress = Double.valueOf(i) / Double.valueOf(4);
                     this.jProgressBarTotal.setValue(25 + (int) Math.round(totalProgress));
                     break;
                 case "INSTALLDEPENDENCIES":
+                    this.jProgressBarDownloading.setValue(100);
+                    this.jProgressBarCopying.setValue(100);
                     this.jProgressBarInstalling.setValue(i);
                     totalProgress = Double.valueOf(i) / Double.valueOf(4);
                     this.jProgressBarTotal.setValue(50 + (int) Math.round(totalProgress));
                     break;
                 case "PREPAREENV":
+                    this.jProgressBarDownloading.setValue(100);
+                    this.jProgressBarCopying.setValue(100);
+                    this.jProgressBarInstalling.setValue(100);
                     this.jProgressBarPreparing.setValue(i);
                     totalProgress = Double.valueOf(i) / Double.valueOf(4);
                     this.jProgressBarTotal.setValue(75 + (int) Math.round(totalProgress));
