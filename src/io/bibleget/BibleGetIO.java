@@ -1184,12 +1184,16 @@ public final class BibleGetIO extends WeakBase
         if(line.contains("/")){
             pkg = line.split("/")[0];
         }
-        if(line.contains("[installed]") ){
+        if(line.contains("[installed]") || line.contains("[installed,automatic]") ){
             BibleGetIO.sysPkgsNeeded.remove(pkg);
             System.out.println(pkg + " is installed!");
         } else {
-            BibleGetIO.depsInstalled = false;
-            System.out.println(pkg + " is not installed...");
+            if(BibleGetIO.sysPkgsNeeded.contains(pkg)){ // && line.contains("amd64") ?
+                BibleGetIO.depsInstalled = false;
+                System.out.println(pkg + " is not installed...");
+            } else {
+                System.out.println(pkg + " was already detected as installed or result does not pertain to amd64");
+            }
         }
     }
     
