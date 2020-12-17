@@ -825,6 +825,13 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
                                             //SymLink is already pointing at launch.sh!
                                         } else {
                                             BibleGetIO.sofficeLaunchSymlink = realPath.toString();
+                                            if(BibleGetIO.sofficeLaunchSymlink.contains("libreoffice")){
+                                                //openoffice did not succeed in updating the symlink!
+                                                //let us force update the symlink to point to openoffice
+                                                if(Files.exists(Paths.get("/opt/openoffice4/program/soffice") ) ){
+                                                    BibleGetIO.sofficeLaunchSymlink = "/opt/openoffice4/program/soffice";
+                                                }
+                                            }
                                         }
                                     }
                                 } else {
