@@ -25,7 +25,6 @@ import java.awt.Toolkit;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
-import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
@@ -869,6 +868,7 @@ public class BibleGetSearchFrame extends javax.swing.JFrame {
     
     @Override
     public void setVisible(final boolean visible) {
+        browser.loadURL(browser.getURL());
         // make sure that frame is marked as not disposed if it is asked to be visible
         if (visible) {
             //setDisposed(false);

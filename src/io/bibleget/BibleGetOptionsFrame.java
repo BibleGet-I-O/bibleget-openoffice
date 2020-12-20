@@ -3240,10 +3240,6 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         XPropertySet viewSettings=xViewSettings.getViewSettings();
         try {
             System.out.println("I got the HorizontalRulerMetric property, here is the type :" + AnyConverter.getType(viewSettings.getPropertyValue("HorizontalRulerMetric")));
-        } catch (UnknownPropertyException | WrappedTargetException ex) {
-            Logger.getLogger(BibleGetOptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        try {
             System.out.println("And here is the value: " + AnyConverter.toInt(viewSettings.getPropertyValue("HorizontalRulerMetric")));
         } catch (UnknownPropertyException | WrappedTargetException | IllegalArgumentException ex) {
             Logger.getLogger(BibleGetOptionsFrame.class.getName()).log(Level.SEVERE, null, ex);
@@ -3493,6 +3489,7 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
                 //System.out.println("rulerLength = "+rulerLength);
                 BibleGetIO.measureUnit = USERPREFS.PARAGRAPHSTYLES_MEASUREUNIT;
             } else {
+                browser.loadURL(browser.getURL());
                 System.out.println("While making the preferences window visible, we detected that the ruler units have not changed. No need to redraw the ruler as far as I can tell.");
             }
         } catch (UnknownPropertyException | WrappedTargetException | IllegalArgumentException ex) {
@@ -3530,7 +3527,5 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
       super.requestFocus();
       super.setAlwaysOnTop(false);
     }
-
-
 
 }
