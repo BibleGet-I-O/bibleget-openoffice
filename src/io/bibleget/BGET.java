@@ -277,6 +277,32 @@ public class BGET {
         }
     }
     
+    public enum PREFERORIGIN {
+        GREEK(1),
+        HEBREW(2);
+        
+        private int value;
+        private static final HashMap<Integer,PREFERORIGIN> map = new HashMap<>();
+        
+        private PREFERORIGIN(int value) {
+            this.value = value;
+        }
+        
+        static {
+            for (PREFERORIGIN mOrigin : PREFERORIGIN.values()){
+                map.put(mOrigin.value, mOrigin);
+            }
+        }
+        
+        public static PREFERORIGIN valueOf(int mOrigin){
+            return (PREFERORIGIN) map.get(mOrigin);
+        }
+        
+        public int getValue(){
+            return value;
+        }
+    }
+    
     public enum ADDONSTATE{
         JCEFUNINITIALIZED,
         JCEFDOWNLOADED,

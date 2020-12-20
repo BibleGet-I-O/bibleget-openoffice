@@ -122,7 +122,8 @@ public class DBHelper {
                 + "LAYOUTPREFS_BOOKCHAPTER_FORMAT INT, "
                 + "LAYOUTPREFS_BOOKCHAPTER_FULLQUERY BOOLEAN, "
                 + "LAYOUTPREFS_VERSENUMBER_SHOW INT, "
-                + "PREFERREDVERSIONS VARCHAR(50)"
+                + "PREFERREDVERSIONS VARCHAR(50), "
+                + "PREFERREDORIGIN INT"
                 + ")";
                 
         final String optionsTableInitialData = "INSERT INTO OPTIONS ("
@@ -175,7 +176,8 @@ public class DBHelper {
                 + "LAYOUTPREFS_BOOKCHAPTER_FORMAT, "
                 + "LAYOUTPREFS_BOOKCHAPTER_FULLQUERY, "
                 + "LAYOUTPREFS_VERSENUMBER_SHOW, "
-                + "PREFERREDVERSIONS"
+                + "PREFERREDVERSIONS, "
+                + "PREFERREDORIGIN"
                 + ") VALUES ("
                 + "150,0.0,0.0,'"+defaultFont+"'," + BGET.ALIGN.JUSTIFY.getValue() + ",false," + (BibleGetIO.measureUnit.getValue()) + ","            //PARAGRAPH STYLES
                 + "true,false,false,false,'#0000FF','#FFFFFF',14," + BGET.VALIGN.NORMAL.getValue() + ","    //BIBLE VERSION STYLES
@@ -185,10 +187,11 @@ public class DBHelper {
                 + BGET.VISIBILITY.SHOW.getValue() + "," + BGET.ALIGN.LEFT.getValue() + "," + BGET.POS.TOP.getValue() + "," + BGET.WRAP.NONE.getValue() + "," 
                 + BGET.ALIGN.LEFT.getValue() + "," + BGET.POS.TOP.getValue() + "," + BGET.WRAP.NONE.getValue() + ","
                 + BGET.FORMAT.BIBLELANG.getValue() + ",true," + BGET.VISIBILITY.SHOW.getValue() + ","
-                + "'NVBSE'"
+                + "'NVBSE',"
+                + BGET.PREFERORIGIN.GREEK.getValue()
                 + ")";
         
-        final int OptionsTableSchemaVersion = 2;
+        final int OptionsTableSchemaVersion = 3;
         
         String metadataTableSchema = "CREATE TABLE METADATA (";
         metadataTableSchema += "ID INT, ";

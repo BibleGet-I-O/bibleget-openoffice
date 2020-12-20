@@ -49,7 +49,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.PKIXParameters;
 import java.security.cert.X509Certificate;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
@@ -62,6 +61,8 @@ public class HTTPCaller {
     private static BibleIndexes indexes = null;
     private final List<String> errorMessages = new ArrayList<>();
     private static int counter = 0;
+    private boolean hasBookHebrewGreek = false;
+    private static Preferences USERPREFS;
         
     /**
      *
@@ -71,12 +72,28 @@ public class HTTPCaller {
      */
     public String sendGet(String myQuery,String versions) {
         try {
+            USERPREFS = Preferences.getInstance();
             versions = URLEncoder.encode(versions,"utf-8");
             myQuery = URLEncoder.encode(myQuery,"utf-8");
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(HTTPCaller.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(HTTPCaller.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(HTTPCaller.class.getName()).log(Level.SEVERE, null, ex);
         }
-        String url = "https://query.bibleget.io/index.php?query="+myQuery+"&version="+versions+"&return=json&appid=openoffice&pluginversion="+BibleGetIO.PLUGINVERSION;
+        String url = "https://query.bibleget.io/v3/index.php?query="+myQuery+"&version="+versions+"&return=json&appid=openoffice&pluginversion="+BibleGetIO.PLUGINVERSION;
+        if(hasBookHebrewGreek){
+            switch(USERPREFS.PREFERREDORIGIN){
+                case GREEK:
+                    url += "&preferorigin=GREEK";
+                    break;
+                case HEBREW:
+                    url += "&preferorigin=HEBREW";
+                    break;
+            }
+        }
+        System.out.println("sending request: " + url);
         if(counter < 1){
             if(installCert()){
                 counter++;
@@ -95,7 +112,7 @@ public class HTTPCaller {
         } catch(UnsupportedEncodingException ex){
             Logger.getLogger(HTTPCaller.class.getName()).log(Level.SEVERE, null, ex);
         }
-        String url = "https://query.bibleget.io/search.php?query=keywordsearch&keyword=" + searchTerm + "&version=" + version + "&return=json&appid=openoffice&pluginversion="+BibleGetIO.PLUGINVERSION + (exactMatch ? "&exactmatch=true" : "");
+        String url = "https://query.bibleget.io/v3/search.php?query=keywordsearch&keyword=" + searchTerm + "&version=" + version + "&return=json&appid=openoffice&pluginversion="+BibleGetIO.PLUGINVERSION + (exactMatch ? "&exactmatch=true" : "");
         if(counter < 1){
             if(installCert()){
                 counter++;
@@ -114,7 +131,7 @@ public class HTTPCaller {
      */
     public String getMetaData(String query){
         String url;
-        url = "https://query.bibleget.io/metadata.php?query="+query;
+        url = "https://query.bibleget.io/v3/metadata.php?query="+query;
         if(counter < 1){
             if(installCert()){
                 counter++;
@@ -251,7 +268,13 @@ public class HTTPCaller {
             }
             JsonArray biblebooks = biblebooksBldr.build();
             if(!biblebooks.isEmpty()){
-                return idxOf(book,biblebooks);
+                int bookIndex = idxOf(book,biblebooks);
+                System.out.println("HTTPCaller::isValidBook >> bookIndex = " + bookIndex);
+                if(bookIndex + 1 == 19){ //19 = Esther. We have to add one since bookIndex is zero-based, whereas 19 would be the actual book number
+                    System.out.println("We are dealing with a book that has both Hebrew and Greek texts");
+                    hasBookHebrewGreek = true;
+                }
+                return bookIndex;
             }
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(HTTPCaller.class.getName()).log(Level.SEVERE, null, ex);

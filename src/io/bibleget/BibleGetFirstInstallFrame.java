@@ -284,12 +284,20 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
         jProgressBarInstalling.setPreferredSize(new java.awt.Dimension(675, 20));
         jProgressBarInstalling.setStringPainted(true);
 
-        jPanel1.setLayout(new java.awt.FlowLayout(0));
+        jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         jLabel6.setText("System password:");
         jPanel1.add(jLabel6);
 
         jPasswordField1.setText("jPasswordField1");
+        jPasswordField1.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jPasswordField1FocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jPasswordField1FocusLost(evt);
+            }
+        });
         jPanel1.add(jPasswordField1);
 
         jButton1.setText("OK");
@@ -435,6 +443,18 @@ public class BibleGetFirstInstallFrame extends javax.swing.JFrame {
             jLabel7.setText("Password is empty, cannot continue. Please type password, or run shell script.");
         }
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jPasswordField1FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jPasswordField1FocusGained
+        if( "***************".equals(new String(jPasswordField1.getPassword())) ){
+            jPasswordField1.setText("");
+        }
+    }//GEN-LAST:event_jPasswordField1FocusGained
+
+    private void jPasswordField1FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jPasswordField1FocusLost
+        if( "".equals(new String(jPasswordField1.getPassword())) ){
+            jPasswordField1.setText("***************");
+        }
+    }//GEN-LAST:event_jPasswordField1FocusLost
 
     /**
      * @param args the command line arguments

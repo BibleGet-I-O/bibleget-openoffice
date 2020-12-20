@@ -494,6 +494,7 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         buttonGroupBookChapterVAlign = new javax.swing.ButtonGroup();
         buttonGroupBookChapterFormat = new javax.swing.ButtonGroup();
         buttonGroupBookChapterWrap = new javax.swing.ButtonGroup();
+        buttonGroupPreferOrigin = new javax.swing.ButtonGroup();
         jPanelParagraph = new javax.swing.JPanel();
         jPanelParagraphAlignment = new javax.swing.JPanel();
         jToolBarParagraphAlignment = new javax.swing.JToolBar();
@@ -598,6 +599,11 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         jToggleButtonVerseNumberSuperscript = new javax.swing.JToggleButton();
         jToggleButtonVerseNumberSubscript = new javax.swing.JToggleButton();
         jToggleButtonVerseNumberVisibility = new javax.swing.JToggleButton();
+        jSeparator18 = new javax.swing.JSeparator();
+        jLabel1 = new javax.swing.JLabel();
+        jPanel2 = new javax.swing.JPanel();
+        jToggleButton1 = new javax.swing.JToggleButton();
+        jToggleButton2 = new javax.swing.JToggleButton();
         jPanelVerseText = new javax.swing.JPanel();
         jToolBar4 = new javax.swing.JToolBar();
         jToggleButtonVerseTextBold = new javax.swing.JToggleButton();
@@ -1569,6 +1575,43 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
             }
         });
         jPanelVerseNumber.add(jToggleButtonVerseNumberVisibility);
+
+        jSeparator18.setOrientation(javax.swing.SwingConstants.VERTICAL);
+        jSeparator18.setMinimumSize(new java.awt.Dimension(2, 6));
+        jSeparator18.setPreferredSize(new java.awt.Dimension(2, 20));
+        jPanelVerseNumber.add(jSeparator18);
+
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        jLabel1.setText("<html>For those books and chapters <br />where there is a choice of verse texts <br />based on the origin of the translation</html>");
+        jLabel1.setToolTipText("e.g. the book of Esther");
+        jLabel1.setPreferredSize(new java.awt.Dimension(325, 54));
+        jPanelVerseNumber.add(jLabel1);
+
+        jPanel2.setLayout(new java.awt.GridLayout(2, 1));
+
+        buttonGroupPreferOrigin.add(jToggleButton1);
+        jToggleButton1.setSelected(USERPREFS.PREFERREDORIGIN==BGET.PREFERORIGIN.GREEK);
+        jToggleButton1.setText("GREEK");
+        jToggleButton1.setToolTipText("Prefer Greek origin");
+        jToggleButton1.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jToggleButton1ItemStateChanged(evt);
+            }
+        });
+        jPanel2.add(jToggleButton1);
+
+        buttonGroupPreferOrigin.add(jToggleButton2);
+        jToggleButton2.setSelected(USERPREFS.PREFERREDORIGIN==BGET.PREFERORIGIN.HEBREW);
+        jToggleButton2.setText("HEBREW");
+        jToggleButton2.setToolTipText("Prefer Hebrew origin");
+        jToggleButton2.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jToggleButton2ItemStateChanged(evt);
+            }
+        });
+        jPanel2.add(jToggleButton2);
+
+        jPanelVerseNumber.add(jPanel2);
 
         jPanel3.add(jPanelVerseNumber);
 
@@ -2883,6 +2926,30 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jToggleButtonBookChapterUserLangAbbrevItemStateChanged
 
+    private void jToggleButton1ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton1ItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.PREFERREDORIGIN = BGET.PREFERORIGIN.GREEK;
+            if(biblegetDB.setIntOption("PREFERREDORIGIN", USERPREFS.PREFERREDORIGIN.getValue())){
+                //System.out.println("LAYOUTPREFS_BOOKCHAPTER_FORMAT was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT);
+            }
+            else{
+                //System.out.println("Error updating LAYOUTPREFS_BOOKCHAPTER_FORMAT in database");
+            }
+        }
+    }//GEN-LAST:event_jToggleButton1ItemStateChanged
+
+    private void jToggleButton2ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton2ItemStateChanged
+        if(evt.getStateChange()==ItemEvent.SELECTED){
+            USERPREFS.PREFERREDORIGIN = BGET.PREFERORIGIN.HEBREW;
+            if(biblegetDB.setIntOption("PREFERREDORIGIN", USERPREFS.PREFERREDORIGIN.getValue())){
+                //System.out.println("LAYOUTPREFS_BOOKCHAPTER_FORMAT was successfully updated in database to value "+USERPREFS.LAYOUTPREFS_BOOKCHAPTER_FORMAT);
+            }
+            else{
+                //System.out.println("Error updating LAYOUTPREFS_BOOKCHAPTER_FORMAT in database");
+            }
+        }
+    }//GEN-LAST:event_jToggleButton2ItemStateChanged
+
     private void jColorChooserClean(JColorChooser jColorChooser){
         AbstractColorChooserPanel panels[] = jColorChooser.getChooserPanels();
         jColorChooser.removeChooserPanel(panels[4]);
@@ -3043,6 +3110,7 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
     private javax.swing.ButtonGroup buttonGroupBookChapterVAlign;
     private javax.swing.ButtonGroup buttonGroupBookChapterWrap;
     private javax.swing.ButtonGroup buttonGroupParagraphAlign;
+    private javax.swing.ButtonGroup buttonGroupPreferOrigin;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler10;
     private javax.swing.Box.Filler filler11;
@@ -3075,10 +3143,12 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
     private javax.swing.JComboBox jComboBoxVerseNumberFontSize;
     private javax.swing.JComboBox jComboBoxVerseTextFontSize;
     private javax.swing.JInternalFrame jInternalFrame1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabelLeftIndent;
     private javax.swing.JLabel jLabelRightIndent;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanelBibleVersion;
     private javax.swing.JPanel jPanelBookChapter;
@@ -3099,6 +3169,7 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
     private javax.swing.JToolBar.Separator jSeparator15;
     private javax.swing.JToolBar.Separator jSeparator16;
     private javax.swing.JToolBar.Separator jSeparator17;
+    private javax.swing.JSeparator jSeparator18;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
@@ -3107,6 +3178,8 @@ public class BibleGetOptionsFrame extends javax.swing.JFrame {
     private javax.swing.JToolBar.Separator jSeparator7;
     private javax.swing.JToolBar.Separator jSeparator8;
     private javax.swing.JToolBar.Separator jSeparator9;
+    private javax.swing.JToggleButton jToggleButton1;
+    private javax.swing.JToggleButton jToggleButton2;
     private javax.swing.JToggleButton jToggleButtonBibleVersionAlignCenter;
     private javax.swing.JToggleButton jToggleButtonBibleVersionAlignLeft;
     private javax.swing.JToggleButton jToggleButtonBibleVersionAlignRight;

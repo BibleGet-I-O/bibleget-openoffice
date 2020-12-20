@@ -633,13 +633,13 @@ public final class BibleGetIO extends WeakBase
                         //If it is, don't try to instantiate the JCEF component because it still needs to be installed
                         //this will happen as soon as the user opens the Search for Verses menu item or the Preferences menu item
                         
-                        if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFENVREADY && CefApp.startup(new String[]{"--disable-gpu"})){
+                        if(BibleGetIO.ADDONSTATE == BGET.ADDONSTATE.JCEFENVREADY && CefApp.startup(new String[]{"--disable-gpu"})){ //,"--use-gl=swiftshader"
                             if (CefApp.getState() != CefApp.CefAppState.INITIALIZED) {
                                 System.out.println("Creating CefSettings...");
                                 CefSettings settings = new CefSettings();
                                 settings.windowless_rendering_enabled = OS.isLinux();
                                 settings.log_severity = LogSeverity.LOGSEVERITY_VERBOSE;
-                                cefApp = CefApp.getInstance(new String[]{"--disable-gpu"}, settings);
+                                cefApp = CefApp.getInstance(new String[]{"--disable-gpu"}, settings); //"--use-gl=swiftshader"
 
                                 if(cefApp != null){
                                     System.out.println("we seem to have an instance of CefApp:");
